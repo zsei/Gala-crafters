@@ -1,0 +1,186 @@
+/* MENU SLIDER SECTION */
+.menu-slider-section {
+    background-color: #f8f8f8;
+    /* Changed to a subtle off-white/gray */
+    padding: 120px 0;
+    overflow: hidden;
+    /* Prevent horizontal scroll on document */
+}
+
+.menu-slider-container {
+    width: 100%;
+    display: grid;
+    /* max(40px, ...) acts as padding on small screens & matches a max-width 1500px container on large screens */
+    grid-template-columns: max(40px, calc((100% - 1500px) / 2 + 40px)) 400px 80px minmax(0, 1fr);
+    align-items: center;
+}
+
+/* Left Content Area */
+.menu-slider-info {
+    grid-column: 2;
+    text-align: left;
+}
+
+.menu-slider-overline {
+    font-family: 'DM Sans', sans-serif;
+    color: #791c2b;
+    /* A burgundy/maroon matching the image */
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+    display: block;
+    text-transform: uppercase;
+}
+
+.menu-slider-info h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 42px;
+    color: #0f172a;
+    line-height: 1.2;
+    margin-bottom: 30px;
+    letter-spacing: 2px;
+    /* Increased letter spacing */
+}
+
+.menu-slider-info p {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: #555;
+    line-height: 1.8;
+    margin-bottom: 40px;
+}
+
+/* Slider Controls */
+.menu-slider-controls {
+    display: flex;
+    gap: 15px;
+}
+
+.menu-slider-controls button {
+    width: 50px;
+    height: 50px;
+    background: transparent;
+    border: 1px solid #791c2b;
+    color: #791c2b;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.menu-slider-controls button:hover,
+.menu-slider-controls button:active {
+    /* Give it a hover state like the second button in image */
+    background: #47111b;
+    /* Dark maroon/burgundy */
+    color: #fff;
+    border-color: #47111b;
+}
+
+/* Right Slider Area */
+.menu-slider-cards {
+    grid-column: 4;
+    display: flex;
+    gap: 30px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding-bottom: 20px;
+    /* Space for scrollbar if visible */
+    scrollbar-width: none;
+    /* Hide scrollbar for Firefox */
+    -ms-overflow-style: none;
+    /* Hide scrollbar for IE/Edge */
+    padding-right: 40px;
+}
+
+.menu-slider-cards::-webkit-scrollbar {
+    display: none;
+    /* Hide scrollbar for Chrome/Safari */
+}
+
+.menu-card {
+    position: relative;
+    flex: 0 0 450px;
+    /* Increased Card width to make it wider */
+    aspect-ratio: 1 / 1;
+    /* Changed to square ratio to make the image wider */
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.menu-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.menu-card:hover img {
+    transform: scale(1.05);
+    /* Slight scale on hover */
+}
+
+/* Gray overlay and Text */
+.menu-card-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    /* Dark overlay to make text white and readable */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s ease;
+}
+
+.menu-card:hover .menu-card-overlay {
+    background: rgba(0, 0, 0, 0.2);
+    /* Slightly lighter on hover */
+}
+
+.menu-card h3 {
+    color: #fff;
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    font-weight: 600;
+    text-align: center;
+    padding: 0 20px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    letter-spacing: 2px;
+    /* Increased letter spacing on the card titles too */
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .menu-slider-container {
+        display: flex;
+        flex-direction: column;
+        gap: 50px;
+        padding-left: 0;
+    }
+
+    .menu-slider-info {
+        grid-column: auto;
+        flex: auto;
+        width: 100%;
+        max-width: 600px;
+        text-align: center;
+        padding: 0 40px;
+    }
+
+    .menu-slider-controls {
+        justify-content: center;
+    }
+
+    .menu-slider-cards {
+        grid-column: auto;
+        width: 100%;
+        padding-left: 40px;
+        padding-right: 40px;
+    }
+}

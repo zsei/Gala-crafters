@@ -1,0 +1,3434 @@
+/* CONSOLIDATED FONT IMPORTS */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+
+/* RESET & GLOBALS */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'DM Sans', sans-serif;
+  /* Clean default for body text */
+}
+
+body {
+  /* This linear-gradient creates a frosted white overlay so your text stays readable! */
+  background-image: linear-gradient(rgba(10, 15, 29, 0.7), rgba(10, 15, 29, 0.7)), url('./assets/imga1.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  /* Keeps the background still if you scroll */
+  color: #333;
+}
+
+/* Force the root to behave normally (overrides Vite defaults) */
+#root {
+  width: 100%;
+  text-align: left;
+  display: block;
+}
+
+/* CONTAINER */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 40px;
+  width: 100%;
+}
+
+/* NAVBAR */
+/* UPDATED NAVBAR STYLING */
+.navbar {
+  position: fixed;
+  /* Keeps it at the top while scrolling */
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  /* Ensures it stays above all other content */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 40px;
+  /* Reduced padding slightly for a sleeker look */
+  transition: all 0.3s ease;
+  /* Smooth transition for background changes */
+  background: transparent;
+  /* Default state for the Hero section */
+}
+
+/* This class will be added via JavaScript/React when you scroll */
+.navbar.scrolled {
+  background: rgba(10, 15, 29, 0.9);
+  /* Matches your dark hero overlay */
+  backdrop-filter: blur(10px);
+  /* Adds a high-end "glass" effect */
+  padding: 15px 40px;
+  /* Shrinks slightly when scrolling */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Ensure the container doesn't restrict the fixed navbar width */
+.nav-wrapper {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 900;
+  font-size: 18px;
+  color: #ffffff;
+  /* Changed to white */
+  letter-spacing: 0.5px;
+}
+
+.diamond {
+  width: 14px;
+  height: 14px;
+  background-color: #c49a2c;
+  transform: rotate(45deg);
+}
+
+.menu {
+  display: flex;
+  gap: 40px;
+  list-style: none;
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffffff;
+  /* Changed to white */
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+  /* Adds a soft dark glow */
+}
+
+.menu li {
+  cursor: pointer;
+}
+
+/* BUTTONS */
+.btn-primary {
+  background-color: #c49a2c;
+  color: #fff;
+  border: none;
+  padding: 16px 32px;
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  border-radius: 0;
+  /* Forces sharp corners */
+  box-shadow: 0 10px 20px -5px rgba(196, 154, 44, 0.4);
+  /* Gold shadow */
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: #c49a2c;
+  border: 1px solid #c49a2c;
+  padding: 16px 32px;
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  border-radius: 0;
+  /* Forces sharp corners */
+}
+
+/* HERO SECTION */
+.hero {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 90vh;
+  padding-top: 40px;
+}
+
+.hero-text {
+  max-width: 650px;
+  margin-top: 50px;
+  /* <--- ADD THIS LINE to pull the text upward */
+}
+
+.collection {
+  color: #ffffff;
+  /* Changed to white */
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  margin-bottom: 24px;
+  text-transform: uppercase;
+}
+
+/* HERO SECTION - BOLD SANS-SERIF FOCUS */
+/* HERO SECTION - EXACT TYPOGRAPHY FIX */
+.hero-text h1 {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 95px;
+  line-height: 1;
+  /* Tighter line height to match photo */
+  color: #ffffff;
+  font-weight: 900;
+  letter-spacing: -3px;
+  margin-bottom: 24px;
+  /* Apply italic to the whole h1 first */
+  font-style: italic;
+}
+
+/* FIXING THE "OCCASION" WORD */
+.hero-text h1 span {
+  display: block;
+  color: #c49a2c;
+  /* Gold color */
+  font-family: Arial, Helvetica, sans-serif;
+  /* Remove italic for this specific line to match the photo */
+  font-style: normal;
+  /* Ensure it's extra bold */
+  font-weight: 900;
+  margin-top: -0.01px;
+  /* Pulls it slightly closer to the top line */
+}
+
+.collection {
+  font-family: Arial, Helvetica, sans-serif;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  margin-bottom: 24px;
+  text-transform: uppercase;
+}
+
+.description {
+  font-family: Arial, Helvetica, sans-serif;
+  color: #ffffff;
+  font-size: 18px;
+  line-height: 1.6;
+  max-width: 480px;
+  margin-bottom: 40px;
+  font-weight: 400;
+}
+
+.buttons {
+  display: flex;
+  gap: 20px;
+}
+
+/* PHILOSOPHY SECTION */
+.philosophy-section {
+  background-color: #FCFBF9;
+  /* A soft, warm, expensive-feeling cream color */
+  padding: 140px 0;
+  /* Added a bit more breathing room top and bottom */
+  color: #333;
+}
+
+.philosophy-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 100px;
+  /* Pushed the text and image slightly further apart */
+}
+
+/* Image Styling - The Gallery Frame Effect */
+.philosophy-image {
+  flex: 1;
+  position: relative;
+  padding-right: 30px;
+  /* Creates space for the gold frame */
+  padding-bottom: 30px;
+}
+
+/* This creates the elegant gold offset box behind the image */
+.philosophy-image::after {
+  content: '';
+  position: absolute;
+  top: 30px;
+  right: 0;
+  bottom: 0;
+  left: 30px;
+  border: 1px solid #c49a2c;
+  /* Gold border */
+  z-index: 0;
+}
+
+.philosophy-image img {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  position: relative;
+  z-index: 1;
+  /* Keeps the image on top of the frame */
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  /* Slightly deeper shadow */
+}
+
+/* Text Styling */
+.philosophy-content {
+  flex: 1;
+  max-width: 500px;
+}
+
+.philosophy-content h2 {
+  font-family: 'Playfair Display', serif;
+  /* This is the magic line */
+  font-size: 60px;
+  color: #0f172a;
+  margin-bottom: 40px;
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -1.5px;
+}
+
+.philosophy-content h2 span {
+  color: #c49a2c;
+  font-style: italic;
+  display: block;
+  font-weight: 400;
+  /* Lighter weight makes it look more sophisticated */
+  font-size: 1.1em;
+  /* Slightly larger than the rest of the heading */
+}
+
+/* Editorial line next to the text */
+.philosophy-content p {
+  font-size: 18px;
+  line-height: 1.8;
+  color: #555;
+  margin-bottom: 24px;
+  padding-left: 20px;
+  /* Pushes text to the right */
+  border-left: 1px solid rgba(196, 154, 44, 0.4);
+  /* Faint gold line on the left */
+}
+
+.signature {
+  margin-top: 50px;
+  font-style: italic;
+  color: #c49a2c;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding-left: 20px;
+  /* Matches the paragraph alignment */
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 900px) {
+  .philosophy-container {
+    flex-direction: column;
+    text-align: center;
+    gap: 60px;
+  }
+
+  .philosophy-image {
+    padding: 0 15px 15px 0;
+    /* Smaller frame offset on mobile */
+  }
+
+  .philosophy-image::after {
+    top: 15px;
+    left: 15px;
+  }
+
+  .philosophy-content p,
+  .signature {
+    padding-left: 0;
+    border-left: none;
+    /* Remove line on mobile so it centers nicely */
+  }
+}
+
+/* The Drift Animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+    /* Starts 50px lower */
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    /* Slides up to 0 */
+  }
+}
+
+/* Apply it to the section */
+.philosophy-section {
+  /* ... your existing styles ... */
+  animation: fadeInUp 1.2s ease-out forwards;
+  /* This ensures the animation only plays once it enters view */
+  view-timeline-name: --revealing-section;
+  view-timeline-axis: block;
+  animation-timeline: --revealing-section;
+  animation-range: entry 10% cover 30%;
+}
+
+/* SERVICES / COLLECTIONS SECTION */
+.services-section {
+  background-color: #ffffff;
+  padding: 120px 0;
+  text-align: center;
+}
+
+.services-section .container {
+  max-width: 1500px;
+}
+
+.services-intro h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 42px;
+  color: #0f172a;
+  margin-bottom: 15px;
+}
+
+.gold-line {
+  width: 50px;
+  height: 1px;
+  background-color: #c49a2c;
+  margin: 0 auto 20px;
+}
+
+.services-intro p {
+  font-size: 12px;
+  letter-spacing: 3px;
+  color: #888;
+  margin-bottom: 80px;
+}
+
+/* Grid Layout */
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 30px;
+}
+
+.service-item {
+  text-align: left;
+  cursor: pointer;
+}
+
+/* THE MAGIC HOVER EFFECT */
+.image-container {
+  overflow: hidden;
+  /* Clips the zoom effect */
+  aspect-ratio: 1 / 1;
+  /* Wider square ratio instead of tall portrait */
+  margin-bottom: 20px;
+  background-color: #000;
+}
+
+.image-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(100%);
+  /* Starts in Black & White */
+  transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Ultra smooth transition */
+}
+
+/* When the cursor is on the image container */
+.service-item:hover .image-container img {
+  filter: grayscale(0%);
+  /* Turns back to full color */
+  transform: scale(1.08);
+  /* Subtle elegant zoom */
+}
+
+/* Text Styling below images */
+.service-info h4 {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  color: #c49a2c;
+  margin-bottom: 5px;
+}
+
+.service-info span {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: #888;
+  text-transform: uppercase;
+}
+
+/* CURATED EXCELLENCE - GRAY BACKGROUND & DM SANS */
+.excellence-section {
+  background-color: #ffffff;
+  /* Changed from light gray to white */
+  padding: 140px 0;
+  /* Massive vertical spacing to match the airy 2nd photo */
+  color: #333;
+}
+
+.excellence-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  text-align: left;
+  margin-bottom: 90px;
+  /* Airy gap before the cards */
+}
+
+/* FONT: Bold DM Sans with tight spacing */
+.excellence-titles h2 {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 40px;
+  font-weight: 900;
+  color: #c49a2c;
+  letter-spacing: -2px;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.excellence-titles .subtitle {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: #888;
+  margin-top: 15px;
+  text-transform: uppercase;
+}
+
+.all-services-link {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  color: #c49a2c;
+  letter-spacing: 2px;
+  border-bottom: 2px solid #c49a2c;
+  padding-bottom: 8px;
+  cursor: pointer;
+}
+
+.excellence-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 80px;
+  text-align: left;
+}
+
+.excellence-card {
+  position: relative;
+  cursor: pointer;
+}
+
+.excellence-card .icon-wrapper {
+  margin-bottom: 40px;
+}
+
+/* Card Titles in Bold DM Sans */
+.excellence-card h4 {
+  display: inline-block;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 1.5px;
+  margin-bottom: 45px;
+  color: #0f172a;
+  text-transform: uppercase;
+  position: relative;
+}
+
+/* THE MOVING LINE - DROPPED DOWN 15PX */
+.excellence-card h4::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -15px;
+  /* The gap: dropped down lower from the text */
+  width: 35px;
+  /* Short line to start */
+  height: 1.5px;
+  background-color: #c49a2c;
+  transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.excellence-card:hover h4::after {
+  width: 100%;
+  /* Slides out to full width on hover */
+}
+
+/* PARAGRAPH: DM Sans with high line-height for luxury feel */
+.excellence-card p {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14.5px;
+  line-height: 2.2;
+  /* Generous vertical space like the 2nd photo */
+  color: #555;
+  font-weight: 400;
+}
+
+/* CALL TO ACTION (CTA) */
+.cta-section {
+  background-color: 0A0F1D;
+  /* The signature Gala gold */
+  padding: 120px 0;
+  text-align: center;
+  color: #ffffff;
+}
+
+.cta-title {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 80px;
+  font-weight: 1000;
+  font-style: italic;
+  letter-spacing: -3px;
+  margin-bottom: 30px;
+  line-height: 1;
+}
+
+.cta-text {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  max-width: 600px;
+  margin: 0 auto 50px;
+  line-height: 1.8;
+  font-weight: 500;
+}
+
+.cta-btn {
+  background-color: #c49a2c;
+  color: #ffffff;
+  border: none;
+  padding: 20px 45px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 800;
+  letter-spacing: 2px;
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.cta-btn:hover {
+  transform: translateY(-5px);
+}
+
+/* FOOTER CONTENT */
+.footer-content {
+  background-color: #0a0f1d;
+  padding-top: 100px;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1.5fr;
+  gap: 80px;
+  padding-bottom: 80px;
+}
+
+.footer-col h4 {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  letter-spacing: 3px;
+  color: #c49a2c;
+  margin-bottom: 30px;
+  font-weight: 800;
+}
+
+.footer-col ul {
+  list-style: none;
+}
+
+.footer-col li,
+.footer-col address {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: #fff;
+  margin-bottom: 15px;
+  line-height: 1.8;
+  font-style: normal;
+}
+
+.footer-col a {
+  color: #fff;
+  text-decoration: none;
+}
+
+.footer-bio {
+  font-size: 14px;
+  color: #ddd;
+  line-height: 1.8;
+  margin: 25px 0;
+  max-width: 300px;
+}
+
+.social-links {
+  display: flex;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.social-box {
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(196, 154, 44, 0.2);
+  /* Faint gold border */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.social-box:hover {
+  border-color: #c49a2c;
+  /* Brightens on hover */
+  background-color: rgba(196, 154, 44, 0.15);
+  transform: translateY(-3px);
+}
+
+.social-box svg {
+  transition: transform 0.3s ease;
+}
+
+.social-box:hover svg {
+  transform: scale(1.1);
+}
+
+.social-icon {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.social-icon:hover {
+  border-color: #c49a2c;
+  color: #c49a2c;
+}
+
+.social-box svg path {
+  fill: #fff;
+  /* Ensure social icons match white text */
+}
+
+/* FOOTER BOTTOM BAR */
+.footer-bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 40px 0;
+}
+
+/* Footer bottom bar layout */
+.footer-bottom .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer-bottom .container p {
+  color: #fff;
+}
+
+/* =========================================
+   WEDDING HIRE SECTION (Dark Navy / Burgundy Layout)
+   ========================================= */
+
+.wedding-hire-section {
+  background-color: #0a0f1d;
+  /* Same dark color as the footer */
+  padding: 100px 0;
+  width: 100%;
+}
+
+.wedding-hire-row {
+  display: flex;
+  align-items: center;
+  max-width: 1300px;
+  margin: 0 auto 100px;
+  gap: 60px;
+}
+
+/* Remove margin for the last row so it doesn't push down */
+.wedding-hire-row:last-child {
+  margin-bottom: 0;
+}
+
+/* Alternating rows: reverse the flex direction */
+.wedding-hire-row.reverse {
+  flex-direction: row-reverse;
+}
+
+.wedding-hire-image {
+  flex: 1;
+}
+
+.wedding-hire-image img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  /* Keeps images nicely rectangular */
+  object-fit: cover;
+  display: block;
+}
+
+.wedding-hire-text {
+  flex: 1;
+  padding: 0 40px;
+  /* Give text breathing space */
+}
+
+/* For the reverse row, shift the padding to align nicely */
+.wedding-hire-row.reverse .wedding-hire-text {
+  padding: 0 40px 0 0;
+}
+
+.wedding-hire-text h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 38px;
+  color: #ffffff;
+  margin-bottom: 30px;
+  line-height: 1.3;
+  font-weight: 500;
+  letter-spacing: 1px;
+  /* Increased letter spacing */
+}
+
+.wedding-hire-text p {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  color: #f0f0f0;
+  line-height: 1.8;
+  margin-bottom: 25px;
+  letter-spacing: 0.5px;
+  /* Subtle spacing for readability */
+}
+
+/* Hide paragraph margins on the last item */
+.wedding-hire-text p:last-child {
+  margin-bottom: 0;
+}
+
+/* Mobile adjustments */
+@media (max-width: 1024px) {
+
+  .wedding-hire-row,
+  .wedding-hire-row.reverse {
+    flex-direction: column;
+    gap: 40px;
+    padding: 0 20px;
+  }
+
+  .wedding-hire-text {
+    padding: 0;
+  }
+}
+
+
+.bottom-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #999;
+}
+
+.legal-links span {
+  margin-left: 30px;
+  cursor: pointer;
+}
+
+/* Update logo colors for footer */
+.logo.gold {
+  color: #fff;
+}
+
+@media (max-width: 900px) {
+  .excellence-grid {
+    grid-template-columns: 1fr;
+    gap: 60px;
+  }
+}
+
+/* =========================================
+   EVENTS PAGE - FULL BACKGROUND SLIDER
+   ========================================= */
+.events-page-wrapper {
+  background-color: #ffffff;
+}
+
+.events-hero-section {
+  position: relative;
+  min-height: 100vh;
+  /* Fills the whole screen */
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+/* Background Image Container */
+.events-bg-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.slider-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transition: opacity 1.5s ease-in-out;
+  /* Smooth crossfade */
+}
+
+.slider-bg.active {
+  opacity: 1;
+}
+
+/* Dark overlay to make the white text readable */
+.events-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(10, 15, 29, 0.65);
+  /* Navy transparent tint */
+  z-index: 1;
+}
+
+/* Text Content Wrapper */
+.events-content-wrapper {
+  position: relative;
+  z-index: 2;
+  /* Ensures text is ABOVE the background images */
+  padding-top: 80px;
+  /* Gives space for the navbar */
+}
+
+.events-text-box {
+  max-width: 650px;
+}
+
+.events-overline {
+  font-family: 'DM Sans', sans-serif;
+  color: #c49a2c;
+  /* Signature Gold */
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 25px;
+}
+
+/* Changed text to white to contrast with background */
+.events-text-box h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 55px;
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1.1;
+  letter-spacing: -1px;
+  margin-bottom: 30px;
+}
+
+.events-text-box p {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  line-height: 1.9;
+  color: #f0f0f0;
+  /* Off-white for paragraphs */
+  margin-bottom: 25px;
+}
+
+.events-btn {
+  margin-top: 15px;
+  background-color: #c49a2c;
+  color: #ffffff;
+  border: none;
+  padding: 18px 45px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.events-btn:hover {
+  background-color: #ffffff;
+  color: #c49a2c;
+  transform: translateY(-3px);
+}
+
+/* LOCATIONS SECTION */
+.locations-section {
+  text-align: center;
+  padding: 100px 0;
+  background-color: #ffffff;
+}
+
+.locations-overline {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  letter-spacing: 4px;
+  color: #888;
+  font-weight: 700;
+}
+
+.locations-section h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 48px;
+  font-weight: 900;
+  margin-top: 15px;
+  color: #0f172a;
+}
+
+/* THE WAVE AT THE BOTTOM OF THE HERO IMAGE */
+.wave-bottom {
+  position: absolute;
+  bottom: -1px;
+  /* The -1px prevents a tiny gap from showing on some screens */
+  left: 0;
+  width: 100%;
+  height: 120px;
+  z-index: 5;
+  /* Keeps it above the dark overlay but below the text */
+}
+
+.wave-bottom svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* LOCATIONS SECTION */
+.locations-section {
+  text-align: center;
+  padding: 60px 0 100px;
+  background-color: #ffffff;
+}
+
+.locations-overline {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  letter-spacing: 4px;
+  color: #555;
+  font-weight: 700;
+}
+
+.locations-section h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 48px;
+  font-weight: 900;
+  margin-top: 15px;
+}
+
+.nav-link,
+.logo {
+  color: #ffffff !important;
+  /* The !important forces it to stay white */
+  text-decoration: none !important;
+  /* Removes the underline */
+}
+
+/* Hover effect for the links */
+.nav-link:hover {
+  color: #c49a2c !important;
+  /* Turns gold on hover */
+}
+
+/* =========================================
+   LOCATIONS CITIES LIST
+   ========================================= */
+.cities-list {
+  margin-top: 40px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  color: #333;
+  /* Clean dark grey text */
+  line-height: 2;
+  /* Keeps lines breathable */
+}
+
+.city-row {
+  margin-bottom: 5px;
+}
+
+.cities-list strong {
+  font-weight: 800;
+  color: #000;
+  /* Deep black for Metro Manila */
+}
+
+.dot {
+  color: #c49a2c;
+  /* The Gala Gold for the bullets */
+  margin: 0 12px;
+  /* Spacing around the dots */
+  font-size: 20px;
+  /* Slightly larger dot */
+  vertical-align: middle;
+}
+
+/* Make sure it scales down nicely on mobile phones */
+@media (max-width: 768px) {
+  .cities-list {
+    font-size: 14px;
+    padding: 0 20px;
+  }
+
+  .dot {
+    margin: 0 8px;
+  }
+}
+
+/* =========================================
+   EVENTS CATERING SECTION
+   ========================================= */
+/* =========================================
+   EVENTS CATERING SECTION
+   ========================================= */
+.catering-section {
+  padding: 100px 0 120px;
+  /* Added a bit more top padding */
+  background-color: #FCFBF9;
+  /* Soft, warm luxury cream */
+}
+
+.catering-content {
+  display: flex;
+  align-items: center;
+  gap: 80px;
+}
+
+/* LEFT SIDE: Image styling */
+.catering-image-wrapper {
+  flex: 1;
+  position: relative;
+  padding: 0 20px 20px 0;
+  /* Creates space for the gray offset shadow */
+}
+
+/* The gray offset box behind the image */
+.catering-image-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 20px;
+  right: 0;
+  bottom: 0;
+  left: 20px;
+  background-color: #e5e7eb;
+  /* Soft silver/gray */
+  border-radius: 60px 0 60px 0;
+  /* Top-Left and Bottom-Right rounded */
+  z-index: 0;
+}
+
+.catering-image-wrapper img {
+  width: 100%;
+  display: block;
+  position: relative;
+  z-index: 1;
+  /* Keeps image in front of the gray box */
+  border-radius: 60px 0 60px 0;
+  /* Matches the background shape */
+  object-fit: cover;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* RIGHT SIDE: Text and Buttons */
+.catering-text {
+  flex: 1;
+}
+
+.catering-text h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 50px;
+  font-weight: 900;
+  color: #0f172a;
+  margin-bottom: 15px;
+  letter-spacing: -1px;
+}
+
+/* The gold line under the heading */
+.catering-divider {
+  width: 70px;
+  height: 4px;
+  background-color: #c49a2c;
+  margin-bottom: 30px;
+}
+
+.catering-text p {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  line-height: 1.8;
+  color: #555;
+  margin-bottom: 25px;
+}
+
+/* 2x2 Button Grid */
+.catering-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-top: 35px;
+}
+
+.catering-btn {
+  background-color: #c49a2c;
+  /* Gala Gold */
+  color: #ffffff;
+  border: none;
+  padding: 16px 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 0;
+  /* Kept sharp for editorial look */
+}
+
+.catering-btn:hover {
+  background-color: #0f172a;
+  /* Navy dark hover */
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Mobile Responsive Adjustments */
+@media (max-width: 900px) {
+  .catering-content {
+    flex-direction: column;
+    gap: 60px;
+  }
+
+  .catering-buttons {
+    grid-template-columns: 1fr;
+    /* Stacks buttons on phones */
+  }
+}
+
+/* =========================================
+   EVENT STYLING SHOWCASE (COMPACT)
+   ========================================= */
+.styling-showcase-section {
+  padding: 60px 0 120px;
+  background-color: #ffffff;
+}
+
+/* Intro Text Area */
+.styling-intro {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 40px;
+  /* maliit na space lang */
+  margin-bottom: 60px;
+  padding-bottom: 30px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.intro-left p {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #555;
+  max-width: 600px;
+}
+
+.intro-right h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 55px;
+  color: #c49a2c;
+  /* Gala Gold instead of red */
+  margin-bottom: 10px;
+  letter-spacing: -1px;
+}
+
+.intro-right .subtitle {
+  font-size: 18px;
+  color: #888;
+  max-width: 700px;
+  line-height: 1.6;
+}
+
+/* Reusable Image Sizes to keep things compact */
+/* Reusable Image Sizes to keep things compact (DESKTOP SIZES) */
+.short-img {
+  height: 350px;
+  width: 100%;
+  object-fit: cover;
+}
+
+.tall-img {
+  height: 550px;
+  width: 100%;
+  object-fit: cover;
+}
+
+.wide-img {
+  height: 400px;
+  width: 100%;
+  object-fit: cover;
+}
+
+/* Style 1: 3-Column Grid */
+.style-1-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 1fr;
+  /* Middle column slightly wider */
+  gap: 30px;
+  align-items: start;
+  margin-bottom: 100px;
+}
+
+/* Style 2: 2-Column Grid */
+.style-2-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  /* Right column is twice as wide */
+  gap: 30px;
+  align-items: start;
+}
+
+/* Text Labels under the images */
+.style-label {
+  margin-top: 20px;
+}
+
+.style-label h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 40px;
+  color: #c49a2c;
+  font-style: italic;
+  margin-bottom: 10px;
+}
+
+.style-label p {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.6;
+}
+
+/* Makes Style 2 text sit side-by-side like the screenshot */
+.style-label.horizontal {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.style-label.horizontal h3 {
+  margin-bottom: 0;
+  white-space: nowrap;
+}
+
+.styling-showcase-section.container {
+  max-width: 1600px;
+}
+
+/* Mobile Adjustments */
+@media (max-width: 900px) {
+  .styling-intro {
+    flex-direction: column-reverse;
+    text-align: center;
+    gap: 30px;
+  }
+
+  .style-1-grid,
+  .style-2-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .short-img,
+  .tall-img,
+  .wide-img {
+    height: 250px;
+  }
+
+  /* Makes everything uniformly small on phones */
+  .style-label.horizontal {
+    flex-direction: column;
+    text-align: left;
+    gap: 10px;
+    align-items: flex-start;
+  }
+}
+
+/* =========================================
+   NAVBAR MEGA MENU DROPDOWN
+   ========================================= */
+.nav-dropdown {
+  position: relative;
+  padding-bottom: 20px;
+  margin-bottom: -20px;
+}
+
+/* The actual dropdown container */
+.dropdown-mega-menu {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+
+  /* UPDATED: Matches the dark navbar with a glass blur effect */
+  background-color: rgba(10, 15, 29, 0.95);
+  backdrop-filter: blur(10px);
+
+  min-width: 750px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+  /* Darkened the shadow */
+  padding: 40px;
+
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+
+  transition: all 0.3s ease;
+  border-top: 3px solid #c49a2c;
+  z-index: 1001;
+}
+
+.nav-dropdown:hover .dropdown-mega-menu {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* The individual columns */
+.dropdown-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  /* UPDATED: Changed the dividing lines to a faint transparent white */
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  padding-right: 20px;
+}
+
+.dropdown-col:last-child {
+  border-right: none;
+  padding-right: 0;
+}
+
+/* Link Styling inside the dropdown */
+.dropdown-col a {
+  /* UPDATED: Text is now white so it pops against the dark background */
+  color: #ffffff !important;
+  text-decoration: none !important;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  text-transform: none;
+  white-space: nowrap;
+  transition: color 0.2s ease;
+}
+
+.dropdown-col a:hover {
+  color: #c49a2c !important;
+  /* Still turns Gala Gold on hover */
+}
+
+/* =========================================
+   SERVICES / ALL OCCASIONS PAGE
+   ========================================= */
+.services-page-wrapper {
+  background-color: #ffffff;
+  padding-top: 0;
+  /* FIXED: Removed the 80px padding to get rid of the white gap */
+}
+
+/* 1. Download Banner */
+.srv-download-banner {
+  background-color: #9e1b22;
+  /* Deep Burgundy */
+  padding: 30px 0;
+}
+
+.srv-download-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 30px;
+}
+
+.srv-download-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px;
+  color: #ffffff;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.srv-download-form {
+  display: flex;
+  gap: 15px;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.srv-download-form input {
+  background-color: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 12px 15px;
+  color: #ffffff;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  width: 200px;
+  outline: none;
+}
+
+.srv-download-form input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.srv-download-form button {
+  background-color: #ffffff;
+  color: #9e1b22;
+  border: none;
+  padding: 12px 25px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.srv-download-form button:hover {
+  background-color: #c49a2c;
+  color: #ffffff;
+}
+
+/* 2. Hero Banner Image */
+.srv-hero-banner {
+  width: 100%;
+  height: 400px;
+  /* Increased the height slightly since it now goes under the navbar */
+}
+
+.srv-hero-banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* 3. Intro Section */
+.srv-intro-section {
+  text-align: center;
+  padding: 80px 0;
+  max-width: 900px !important;
+}
+
+.srv-intro-section h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 38px;
+  color: #333;
+  margin-bottom: 30px;
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+.srv-intro-section p {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  color: #555;
+  line-height: 1.8;
+  margin-bottom: 20px;
+}
+
+.srv-tagline {
+  font-style: italic;
+}
+
+/* 4. Cards Grid (Wider Container) */
+.srv-cards-section {
+  padding-bottom: 60px;
+  max-width: 1400px !important;
+  /* Overrides default container to make the boxes wider! */
+  margin: 0 auto;
+}
+
+.srv-cards-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+}
+
+/* 5. Individual Cards */
+.srv-card {
+  width: calc(25% - 15px);
+  min-width: 290px;
+  /* Gives the boxes more breathing room */
+  border: 1px solid #9e1b22;
+  background-color: #ffffff;
+  position: relative;
+  /* Crucial for the image overlay */
+  overflow: hidden;
+  /* Keeps the image from spilling out of the box */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.srv-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* THE HOVER IMAGE BACKGROUND */
+.srv-card-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  /* Hidden by default */
+  transform: scale(1.1);
+  /* Starts slightly zoomed in */
+  transition: all 0.5s ease;
+  z-index: 0;
+}
+
+/* When hovering over the card, show the image */
+.srv-card:hover .srv-card-bg {
+  opacity: 0.15;
+  /* Faint opacity so you can still read the text clearly! */
+  transform: scale(1);
+  /* Zooms out smoothly */
+}
+
+/* Keeps the text ABOVE the background image */
+.srv-card-content {
+  position: relative;
+  z-index: 1;
+  padding: 40px 30px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.srv-card-content h4 {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  color: #9e1b22;
+  margin-bottom: 20px;
+  font-weight: 400;
+}
+
+.srv-card-content p {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: #444;
+  line-height: 1.7;
+  flex-grow: 1;
+  margin-bottom: 30px;
+}
+
+.srv-read-more {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.srv-card:hover .srv-read-more {
+  color: #c49a2c;
+}
+
+/* 6. Bottom CTA Button */
+.srv-bottom-cta {
+  text-align: center;
+  padding-bottom: 100px;
+}
+
+.srv-book-btn {
+  background-color: #9e1b22;
+  color: #ffffff;
+  border: none;
+  padding: 18px 40px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.srv-book-btn:hover {
+  background-color: #c49a2c;
+  /* Gold on hover */
+}
+
+/* Mobile Adjustments */
+@media (max-width: 1024px) {
+  .srv-download-flex {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .srv-download-form {
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .srv-card {
+    width: calc(33.333% - 14px);
+  }
+
+  /* 3 per row on tablets */
+}
+
+@media (max-width: 768px) {
+  .srv-card {
+    width: calc(50% - 10px);
+  }
+
+  /* 2 per row on small tablets */
+  .srv-intro-section h2 {
+    font-size: 28px;
+  }
+}
+
+@media (max-width: 480px) {
+  .srv-card {
+    width: 100%;
+  }
+
+  /* 1 per row on phones */
+}
+
+/* =========================================
+   OUR PROCESS SECTION
+   ========================================= */
+.process-section {
+  background-color: #FFF6EF;
+  /* Creamy background */
+  padding: 100px 0;
+  text-align: center;
+}
+
+.process-header h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 50px;
+  font-weight: 900;
+  color: #0f172a;
+  margin-bottom: 60px;
+}
+
+.process-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+}
+
+.process-card {
+  background-color: #ffffff;
+  padding: 50px 40px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.process-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.process-number .line {
+  width: 30px;
+  height: 2px;
+  background-color: #c49a2c;
+}
+
+.process-number .num {
+  color: #c49a2c;
+  font-weight: 800;
+  font-size: 28px;
+}
+
+/* =========================================
+   SAFETY & INQUIRY SECTION (Foolproof Fix)
+   ========================================= */
+.wedding-safety-section {
+  background-color: #f8f5f0 !important;
+  /* Top padding stays 100px, Bottom padding reduced to 40px */
+  padding: 100px 0 40px 0 !important;
+  width: 100% !important;
+  display: block;
+  text-align: center;
+  margin-bottom: 0 !important;
+  /* Forces it to sit on the footer */
+}
+
+/* Ensure the inner container doesn't block the color */
+.wedding-safety-section .container {
+  background-color: transparent !important;
+}
+
+.safety-title {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 18px;
+  letter-spacing: 2px;
+  color: #111;
+  font-weight: 700;
+  margin-bottom: 40px;
+}
+
+.safety-checklist {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px 60px;
+  max-width: 1000px;
+  margin: 0 auto 50px;
+}
+
+.safety-item {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  color: #333;
+  display: flex;
+  align-items: center;
+}
+
+.check-box {
+  color: #c49a2c;
+  font-weight: bold;
+  margin-right: 12px;
+  font-size: 20px;
+}
+
+.safety-inquire-btn {
+  background-color: #c49a2c;
+  color: #ffffff;
+  padding: 22px 60px;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.safety-inquire-btn:hover {
+  background-color: #b38920;
+  transform: translateY(-3px);
+}
+
+/* =========================================
+   CORE FEATURES SECTION (Services Page) - LAYERED BOX REDESIGN
+   ========================================= */
+.core-features-section {
+  padding: 100px 0;
+  max-width: 1200px !important;
+  margin: 0 auto;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 60px;
+  /* Space so the 2nd boxes don't touch */
+  align-items: stretch;
+}
+
+/* The Main Box */
+.feature-card {
+  position: relative;
+  background-color: #ffffff;
+  border: 1px solid #9e1b22;
+  /* Deep Burgundy */
+  padding: 50px 30px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 1;
+  /* Keeps the white background above the 2nd box */
+  transition: transform 0.3s ease;
+}
+
+/* The "2nd Box" (Offset behind the main box) */
+.feature-card::after {
+  content: '';
+  position: absolute;
+  top: 12px;
+  /* Pushes the 2nd box down */
+  left: 12px;
+  /* Pushes the 2nd box right */
+  width: 100%;
+  height: 100%;
+  border: 1px solid #c49a2c;
+  /* Gala Gold */
+  z-index: -1;
+  /* Hides it behind the main box */
+  transition: all 0.3s ease;
+}
+
+/* Hover Effect: The main box lifts up and the 2nd box drops further down! */
+.feature-card:hover {
+  transform: translateY(-5px) translateX(-5px);
+}
+
+.feature-card:hover::after {
+  top: 18px;
+  left: 18px;
+}
+
+.feature-icon {
+  width: 55px;
+  height: 55px;
+  margin-bottom: 25px;
+}
+
+.feature-card h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px;
+  color: #0f172a;
+  margin-bottom: 20px;
+  font-weight: 400;
+}
+
+.feature-card p {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  color: #555;
+  line-height: 1.8;
+}
+
+/* Mobile Adjustments */
+@media (max-width: 1024px) {
+  .features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .features-grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .feature-card {
+    padding: 40px 20px;
+  }
+}
+
+/* =========================================
+   DETAILED SERVICES ZIG-ZAG SECTION
+   ========================================= */
+.detailed-services-section {
+  padding: 100px 0;
+  background-color: #0a0f1d;
+  /* Deep dark navy matching your navbar! */
+}
+
+.detailed-services-intro {
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto 100px;
+}
+
+.detailed-services-intro h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 36px;
+  color: #ffffff;
+  /* Flipped to white */
+  margin-bottom: 25px;
+  font-weight: 400;
+}
+
+.detailed-services-intro p {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  color: #d1d5db;
+  /* Soft light grey for readability */
+  line-height: 1.8;
+}
+
+/* Flexbox Row Container */
+.service-row {
+  display: flex;
+  align-items: center;
+  gap: 80px;
+  margin-bottom: 100px;
+}
+
+.service-row.reverse {
+  flex-direction: row-reverse;
+}
+
+/* The Text Block */
+/* The Text Block - shrunk slightly to give the image more room */
+.service-text {
+  flex: 0.8;
+  /* Takes up 40% of the row */
+  padding: 0 40px;
+  /* Added a bit more padding so text doesn't touch the edges */
+}
+
+.service-text h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 32px;
+  color: #ffffff;
+  margin-bottom: 20px;
+  font-weight: 400;
+}
+
+.service-text p {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  color: #d1d5db;
+  line-height: 1.9;
+}
+
+/* The Image Block - expanded to be much wider! */
+.service-image {
+  flex: 1.2;
+  /* Takes up 60% of the row */
+}
+
+.service-image img {
+  width: 100%;
+  height: 500px;
+  /* Increased height from 450px so it doesn't look too squished when widened */
+  object-fit: cover;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+}
+
+.service-row:last-child {
+  margin-bottom: 0;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 960px) {
+
+  .service-row,
+  .service-row.reverse {
+    flex-direction: column;
+    text-align: center;
+    gap: 40px;
+    margin-bottom: 80px;
+  }
+
+  .service-image img {
+    height: 350px;
+  }
+}
+
+
+
+/* =========================
+   PACKAGE INCLUSIONS GRID
+========================= */
+
+.packages-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  /* Creates 3 equal columns */
+  gap: 30px;
+  /* Space between the columns */
+  max-width: 1200px;
+  margin: 0 auto;
+  /* Centers the grid on the page */
+  align-items: start;
+  /* Keeps items at the top even if lists are different lengths */
+}
+
+/* =========================
+   CARD & HEADER STYLING
+========================= */
+.package-card {
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: column;
+}
+
+.package-card-header {
+  background-color: #ff7300;
+  /* Gala Crafters vibrant orange */
+  color: white;
+  text-align: center;
+  padding: 30px 20px;
+}
+
+.package-card-header h3 {
+  font-size: 36px;
+  font-weight: 700;
+  margin: 0 0 5px 0;
+  letter-spacing: -0.5px;
+}
+
+.package-card-header p {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+/* =========================
+   LIST ITEMS STYLING
+========================= */
+.package-inclusions-list {
+  list-style: none;
+  /* Removes default bullet points */
+  padding: 0;
+  margin: 0;
+}
+
+.package-inclusions-list li {
+  text-align: center;
+  padding: 18px 10px;
+  border-bottom: 1px solid #eaeaea;
+  /* Light gray line between items */
+  font-family: sans-serif;
+  font-size: 15px;
+  color: #222222;
+}
+
+/* Remove the border from the very last item in the list */
+.package-inclusions-list li:last-child {
+  border-bottom: none;
+}
+
+/* =========================
+   MOBILE RESPONSIVENESS
+========================= */
+@media (max-width: 991px) {
+  .packages-grid {
+    grid-template-columns: 1fr;
+    /* Stacks the columns vertically on smaller screens */
+    gap: 40px;
+    max-width: 600px;
+  }
+}
+
+/* =========================================
+   DEBUT PAGE SPECIFICS
+   ========================================= */
+.debut-hero {
+  position: relative;
+  width: 100%;
+  height: 750px;
+  /* Dinagdagan pa natin ang haba ng image */
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  margin-bottom: -50px;
+  /* NEGATIVE MARGIN: Hihilahin nito ang Catering section paitaas para walang puting gap */
+  z-index: 0;
+}
+
+.debut-hero-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  /* Ginawang center-center para balanse ang view */
+  z-index: 0;
+}
+
+/* This creates the smooth white fade from left to right */
+.debut-hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* Ginawa nating mas malawak ang white fade sa kaliwa */
+  background: linear-gradient(to right,
+      rgba(255, 255, 255, 1) 0%,
+      rgba(255, 255, 255, 0.9) 25%,
+      rgba(255, 255, 255, 0) 75%);
+  z-index: 1;
+}
+
+.debut-hero-content {
+  position: relative;
+  z-index: 2;
+  padding-left: 5%;
+  /* Indents the text nicely */
+}
+
+.debut-hero-content h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 65px;
+  color: #9e1b22;
+  /* Deep Burgundy matching your image */
+  font-weight: 400;
+  margin: 0;
+}
+
+/* Mobile Adjustments for Debut Hero */
+@media (max-width: 768px) {
+  .debut-hero {
+    height: 400px;
+  }
+
+  .debut-hero-overlay {
+    /* More white overlay on phones so text stays readable */
+    background: linear-gradient(to right, rgba(255, 255, 255, 1) 30%, rgba(255, 255, 255, 0.7) 60%, rgba(255, 255, 255, 0) 100%);
+  }
+
+  .debut-hero-content h1 {
+    font-size: 45px;
+  }
+}
+
+/* =========================================
+   DEBUT GALLERY COLLAGE SECTION
+   ========================================= */
+.debut-gallery-section {
+  position: relative;
+  z-index: 5;
+  /* Mas mataas sa hero para pumatong ito sa negative margin */
+  padding: 100px 0 120px;
+  background-color: #ffffff;
+  text-align: center;
+}
+
+.debut-gallery-header {
+  max-width: 1100px;
+  /* Widened to better align with the expanded grid */
+  margin: 0 auto 60px;
+  padding: 0 40px;
+}
+
+.debut-gallery-header h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 38px;
+  color: #333;
+  /* Dark gray */
+  margin-bottom: 25px;
+  font-weight: 400;
+}
+
+.debut-gallery-header p {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14.5px;
+  line-height: 1.8;
+  color: #555;
+}
+
+/* THE GRID SYSTEM FOR THE COLLAGE */
+.debut-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  /* Reduced gap to make images feel wider and more connected */
+  max-width: 1600px;
+  /* Increased from 1200px to expand the layout */
+  margin: 0 auto;
+  padding: 0 20px;
+  /* Reduced padding for a more edge-to-edge look */
+}
+
+.debut-gallery-item {
+  width: 100%;
+  overflow: hidden;
+}
+
+.debut-gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.debut-gallery-item:hover img {
+  transform: scale(1.05);
+  /* Slight zoom effect on hover */
+}
+
+/* Sizing specific boxes */
+.gal-wide {
+  grid-column: span 2;
+  height: 400px;
+  /* Increased height for the wider aspect ratio */
+}
+
+.gal-tall {
+  grid-column: span 1;
+  grid-row: span 2;
+  height: 100%;
+}
+
+.gal-standard {
+  grid-column: span 1;
+  height: 400px;
+  /* Increased from 300px to match the new grid scale */
+}
+
+/* Mobile Adjustments for Collage */
+@media (max-width: 960px) {
+  .debut-gallery-grid {
+    grid-template-columns: repeat(2, 1fr);
+    /* Drops to 2 columns on tablets */
+  }
+
+  .gal-tall {
+    grid-row: auto;
+    height: 300px;
+    /* Removes the tall effect so it fits nicer on small screens */
+  }
+}
+
+@media (max-width: 600px) {
+  .debut-gallery-grid {
+    grid-template-columns: 1fr;
+    /* Stacks 1 by 1 on phones */
+  }
+
+  .gal-wide,
+  .gal-tall,
+  .gal-standard {
+    grid-column: span 1;
+    height: 280px;
+  }
+}
+
+/* =========================================
+   DEBUT PACKAGES (Orange Theme)
+   ========================================= */
+.debut-grid {
+  align-items: start;
+  /* Pinipigilan ang mahabang blank spaces sa ilalim */
+}
+
+.package-card.debut-card {
+  border: none;
+  box-shadow: none;
+}
+
+.package-card-header.debut-header {
+  background-color: #c49a2c !important;
+  /* Orange background based on image */
+  color: white !important;
+  padding: 30px;
+  text-align: center;
+}
+
+.package-card-header.debut-header h3 {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+.package-card-header.debut-header p {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.package-inclusions-list.debut-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.package-inclusions-list.debut-list li {
+  padding: 15px 20px;
+  text-align: center;
+  /* Centered text based on image */
+  border-bottom: 1px solid #f0f0f0;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: #333;
+}
+
+.package-inclusions-list.debut-list li:last-child {
+  border-bottom: none;
+}
+
+/* DEBUT EXPERIENCE */
+
+.debut-experience-section {
+  background: #f7f3ef;
+  padding: 100px 0;
+}
+
+.debut-experience-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+  margin-bottom: 60px;
+}
+
+.debut-experience-text h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 42px;
+  margin-bottom: 20px;
+  color: #5a2b2b;
+}
+
+.debut-experience-text p {
+  line-height: 1.8;
+  color: #555;
+}
+
+.debut-experience-image img {
+  width: 100%;
+  border-radius: 6px;
+}
+
+/* TRADITIONS */
+
+.debut-traditions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+
+.tradition-card {
+  border: 1px solid #7a2e2e;
+  padding: 40px;
+  background: #fff;
+}
+
+.tradition-icon {
+  font-size: 28px;
+  color: #7a2e2e;
+  margin-bottom: 15px;
+}
+
+.tradition-card h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px;
+  margin-bottom: 15px;
+}
+
+.tradition-card p {
+  line-height: 1.7;
+  color: #555;
+}
+
+/* WHY CHOOSE SECTION */
+
+.why-choose-section {
+  background: #f5f2ee;
+  /* light beige color */
+  padding: 120px 0;
+}
+
+.why-choose-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+}
+
+.why-choose-image img {
+  width: 100%;
+  height: 420px;
+  object-fit: cover;
+}
+
+.why-choose-content h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 38px;
+  margin-bottom: 20px;
+  color: #3a1c1c;
+}
+
+.why-choose-content p {
+  color: #555;
+  line-height: 1.8;
+  margin-bottom: 15px;
+}
+
+/* =========================================
+   CUSTOM CATERING SERVICES (EXACT MATCH)
+   ========================================= */
+.custom-catering-section {
+  background-color: #0a0f1d;
+  /* Exact deep burgundy */
+  padding: 0 0 120px;
+  /* 0 sa taas para sumagad sa line */
+  color: #ffffff;
+}
+
+/* Ginawa nating 100% ang lapad at tinanggal ang padding para sumagad ang image sa kaliwa */
+.custom-catering-container {
+  max-width: 1700px;
+  /* Pinalapad para hindi masyadong maliit ang text at image */
+  margin: 0 auto;
+  padding: 0 40px;
+  /* Ito yung magbabalik nung "tirang onti" sa kaliwa at kanan */
+}
+
+/* TOP ROW: Image & Text */
+.custom-catering-top {
+  display: flex;
+  align-items: center;
+  gap: 80px;
+  margin-bottom: 120px;
+}
+
+.custom-catering-image {
+  flex: 1.2;
+  /* Sakop nito ang malaking part ng screen sa kaliwa */
+}
+
+.custom-catering-image img {
+  width: 100%;
+  height: 650px;
+  object-fit: cover;
+  display: block;
+}
+
+.custom-catering-text {
+  flex: 1;
+  padding-right: 80px;
+  /* Binigyan ng space sa kanan para hindi sumagad sa kabilang dulo ang text */
+}
+
+.custom-catering-text h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 46px;
+  /* Nilakihan ang font */
+  font-weight: 400;
+  margin-bottom: 25px;
+  line-height: 1.2;
+  color: #ffffff;
+}
+
+.custom-catering-text p {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 17px;
+  /* Nilakihan ang paragraph */
+  line-height: 1.8;
+  color: #ffffff;
+}
+
+/* BOTTOM ROW: 3 Columns - Pinaghiwalay at nilakihan */
+.custom-catering-features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 80px;
+  /* Pinalaki ang gap para hindi siksikan */
+  max-width: 1500px;
+  /* Pinalapad ang buong grid */
+  margin: 0 auto;
+  padding: 90 80px;
+  /* Space sa kaliwa't kanan ng mga icons */
+}
+
+.feature-box {
+  text-align: left;
+}
+
+.feature-icon {
+  margin-bottom: 25px;
+}
+
+.feature-icon svg {
+  display: block;
+  width: 50px;
+  /* Nilakihan ang icon */
+  height: 50px;
+}
+
+.feature-box h4 {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px;
+  /* Nilakihan ang title */
+  font-weight: 400;
+  margin-bottom: 15px;
+  color: #ffffff;
+}
+
+.feature-box p {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  /* Nilakihan ang text */
+  line-height: 1.8;
+  color: #ffffff;
+}
+
+/* Mobile Adjustments */
+@media (max-width: 1024px) {
+  .custom-catering-top {
+    flex-direction: column;
+    gap: 50px;
+  }
+
+  .custom-catering-text {
+    padding: 0 40px;
+  }
+
+  .custom-catering-features {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 0 40px;
+    gap: 50px;
+  }
+}
+
+@media (max-width: 600px) {
+  .custom-catering-features {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================
+   THEMATIC STYLING SECTION (ZIG-ZAG)
+   ========================================= */
+.thematic-styling-section {
+  padding: 120px 0;
+  background-color: #f5f2ee;
+}
+
+/* 1. PINALAPAD ANG CONTAINER PARA HINDI SIKSIKAN */
+.thematic-styling-section .container {
+  max-width: 1400px;
+  /* Mas malapad kaysa sa default container mo */
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+/* 2. PINALAKI ANG SPACE SA GITNA NG IMAGE AT TEXT */
+.theme-row {
+  display: flex;
+  align-items: center;
+  gap: 120px;
+  /* Mula 80px, ginawa nating 120px para mas makahinga */
+  margin-bottom: 150px;
+}
+
+.theme-row:last-child {
+  margin-bottom: 0;
+}
+
+.theme-row.reverse {
+  flex-direction: row-reverse;
+}
+
+/* 3. PINALAPAD ANG IMAGE PARA HINDI "PAYAT" */
+.theme-image-wrapper {
+  flex: 1.2;
+  /* Binigyan ng mas malaking espasyo yung image kumpara sa text */
+  position: relative;
+  padding: 20px;
+}
+
+.theme-image-wrapper img {
+  width: 100%;
+  height: 550px;
+  /* Pinalaki ang height para proporsyonal sa bagong lapad */
+  object-fit: cover;
+  position: relative;
+  z-index: 2;
+}
+
+/* Gray Offset Background - Top-Left & Bottom-Right */
+.style-tl-br img {
+  border-radius: 40px 0 40px 0;
+}
+
+.style-tl-br::after {
+  content: '';
+  position: absolute;
+  top: 40px;
+  bottom: 0;
+  left: 0;
+  right: 40px;
+  background-color: #e5e7eb;
+  border-radius: 40px 0 40px 0;
+  z-index: 1;
+}
+
+/* Gray Offset Background - Top-Right & Bottom-Left */
+.style-tr-bl img {
+  border-radius: 0 40px 0 40px;
+}
+
+.style-tr-bl::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 40px;
+  left: 40px;
+  right: 0;
+  background-color: #e5e7eb;
+  border-radius: 0 40px 0 40px;
+  z-index: 1;
+}
+
+/* TEXT STYLING */
+.theme-text {
+  flex: 1;
+  padding: 0;
+  /* Tinanggal ang padding dito dahil malaki na ang gap */
+}
+
+.theme-text h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 46px;
+  /* Nilakihan nang onti */
+  font-weight: 900;
+  color: #000000;
+  margin-bottom: 15px;
+}
+
+.orange-divider {
+  width: 60px;
+  height: 4px;
+  background-color: #ff7a00;
+  margin-bottom: 30px;
+}
+
+.theme-text p {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  /* Nilakihan nang onti ang text para mas maganda basahin */
+  line-height: 1.8;
+  color: #333333;
+  margin-bottom: 25px;
+}
+
+.planning-question {
+  font-weight: 600;
+  margin-top: 35px;
+  margin-bottom: 20px !important;
+  color: #000000 !important;
+}
+
+/* 2x2 ORANGE BUTTONS */
+.theme-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  max-width: 450px;
+}
+
+.theme-buttons button {
+  background-color: #ff7a00;
+  color: #ffffff;
+  border: none;
+  padding: 14px 20px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all 0.3s ease;
+}
+
+.theme-buttons button:hover {
+  background-color: #e06a00;
+  transform: translateY(-2px);
+}
+
+/* Mobile Responsive */
+@media (max-width: 1024px) {
+
+  .theme-row,
+  .theme-row.reverse {
+    flex-direction: column;
+    gap: 60px;
+  }
+}
+
+/* =========================
+   PROTECTION & INQUIRE SECTION
+========================= */
+.debut-protection-section {
+  padding: 40px 20px 80px;
+  background-color: #f5f2ee;
+  text-align: center;
+}
+
+.protection-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.protection-title {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #222222;
+  margin-bottom: 30px;
+  text-transform: uppercase;
+}
+
+/* 2-column grid for the checklist */
+.protection-checklist {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px 30px;
+  text-align: left;
+  max-width: 750px;
+  margin: 0 auto 40px auto;
+}
+
+.check-item {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 15px;
+  color: #333333;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.check-icon {
+  color: #c49a2c;
+  /* Gala Crafters Gold */
+  font-size: 18px;
+  flex-shrink: 0;
+  /* Prevents the icon from shrinking on small screens */
+}
+
+.protection-subtext {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 16px;
+  color: #222222;
+  margin-bottom: 30px;
+}
+
+/* Orange Call-To-Action Button */
+.inquire-btn {
+  background-color: #c49a2c;
+  color: #ffffff;
+  border: none;
+  padding: 15px 40px;
+  cursor: pointer;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  transition: background-color 0.3s ease;
+}
+
+.inquire-btn:hover {
+  background-color: #b38920;
+}
+
+.btn-main-text {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+.btn-sub-text {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+}
+
+/* =========================
+   MOBILE RESPONSIVENESS
+========================= */
+@media (max-width: 768px) {
+  .protection-checklist {
+    grid-template-columns: 1fr;
+    /* Stacks the checklist items vertically */
+    text-align: center;
+  }
+
+  .check-item {
+    justify-content: center;
+    /* Centers the list items on mobile */
+  }
+}
+
+/* =========================================
+   CORPORATE BANNER SECTION
+   ========================================= */
+.corporate-banner-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  background-color: #faf9f6; /* Very light, warm beige */
+  min-height: 400px;
+}
+
+.corporate-banner-container {
+  display: flex;
+  max-width: 100%;
+  width: 100%;
+  gap: 30px;
+  align-items: stretch; /* Make children equal height */
+}
+
+.corporate-img-left {
+  flex: 1.5; /* Larger left image */
+}
+
+.corporate-img-left img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.corporate-banner-box {
+  flex: 2; /* Main text box in center */
+  background-color: #ffffff;
+  padding: 80px 50px;
+  border: 1px solid #c49a2c;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+.corporate-img-right {
+  flex: 0.8; /* Narrower right image */
+}
+
+.corporate-img-right img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.corporate-banner-box h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 38px;
+  color: #2F394D; /* A very deep, classic navy/grey color similar to image */
+  margin-bottom: 20px;
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+.corporate-banner-box p {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  color: #555;
+  line-height: 1.7;
+  margin-bottom: 35px;
+  max-width: 800px;
+}
+
+.corporate-btn {
+  background-color: #5a2b2b; /* Deep Burgundy matching image */
+  color: #ffffff;
+  border: none;
+  padding: 16px 32px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.corporate-btn:hover {
+  background-color: #3b1d1d; /* Darker burgundy on hover */
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .corporate-banner-container {
+    padding: 30px;
+  }
+  
+  .corporate-banner-box h2 {
+    font-size: 28px;
+  }
+}
+
+/* =========================================
+   TRADEMARK SECTION
+   ========================================= */
+.trademark-section {
+  padding: 100px 0;
+  background-color: #ffffff;
+  text-align: center;
+}
+
+.trademark-container {
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 0 40px;
+  width: 100%;
+}
+
+.trademark-header {
+  margin-bottom: 60px;
+}
+
+.trademark-header h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 36px;
+  color: #2F394D;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+.trademark-header p {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  color: #555;
+  max-width: 700px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.trademark-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+}
+
+.trademark-card {
+  position: relative;
+  border: 1px solid #5a2b2b;
+  padding: 35px 30px;
+  text-align: left;
+  min-height: 250px;
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.trademark-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+.trademark-card-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: 1;
+}
+
+.trademark-card:hover .trademark-card-bg {
+  opacity: 0.15;
+}
+
+.trademark-card-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.trademark-card h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px;
+  color: #5a2b2b;
+  margin-bottom: 25px;
+  font-weight: 500;
+}
+
+.trademark-card p {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: #555;
+  line-height: 1.7;
+  flex-grow: 1;
+}
+
+.trademark-card .read-more {
+  display: inline-block;
+  margin-top: 30px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: #5a2b2b;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+.trademark-card .read-more:hover {
+  color: #c49a2c;
+}
+
+@media (max-width: 992px) {
+  .trademark-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .trademark-grid {
+    grid-template-columns: 1fr;
+  }
+  .trademark-card {
+    min-height: auto;
+  }
+}
+
+/* =========================================
+   LEGACY OF GRANDEUR SECTION (ABOUT US)
+   ========================================= */
+.legacy-section {
+  padding: 100px 0;
+  background-color: #ffffff;
+}
+
+.legacy-content {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  max-width: 1300px;
+  margin: 0 auto;
+  gap: 30px;
+}
+
+/* --- TEXT SIDE --- */
+.legacy-text-side {
+  flex: 1;
+  min-width: 300px;
+  max-width: 450px;
+  padding-right: 20px;
+}
+
+.legacy-overline {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: #c49a2c; /* Gold color */
+  letter-spacing: 2px;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+}
+
+.legacy-text-side h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 52px;
+  color: #1a2238; /* Deep navy */
+  margin-bottom: 30px;
+  line-height: 1.1;
+  font-weight: 700;
+}
+
+.legacy-text-side p {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  color: #555;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.legacy-divider {
+  height: 1px;
+  background-color: #e5e5e5;
+  margin: 40px 0;
+  width: 100%;
+}
+
+/* Stats */
+.legacy-stats {
+  display: flex;
+  gap: 60px;
+}
+
+.stat-box {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-number {
+  font-family: 'Playfair Display', serif;
+  font-size: 40px;
+  color: #c49a2c; /* Gold */
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  color: #1a2238;
+  letter-spacing: 1px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* --- GALLERY SIDE --- */
+.legacy-gallery-side {
+  flex: 1.8;
+  min-width: 300px;
+  display: flex;
+  gap: 20px;
+}
+
+.gallery-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex: 1;
+}
+
+/* Asymmetrical alignment */
+.col-1 {
+  margin-top: 60px; /* Push first column down */
+}
+
+.col-2 {
+  margin-top: 0;
+}
+
+.gallery-img-box {
+  overflow: hidden;
+  position: relative;
+}
+
+.gallery-img-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.5s ease;
+}
+
+.gallery-img-box:hover img {
+  transform: scale(1.05); /* Slight zoom on hover */
+}
+
+/* Specific Image Heights for Masonry Look */
+.img-top-left {
+  height: 350px;
+}
+
+.img-bottom-left {
+  height: 450px;
+}
+
+.img-top-right {
+  height: 300px;
+}
+
+.img-bottom-right {
+  height: 500px;
+}
+
+/* Responsive adjust */
+@media (max-width: 992px) {
+  .legacy-content {
+    flex-direction: column;
+  }
+  .legacy-text-side {
+    padding-right: 0;
+    margin-bottom: 40px;
+  }
+  .legacy-gallery-side {
+    width: 100%;
+  }
+  .col-1 {
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 576px) {
+  .legacy-gallery-side {
+    flex-direction: column;
+  }
+  .gallery-img-box {
+    height: 300px !important; /* Force all to same height on mobile */
+  }
+  .legacy-stats {
+    gap: 30px;
+  }
+}
+
+/* =========================================
+   CONTACT US SECTION
+   ========================================= */
+.contact-page-wrapper {
+  background-color: #faf9f6; /* Off-white background */
+  padding: 120px 0;
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+}
+
+.contact-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center horizontally */
+  justify-content: center; 
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 0 40px; 
+  width: 100%;
+}
+
+.contact-text-side {
+  padding: 40px 0;
+  max-width: 600px; 
+  width: 100%;
+  margin: 0 auto; /* Force it to visually center within the column */
+}
+
+.text-only-container {
+  justify-content: center; /* True center alignment */
+  padding-left: 0; 
+}
+
+/* We don't need the centered classes anymore, but just to be safe */
+.centered-contact-text {
+  text-align: left;
+  max-width: 700px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; 
+}
+
+.contact-overline {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px; /* Slightly larger */
+  color: #c49a2c;
+  letter-spacing: 4px; /* Wider tracking */
+  text-transform: uppercase;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 25px;
+}
+
+.contact-heading {
+  font-family: 'Playfair Display', serif;
+  font-size: 80px; /* Much larger to match image */
+  color: #0f172a; /* Exact dark navy from other sections */
+  line-height: 1; /* Tighter line height for the huge text */
+  font-weight: 900;
+  margin-bottom: 30px;
+  letter-spacing: -2px; /* Tighter letter spacing for impact */
+}
+
+.contact-heading-italic {
+  font-style: italic;
+  font-weight: 600; /* Distinct weight for italic */
+  color: #c49a2c;
+}
+
+.contact-paragraph {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 18px; /* Larger body text */
+  color: #4a5568; /* Slightly darker cool gray */
+  line-height: 1.8; /* Elegant line height */
+  max-width: 550px; /* wider text block to match design */
+  margin-bottom: 50px; /* generous bottom margin */
+}
+
+.contact-details-box {
+  border-left: 2px solid rgba(196, 154, 44, 0.4); /* Subtle gold left border matching image */
+  padding-left: 30px; /* Space from border */
+}
+
+.contact-detail-group {
+  margin-bottom: 35px; /* More space between contact blocks */
+}
+
+.contact-detail-group:last-child {
+  margin-bottom: 0;
+}
+
+.detail-title {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  color: #c49a2c;
+  font-weight: 700;
+  letter-spacing: 2px;
+  display: block;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.contact-detail-group p {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  color: #2F394D;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.contact-images-wrapper {
+  flex: 1;
+  max-width: 550px;
+  min-width: 480px; /* guarantees it won't squish */
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+  height: 650px;
+}
+
+.contact-image-large {
+  width: 450px;
+  height: 600px;
+  background-size: cover;
+  background-position: center;
+  border-radius: 225px 225px 0 0; /* Exact half-circle top */
+  box-shadow: 0 15px 45px rgba(0,0,0,0.1);
+  border: 15px solid #ffffff;
+  z-index: 1;
+}
+
+.contact-image-small {
+  position: absolute;
+  left: 0;
+  bottom: 0px; 
+  width: 250px;
+  height: 350px; 
+  background-size: cover;
+  background-position: center;
+  border-radius: 125px 125px 0 0; /* Exact half-circle top */
+  box-shadow: 0 15px 45px rgba(0,0,0,0.15);
+  border: 12px solid #ffffff;
+  z-index: 2; 
+}
+
+@media (max-width: 992px) {
+  .contact-container {
+    flex-direction: column;
+  }
+  .contact-images-wrapper {
+    min-height: 400px;
+    width: 100%;
+    justify-content: center;
+    margin-top: 40px;
+  }
+  .contact-image-large {
+    width: 90%;
+    height: 450px;
+  }
+  .contact-image-small {
+    width: 55%;
+    height: 250px;
+    bottom: -20px;
+  }
+}
