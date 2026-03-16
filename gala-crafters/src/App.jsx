@@ -11,6 +11,8 @@ import CorporateEventPage from './components/CorporateEventPage';
 import DebutPage from './components/DebutPage';
 import AboutUsPage from './components/AboutUsPage';
 import ContactUsPage from './components/ContactUsPage';
+import LoginPage from './components/LoginPage';
+import SignUpPage from './components/SignUpPage';
 
 // Admin Imports
 import AdminDashboard from './components/Admin/AdminDashboard'; 
@@ -37,6 +39,7 @@ const Home = () => (
 const AppLayout = () => {
   const location = useLocation();
   const isAdmin = location.pathname.toLowerCase().startsWith('/admin');
+  const isAuth = location.pathname.toLowerCase().startsWith('/login') || location.pathname.toLowerCase().startsWith('/signup');
 
   return (
     <>
@@ -44,6 +47,8 @@ const AppLayout = () => {
 
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignUpPage />} />
         <Route path="/events" element={<EventsPage />} />
         <Route path="/about" element={<AboutUsPage />} />
         <Route path="/contact" element={<ContactUsPage />} />
@@ -68,7 +73,7 @@ const AppLayout = () => {
         <Route path="/admin/messages" element={<AdminMessages />} />
       </Routes>
 
-      {!isAdmin && <Footer />}
+      {!isAdmin && !isAuth && <Footer />}
     </>
   );
 };

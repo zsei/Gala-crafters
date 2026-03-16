@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import BookingModal from './BookingModal';
 import img1 from '../assets/img1.jpg'; 
 import img2 from '../assets/img5.jpg';
 import img3 from '../assets/img3.jpg'; 
@@ -14,6 +15,8 @@ function EventsPage() {
     }, 4000);
     return () => clearInterval(timer);
   }, []);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <div className="events-page-wrapper">
@@ -251,6 +254,32 @@ function EventsPage() {
         </div>
       </section>
 
+
+      {/* BOOKING BANNER */}
+      <section className="corporate-banner-section">
+        <div className="corporate-banner-container">
+          <div className="corporate-img-left">
+            <img src={img1} alt="Event Styling" />
+          </div>
+          <div className="corporate-banner-box">
+            <h2>Elevate Your Styling With Gala Crafters!</h2>
+            <p>
+              Transform your event into a visual masterpiece with our bespoke styling services. Book your tasting and styling consultation today.
+            </p>
+            <button className="corporate-btn" onClick={() => setIsModalOpen(true)}>
+              Book a Tasting Experience with Gala Crafters
+            </button>
+          </div>
+          <div className="corporate-img-right">
+            <img src={img2} alt="Event Styling" />
+          </div>
+        </div>
+      </section>
+
+      <BookingModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+      />
 
     </div>
   );

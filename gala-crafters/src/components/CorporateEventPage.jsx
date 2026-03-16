@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import BookingModal from './BookingModal';
 
 // Assets
 import heroBg from '../assets/girl.jpg'; 
@@ -7,7 +8,8 @@ import img2 from '../assets/img5.jpg';
 import img3 from '../assets/img3.jpg'; 
 import { FaGift, FaRegHeart } from "react-icons/fa";
 
-function DebutPage() {
+function CorporateEventPage() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -195,9 +197,34 @@ function DebutPage() {
         </div>
       </section>
 
+      {/* CORPORATE EVENT BANNER (Added for Booking) */}
+      <section className="corporate-banner-section">
+        <div className="corporate-banner-container">
+          <div className="corporate-img-left">
+            <img src={img1} alt="Corporate Event Left" />
+          </div>
+          <div className="corporate-banner-box">
+            <h2>Elevate Your Corporate Event With Gala Crafters!</h2>
+            <p>
+              For corporate catering in the Philippines, trust Gala Crafters. We're here to provide you with the best services with our professional team.
+            </p>
+            <button className="corporate-btn" onClick={() => setIsModalOpen(true)}>
+              Book a Tasting Experience with Gala Crafters
+            </button>
+          </div>
+          <div className="corporate-img-right">
+            <img src={img2} alt="Corporate Event Right" />
+          </div>
+        </div>
+      </section>
+
+      <BookingModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+      />
 
     </div>
   );
 }
 
-export default DebutPage;
+export default CorporateEventPage;

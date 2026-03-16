@@ -14,6 +14,7 @@ function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
   const navClass = `navbar ${scrolled || !isHome ? 'scrolled' : ''}`;
 
   return (
@@ -54,7 +55,9 @@ function Navbar() {
           <li><Link to="/contact" className="nav-link">CONTACT US</Link></li>
         </ul>
 
-        <button className="btn-primary">INQUIRE NOW</button>
+        {!isAuthPage && (
+          <Link to="/login" className="nav-login-btn sign-up">LOG IN</Link>
+        )}
       </div>
     </nav>
   );
