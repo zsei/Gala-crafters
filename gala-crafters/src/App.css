@@ -138,6 +138,74 @@ body {
   box-shadow: 0 6px 15px rgba(247, 202, 24, 0.4);
 }
 
+/* USER DROPDOWN */
+.user-menu-container {
+  position: relative;
+  display: inline-block;
+}
+
+.user-icon-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.user-icon-btn:hover,
+.user-menu-container:hover .user-icon-btn {
+  border-color: #c49a2c;
+  background: rgba(196, 154, 44, 0.1);
+}
+
+.user-dropdown {
+  position: absolute;
+  top: 120%;
+  right: 0;
+  width: 180px;
+  background: #0a0f1d;
+  border: 1px solid rgba(196, 154, 44, 0.3);
+  border-radius: 4px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  padding: 10px 0;
+  z-index: 1000;
+  animation: fadeInDown 0.2s ease forwards;
+}
+
+.user-dropdown a,
+.user-dropdown button {
+  padding: 12px 20px;
+  color: #ffffff;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.user-dropdown a:hover,
+.user-dropdown button:hover {
+  background: rgba(196, 154, 44, 0.1);
+  color: #c49a2c;
+  padding-left: 25px; /* Slight indent on hover */
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .btn-primary {
   background-color: #c49a2c;
   color: #fff;
