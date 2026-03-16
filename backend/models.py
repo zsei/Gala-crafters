@@ -26,7 +26,6 @@ class User(Base):
     barangay = Column(String(100))
     postal_code = Column(String(20))
     status = Column(String(50), default="Active")
-    user_role = Column(String(50), default="Customer")
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

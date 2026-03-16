@@ -16,11 +16,12 @@ CREATE TABLE users (
     phone VARCHAR(20) NOT NULL,
     password VARCHAR(255) NOT NULL,
     date_of_birth DATE,
+    building_details VARCHAR(255),
     country VARCHAR(100),
     city VARCHAR(100),
+    barangay VARCHAR(100),
     postal_code VARCHAR(20),
     status VARCHAR(50) DEFAULT 'Active',
-    user_role VARCHAR(50) DEFAULT 'Customer',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -162,13 +163,13 @@ CREATE TABLE dashboard_metrics (
 -- ============================================================================
 
 -- Insert Sample Users (Customers)
-INSERT INTO users (first_name, middle_name, last_name, email, phone, password, date_of_birth, country, city, postal_code, user_role)
+INSERT INTO users (first_name, middle_name, last_name, email, phone, password, date_of_birth, country, city, postal_code)
 VALUES
-    ('Natasha', '', 'Khaleira', 'natasha.khaleira@email.com', '(+62) 821 2554-5846', 'hashed_password_123', '1990-12-10', 'United Kingdom', 'Leeds', 'ERT 1254', 'Customer'),
-    ('John', 'Michael', 'Anderson', 'john.anderson@email.com', '(+1) 555-123-4567', 'hashed_password_456', '1995-06-15', 'United States', 'New York', '10001', 'Customer'),
-    ('Sarah', 'Elizabeth', 'Jenkins', 'sarah.jenkins@email.com', '(+44) 20-7946-0958', 'hashed_password_789', '1992-03-22', 'United Kingdom', 'London', 'SW1A 1AA', 'Customer'),
-    ('Emma', 'Jane', 'Thompson', 'emma.thompson@email.com', '(+1) 555-987-6543', 'hashed_password_012', '1998-09-08', 'United States', 'Los Angeles', '90001', 'Customer'),
-    ('Marcus', 'David', 'Chen', 'marcus.chen@email.com', '(+65) 6789-1234', 'hashed_password_345', '1994-11-30', 'Singapore', 'Singapore', '188024', 'Customer');
+    ('Natasha', '', 'Khaleira', 'natasha.khaleira@email.com', '(+62) 821 2554-5846', 'hashed_password_123', '1990-12-10', 'United Kingdom', 'Leeds', 'ERT 1254'),
+    ('John', 'Michael', 'Anderson', 'john.anderson@email.com', '(+1) 555-123-4567', 'hashed_password_456', '1995-06-15', 'United States', 'New York', '10001'),
+    ('Sarah', 'Elizabeth', 'Jenkins', 'sarah.jenkins@email.com', '(+44) 20-7946-0958', 'hashed_password_789', '1992-03-22', 'United Kingdom', 'London', 'SW1A 1AA'),
+    ('Emma', 'Jane', 'Thompson', 'emma.thompson@email.com', '(+1) 555-987-6543', 'hashed_password_012', '1998-09-08', 'United States', 'Los Angeles', '90001'),
+    ('Marcus', 'David', 'Chen', 'marcus.chen@email.com', '(+65) 6789-1234', 'hashed_password_345', '1994-11-30', 'Singapore', 'Singapore', '188024');
 
 -- Insert Sample Admin Users
 INSERT INTO admin_users (name, email, phone, role, status)
