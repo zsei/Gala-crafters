@@ -1,15 +1,27 @@
-import React, { useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import './Auth.css';
 
 const LoginPage = () => {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const navigate = useNavigate();
+
     useEffect(() => {
         window.scrollTo(0, 0);
     }, []);
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log("Login submitted");
+        setError('');
+        
+        // Hardcoded credentials for testing since there's no database yet
+        if (email === 'testuser@gmail.com' && password === 'password123') {
+            navigate('/');
+        } else {
+            setError('Invalid email or password');
+        }
     };
 
     return (
@@ -27,15 +39,29 @@ const LoginPage = () => {
                         <p>Access your curated event management dashboard.</p>
                     </div>
 
+                    {error && <div className="auth-error" style={{ color: 'red', marginBottom: '15px' }}>{error}</div>}
+
                     <form className="auth-form" onSubmit={handleSubmit}>
                         <div className="form-group">
                             <label>Email Address</label>
-                            <input type="email" placeholder="eleanor.v@email.com" required />
+                            <input 
+                                type="email" 
+                                placeholder="eleanor.v@email.com" 
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required 
+                            />
                         </div>
 
                         <div className="form-group">
                             <label>Password</label>
-                            <input type="password" placeholder="••••••••••••" required />
+                            <input 
+                                type="password" 
+                                placeholder="••••••••••••" 
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required 
+                            />
                         </div>
 
                         <Link to="#" className="auth-link" style={{ alignSelf: 'flex-end', fontSize: '13px' }}>

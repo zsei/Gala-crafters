@@ -22,7 +22,7 @@ const AdminChart = () => {
         <ResponsiveContainer>
           <BarChart data={data} margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
             {/* The background bar to mimic the "filled" effect */}
-            <Bar dataKey="value" fill="var(--admin-hover)" radius={[4, 4, 4, 4]} barSize={40} background={{ fill: 'var(--admin-hover)', radius: 4 }}>
+            <Bar dataKey="value" fill="var(--admin-hover)" radius={[4, 4, 4, 4]} barSize={80} background={{ fill: 'var(--admin-hover)', radius: 4 }}>
                {
                  data.map((entry, index) => (
                    <Cell key={`cell-${index}`} fill="var(--admin-accent)" />

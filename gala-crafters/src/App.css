@@ -115,6 +115,29 @@ body {
 }
 
 /* BUTTONS */
+.nav-login-btn {
+  background-color: #f7ca18; /* Bold yellow pill */
+  color: #0f172a; /* Dark navy text to match theme */
+  font-weight: 800;
+  font-size: 13px;
+  padding: 10px 28px;
+  border-radius: 50px; /* Pill shape */
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(247, 202, 24, 0.3);
+}
+
+.nav-login-btn:hover {
+  background-color: #e5b914;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(247, 202, 24, 0.4);
+}
+
 .btn-primary {
   background-color: #c49a2c;
   color: #fff;
