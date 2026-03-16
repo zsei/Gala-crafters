@@ -66,8 +66,33 @@
   flex-direction: column;
   position: fixed;
   height: 100vh;
-  transition: background-color 0.3s ease, border-color 0.3s ease;
+  transition: width 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
   z-index: 50;
+}
+
+.admin-sidebar.collapsed {
+  width: 80px;
+}
+
+.admin-sidebar.collapsed .admin-logo {
+  justify-content: center;
+  padding: 30px 0;
+}
+
+.admin-sidebar.collapsed .admin-nav-item {
+  justify-content: center;
+  padding: 12px 0;
+}
+
+.admin-sidebar.collapsed .admin-theme-toggle {
+  justify-content: center;
+  width: 100%;
+}
+
+.admin-sidebar.collapsed .admin-sidebar-footer {
+  padding: 24px 0;
+  display: flex;
+  justify-content: center;
 }
 
 .admin-logo {
@@ -97,6 +122,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  overflow-y: auto;
 }
 
 .admin-nav-item {
@@ -127,6 +153,56 @@
 .admin-nav-icon {
   width: 20px;
   height: 20px;
+}
+
+.admin-nav-chevron {
+  margin-left: auto;
+  transition: transform 0.2s ease;
+}
+
+.admin-nav-chevron.open {
+  transform: rotate(180deg);
+}
+
+.admin-subnav {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.3s ease, margin-top 0.3s ease, padding 0.3s ease;
+  margin-left: 28px;
+  border-left: 1px solid var(--admin-border);
+}
+
+.admin-subnav.open {
+  max-height: 500px;
+  margin-top: 4px;
+  padding: 4px 0 8px 0;
+}
+
+.admin-subnav-item {
+  color: var(--admin-text-sub);
+  text-decoration: none;
+  font-size: 13px;
+  padding: 8px 16px;
+  margin-left: 8px;
+  position: relative;
+  transition: color 0.2s ease;
+}
+
+.admin-subnav-item::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 50%;
+  width: 6px;
+  height: 1px;
+  background-color: var(--admin-border);
+}
+
+.admin-subnav-item:hover,
+.admin-subnav-item.active {
+  color: var(--admin-accent);
 }
 
 .admin-badge {
@@ -168,7 +244,11 @@
   margin-left: 260px; /* Same as sidebar width */
   padding: 40px;
   overflow-y: auto;
-  /* Removed max-width to let messages fill width */
+  transition: margin-left 0.3s ease;
+}
+
+body.sidebar-collapsed .admin-main {
+  margin-left: 80px;
 }
 
 /* Header */

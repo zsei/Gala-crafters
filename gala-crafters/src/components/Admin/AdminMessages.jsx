@@ -81,7 +81,7 @@ const AdminMessages = () => {
 
   return (
     <div className={`admin-layout ${isDark ? 'admin-dark-theme' : ''}`}>
-      <AdminSidebar isDark={isDark} toggleTheme={toggleTheme} isCollapsed={true} />
+      <AdminSidebar isDark={isDark} toggleTheme={toggleTheme} />
 
       <main className="admin-main messages-main">
         <div className="messages-layout">
