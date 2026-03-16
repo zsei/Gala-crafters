@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import BookingModal from './BookingModal';
 
 // Assets
 import heroBg from '../assets/img2b.jpg';
@@ -11,6 +12,8 @@ function WeddingPage() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const weddingPackages = [
     {
@@ -195,7 +198,7 @@ function WeddingPage() {
             <p>
               For corporate catering in the Philippines, trust Gala Crafters. We're here to provide you with the best services with our professional team.
             </p>
-            <button className="corporate-btn">
+            <button className="corporate-btn" onClick={() => setIsModalOpen(true)}>
               Book a Tasting Experience with Gala Crafters
             </button>
           </div>
@@ -244,6 +247,11 @@ function WeddingPage() {
       </section>
 
 
+
+      <BookingModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+      />
 
     </div>
   );

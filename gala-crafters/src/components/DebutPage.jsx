@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import BookingModal from './BookingModal';
 
 // Assets
 import heroBg from '../assets/girl.jpg'; 
@@ -11,6 +12,8 @@ function DebutPage() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const debutPackages = [
     {
@@ -195,6 +198,31 @@ function DebutPage() {
         </div>
       </section>
 
+      {/* BOOKING BANNER */}
+      <section className="corporate-banner-section">
+        <div className="corporate-banner-container">
+          <div className="corporate-img-left">
+            <img src={img1} alt="Event Left" />
+          </div>
+          <div className="corporate-banner-box">
+            <h2>Elevate Your Celebration With Gala Crafters!</h2>
+            <p>
+              Experience the finest catering and event styling for your special debut. Trust our professional team to deliver perfection.
+            </p>
+            <button className="corporate-btn" onClick={() => setIsModalOpen(true)}>
+              Book a Tasting Experience with Gala Crafters
+            </button>
+          </div>
+          <div className="corporate-img-right">
+            <img src={img2} alt="Event Right" />
+          </div>
+        </div>
+      </section>
+
+      <BookingModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+      />
 
     </div>
   );

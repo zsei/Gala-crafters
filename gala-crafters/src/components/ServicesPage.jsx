@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import BookingModal from './BookingModal';
 import img1 from '../assets/img1.jpg'; // Make sure you have these imports!
 import img2 from '../assets/img5.jpg'; 
 import img3 from '../assets/img3.jpg'; 
@@ -8,6 +9,8 @@ function ServicesPage() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <div className="services-page-wrapper">
@@ -296,8 +299,13 @@ function ServicesPage() {
 
       {/* 7. BOTTOM CTA BUTTON */}
       <div className="srv-bottom-cta" style={{ backgroundColor: '#FFF6EF', paddingTop: '40px', paddingBottom: '100px', textAlign: 'center' }}>
-        <button className="srv-book-btn">Book a Tasting Experience with Gala Crafters</button>
+        <button className="srv-book-btn" onClick={() => setIsModalOpen(true)}>Book a Tasting Experience with Gala Crafters</button>
       </div>
+
+      <BookingModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+      />
 
     </div>
   );
