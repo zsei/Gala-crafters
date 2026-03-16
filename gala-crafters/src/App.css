@@ -150,7 +150,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  min-height: 90vh;
+  min-height: 100vh;
   padding-top: 40px;
 }
 
@@ -364,21 +364,12 @@ body {
   }
 }
 
-/* Apply it to the section */
-.philosophy-section {
-  /* ... your existing styles ... */
-  animation: fadeInUp 1.2s ease-out forwards;
-  /* This ensures the animation only plays once it enters view */
-  view-timeline-name: --revealing-section;
-  view-timeline-axis: block;
-  animation-timeline: --revealing-section;
-  animation-range: entry 10% cover 30%;
-}
+/* Apply it to the section (animation removed as requested) */
 
 /* SERVICES / COLLECTIONS SECTION */
 .services-section {
   background-color: #ffffff;
-  padding: 120px 0;
+  padding: 40px 0 120px 0;
   text-align: center;
 }
 
@@ -514,7 +505,7 @@ body {
 .excellence-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 80px;
+  gap: 40px;
   text-align: left;
 }
 
@@ -618,14 +609,14 @@ body {
 /* FOOTER CONTENT */
 .footer-content {
   background-color: #0a0f1d;
-  padding-top: 100px;
+  padding-top: 50px;
 }
 
 .footer-grid {
   display: grid;
   grid-template-columns: 2fr 1fr 1.5fr;
-  gap: 80px;
-  padding-bottom: 80px;
+  gap: 40px;
+  padding-bottom: 40px;
 }
 
 .footer-col h4 {
@@ -721,7 +712,7 @@ body {
 /* FOOTER BOTTOM BAR */
 .footer-bottom {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 40px 0;
+  padding: 20px 0;
 }
 
 /* Footer bottom bar layout */
@@ -1115,7 +1106,7 @@ body {
 .catering-content {
   display: flex;
   align-items: center;
-  gap: 80px;
+  gap: 40px;
 }
 
 /* LEFT SIDE: Image styling */
@@ -1973,7 +1964,7 @@ body {
 .service-row {
   display: flex;
   align-items: center;
-  gap: 80px;
+  gap: 40px;
   margin-bottom: 100px;
 }
 
@@ -2486,7 +2477,7 @@ body {
 .custom-catering-top {
   display: flex;
   align-items: center;
-  gap: 80px;
+  gap: 40px;
   margin-bottom: 120px;
 }
 
@@ -2530,7 +2521,7 @@ body {
 .custom-catering-features {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 80px;
+  gap: 40px;
   /* Pinalaki ang gap para hindi siksikan */
   max-width: 1500px;
   /* Pinalapad ang buong grid */
@@ -3289,7 +3280,7 @@ body {
 }
 
 .contact-text-side {
-  padding: 40px 0;
+  padding: 20px 0;
   max-width: 600px; 
   width: 100%;
   margin: 0 auto; /* Force it to visually center within the column */
@@ -3432,3 +3423,7 @@ body {
     bottom: -20px;
   }
 }
+
+
+
+

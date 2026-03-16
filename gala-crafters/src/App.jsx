@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 
@@ -12,6 +12,12 @@ import DebutPage from './components/DebutPage';
 import AboutUsPage from './components/AboutUsPage';
 import ContactUsPage from './components/ContactUsPage';
 
+// Admin Imports
+import AdminDashboard from './components/Admin/AdminDashboard'; 
+import AdminBookings from './components/Admin/AdminBookings';
+import AdminUsers from './components/Admin/AdminUsers';
+import AdminMessages from './components/Admin/AdminMessages';
+
 // Homepage Sections
 import Hero from './components/Hero';
 import Philosophy from './components/Philosophy';
@@ -23,15 +29,18 @@ const Home = () => (
     <div className="container">
       <Hero />
     </div>
-    <Philosophy />
     <Services />
+    <Philosophy />
   </>
 );
 
-function App() {
+const AppLayout = () => {
+  const location = useLocation();
+  const isAdmin = location.pathname.toLowerCase().startsWith('/admin');
+
   return (
-    <Router>
-      <Navbar />
+    <>
+      {!isAdmin && <Navbar />}
 
       <Routes>
         <Route path="/" element={<Home />} />
@@ -51,9 +60,23 @@ function App() {
         <Route path="/services/childrens-party" element={<ServicesPage />} />
         <Route path="/services/special-occasions" element={<ServicesPage />} />
         <Route path="/services/packages" element={<ServicesPage />} />
+
+        {/* Admin Routes */}
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/bookings" element={<AdminBookings />} />
+        <Route path="/admin/users" element={<AdminUsers />} />
+        <Route path="/admin/messages" element={<AdminMessages />} />
       </Routes>
 
-      <Footer />
+      {!isAdmin && <Footer />}
+    </>
+  );
+};
+
+function App() {
+  return (
+    <Router>
+      <AppLayout />
     </Router>
   );
 }
