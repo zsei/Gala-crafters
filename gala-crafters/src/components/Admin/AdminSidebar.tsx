@@ -12,8 +12,10 @@ import {
   HelpCircle,
   Tag,
   Star,
-  FileText
+  FileText,
+  LogOut
 } from 'lucide-react';
+import { authService } from '../../api/auth';
 
 const AdminSidebar = ({ isDark, toggleTheme, isCollapsed: propIsCollapsed, toggleSidebar: propToggleSidebar }) => {
   const [localIsCollapsed, setLocalIsCollapsed] = useState(false);
@@ -137,6 +139,7 @@ const AdminSidebar = ({ isDark, toggleTheme, isCollapsed: propIsCollapsed, toggl
           </div>
           
           <div className={`admin-subnav ${isPackagesOpen && !isCollapsed ? 'open' : ''}`}>
+            <NavLink to="/admin/packages" className="admin-subnav-item">All Packages</NavLink>
             <NavLink to="/admin/packages?type=wedding" className="admin-subnav-item">Wedding Package</NavLink>
             <NavLink to="/admin/packages?type=birthday" className="admin-subnav-item">Birthday Package</NavLink>
             <NavLink to="/admin/packages?type=children" className="admin-subnav-item">Children's Party</NavLink>
@@ -206,6 +209,18 @@ const AdminSidebar = ({ isDark, toggleTheme, isCollapsed: propIsCollapsed, toggl
         <button onClick={toggleTheme} className="admin-theme-toggle" title={isCollapsed ? "Toggle Theme" : ""}>
           {isDark ? <Sun size={20} /> : <Moon size={20} />}
           {!isCollapsed && <span>{isDark ? 'Light Mode' : 'Dark Mode'}</span>}
+        </button>
+        <button 
+          onClick={() => {
+            authService.logout();
+            window.location.href = '/admin/login';
+          }} 
+          className="admin-theme-toggle" 
+          style={{ marginTop: '12px', color: '#ef4444' }}
+          title={isCollapsed ? "Log Out" : ""}
+        >
+          <LogOut size={20} />
+          {!isCollapsed && <span>Log Out</span>}
         </button>
       </div>
     </aside>

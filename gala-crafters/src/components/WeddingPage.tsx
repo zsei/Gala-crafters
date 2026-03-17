@@ -251,6 +251,7 @@ function WeddingPage() {
       <BookingModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
+        initialEventType="Wedding"
       />
 
     </div>

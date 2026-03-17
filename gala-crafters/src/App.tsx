@@ -15,6 +15,7 @@ import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
 import SignUpPage from './components/SignUpPage';
 import AccountPage from './components/AccountPage';
+import TransactionHistory from './components/TransactionHistory';
 import Dashboard from './components/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -23,6 +24,8 @@ import AdminDashboard from './components/Admin/AdminDashboard';
 import AdminBookings from './components/Admin/AdminBookings';
 import AdminUsers from './components/Admin/AdminUsers';
 import AdminMessages from './components/Admin/AdminMessages';
+import AdminLoginPage from './components/Admin/AdminLoginPage';
+import AdminPackages from './components/Admin/AdminPackages'; // We will create this next
 
 // Homepage Sections
 import Hero from './components/Hero';
@@ -61,9 +64,9 @@ const AppLayout = () => {
         {/* Main Services Page */}
         <Route path="/services" element={<ServicesPage />} />
 
-        {/* Account Settings Page */}
+        {/* Account Settings & Transactions */}
         <Route path="/account" element={<AccountPage />} />
-        <Route path="/transactions" element={<AccountPage />} />
+        <Route path="/transactions" element={<ProtectedRoute><TransactionHistory /></ProtectedRoute>} />
 
         {/* === UPDATED: Wedding Page Route === */}
         <Route path="/services/weddings" element={<WeddingPage />} />
@@ -76,10 +79,12 @@ const AppLayout = () => {
         <Route path="/services/packages" element={<ServicesPage />} />
 
         {/* Admin Routes */}
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/admin/bookings" element={<AdminBookings />} />
-        <Route path="/admin/users" element={<AdminUsers />} />
-        <Route path="/admin/messages" element={<AdminMessages />} />
+        <Route path="/admin/login" element={<AdminLoginPage />} />
+        <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />
+        <Route path="/admin/bookings" element={<ProtectedRoute requiredRole="admin"><AdminBookings /></ProtectedRoute>} />
+        <Route path="/admin/packages" element={<ProtectedRoute requiredRole="admin"><AdminPackages /></ProtectedRoute>} />
+        <Route path="/admin/users" element={<ProtectedRoute requiredRole="admin"><AdminUsers /></ProtectedRoute>} />
+        <Route path="/admin/messages" element={<ProtectedRoute requiredRole="admin"><AdminMessages /></ProtectedRoute>} />
       </Routes>
 
       {!isAdmin && !isAuth && <Footer />}

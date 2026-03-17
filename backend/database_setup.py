@@ -20,6 +20,10 @@ def execute_raw_query(query: str):
     try:
         result = db.execute(text(query))
         db.commit()
+        # Convert result to list of dictionaries if it's a SELECT query
+        if query.strip().upper().startswith("SELECT"):
+            columns = result.keys()
+            return [dict(zip(columns, row)) for row in result]
         return result
     except Exception as e:
         print(f"Error executing query: {e}")
@@ -45,7 +49,7 @@ def get_active_bookings():
     FROM bookings b
     INNER JOIN users u ON b.customer_id = u.id
     INNER JOIN event_packages ep ON b.package_id = ep.id
-    WHERE b.status IN ('Confirmed', 'Processing')
+    WHERE b.status IN ('Confirmed', 'Processing', 'Pending')
     ORDER BY b.event_date ASC
     """
     return execute_raw_query(query)

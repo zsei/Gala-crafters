@@ -5,16 +5,46 @@ import './Admin.css'; // Inheriting the primary admin styles
 
 const bookingsData = [];
 
+import { API_BASE_URL, API_ENDPOINTS } from '../../api/config';
+
 const AdminBookings = () => {
   // Inherit the theme logic
   const [isDark, setIsDark] = React.useState(false);
   const [isCollapsed, setIsCollapsed] = React.useState(false);
+  const [bookings, setBookings] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(null);
 
   React.useEffect(() => {
     const savedTheme = localStorage.getItem('galaAdminTheme');
     if (savedTheme === 'dark') {
       setIsDark(true);
     }
+
+    const fetchBookings = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.ADMIN.BOOKINGS}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch bookings');
+        }
+        
+        const data = await response.json();
+        setBookings(data);
+      } catch (err: any) {
+        setError(err.message);
+        console.error('Error fetching bookings:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBookings();
   }, []);
 
   const toggleTheme = () => {
@@ -24,6 +54,16 @@ const AdminBookings = () => {
   };
 
   const toggleSidebar = () => setIsCollapsed(prev => !prev);
+
+  // Helper for status colors
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'confirmed': return 'success';
+      case 'processing': return 'warning';
+      case 'cancelled': return 'danger';
+      default: return 'info';
+    }
+  };
 
   return (
     <div className={`admin-layout ${isDark ? 'admin-dark-theme' : ''}`}>
@@ -60,7 +100,7 @@ const AdminBookings = () => {
           <div className="filters-group">
             <button className="filter-dropdown">
               <CalendarIcon size={16} className="text-accent" />
-              October 2023
+              All Dates
               <ChevronDown size={14} className="text-sub" />
             </button>
             <button className="filter-dropdown">
@@ -73,75 +113,87 @@ const AdminBookings = () => {
             </button>
           </div>
           <div className="entries-count text-sub font-medium" style={{ fontSize: '11px', letterSpacing: '1px', textTransform: 'uppercase' }}>
-            SHOWING 42 ENTRIES
+            SHOWING {bookings.length} ENTRIES
           </div>
         </div>
 
         {/* Data Table Container */}
         <div className="admin-card bookings-table-card">
-          <table className="bookings-table">
-            <thead>
-              <tr>
-                <th>CLIENT DETAILS</th>
-                <th>EVENT TIER</th>
-                <th>EVENT DATE</th>
-                <th>BOOKING STATUS</th>
-                <th>VALUATION</th>
-                <th></th> 
-              </tr>
-            </thead>
-            <tbody>
-              {bookingsData.map((row) => (
-                <tr key={row.id}>
-                  
-                  {/* Client Info */}
-                  <td>
-                    <div className="client-cell">
-                      <img src={row.clientImg} alt={row.clientName} className="client-avatar" />
-                      <div className="client-info">
-                        <strong>{row.clientName}</strong>
-                        <span>{row.clientEmail}</span>
-                      </div>
-                    </div>
-                  </td>
-
-                  {/* Event Tier */}
-                  <td>
-                    <span className={`tier-badge border-${row.tierColor} text-${row.tierColor}`}>
-                      {row.tier}
-                    </span>
-                  </td>
-
-                  {/* Event Date */}
-                  <td>
-                    <div className="date-cell">
-                      <strong>{row.date}</strong>
-                      <span>{row.time}</span>
-                    </div>
-                  </td>
-
-                  {/* Booking Status */}
-                  <td>
-                    <div className="status-cell">
-                       <span className={`status-dot bg-${row.statusColor}`}></span>
-                       <span className={`text-${row.statusColor} font-semibold`}>{row.status}</span>
-                    </div>
-                  </td>
-
-                  {/* Valuation */}
-                  <td>
-                    <strong className="valuation-text">{row.valuation}</strong>
-                  </td>
-
-                  {/* Actions */}
-                  <td className="actions-cell">
-                    <button className="more-btn"><MoreVertical size={16} /></button>
-                  </td>
-
+          {loading ? (
+            <div style={{ padding: '40px', textAlign: 'center', color: 'var(--admin-text-sub)' }}>
+              Loading luxury bookings...
+            </div>
+          ) : error ? (
+            <div style={{ padding: '40px', textAlign: 'center', color: 'var(--admin-danger-text)' }}>
+              Error: {error}
+            </div>
+          ) : (
+            <table className="bookings-table">
+              <thead>
+                <tr>
+                  <th>CLIENT DETAILS</th>
+                  <th>PACKAGE</th>
+                  <th>EVENT DATE</th>
+                  <th>BOOKING STATUS</th>
+                  <th>TOTAL PRICE</th>
+                  <th></th> 
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {bookings.map((row: any, index: number) => (
+                  <tr key={index}>
+                    
+                    {/* Client Info */}
+                    <td>
+                      <div className="client-cell">
+                        <div className="client-avatar" style={{ backgroundColor: 'var(--admin-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
+                          {row.customer_name?.charAt(0)}
+                        </div>
+                        <div className="client-info">
+                          <strong>{row.customer_name}</strong>
+                          <span>{row.email}</span>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Package */}
+                    <td>
+                      <span className="font-semibold text-accent">
+                        {row.package_name}
+                      </span>
+                    </td>
+
+                    {/* Event Date */}
+                    <td>
+                      <div className="date-cell">
+                        <strong>{new Date(row.event_date).toLocaleDateString()}</strong>
+                        <span>{row.venue_proposed || 'Premium Venue'}</span>
+                      </div>
+                    </td>
+
+                    {/* Booking Status */}
+                    <td>
+                      <div className="status-cell">
+                        <span className={`status-dot bg-${getStatusColor(row.status)}`}></span>
+                        <span className={`text-${getStatusColor(row.status)} font-semibold`}>{row.status}</span>
+                      </div>
+                    </td>
+
+                    {/* Valuation */}
+                    <td>
+                      <strong className="valuation-text">${row.total_price?.toLocaleString()}</strong>
+                    </td>
+
+                    {/* Actions */}
+                    <td className="actions-cell">
+                      <button className="more-btn"><MoreVertical size={16} /></button>
+                    </td>
+
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
 
           {/* Table Footer / Pagination */}
           <div className="table-footer-alt">

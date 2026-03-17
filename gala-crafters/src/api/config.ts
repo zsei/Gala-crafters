@@ -14,7 +14,15 @@ export const API_ENDPOINTS = {
   },
   ADMIN: {
     PROFILE: '/api/admin/profile',
-    USERS: '/api/admin/users'
+    USERS: '/api/admin/users',
+    BOOKINGS: '/api/admin/bookings',
+    PACKAGES: '/api/admin/packages',
+    METRICS: '/api/admin/metrics',
+    MESSAGES: '/api/admin/messages',
+  },
+  BOOKINGS: {
+    CREATE: '/api/bookings',
+    USER_HISTORY: '/api/users/bookings',
   },
   HEALTH: '/api/health'
 };

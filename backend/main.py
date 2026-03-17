@@ -19,8 +19,10 @@ from auth_endpoints import (
     list_all_users,
     get_admin_users,
     get_admin_profile,
+    get_admin_profile,
     verify_token,
 )
+import database_setup
 
 # Create the database tables automatically
 models.Base.metadata.create_all(bind=engine)
@@ -65,6 +67,15 @@ class ProfileUpdateRequest(BaseModel):
     city: str = None
     country: str = None
     postal_code: str = None
+
+class BookingCreateRequest(BaseModel):
+    package_id: int
+    event_date: str # Format: YYYY-MM-DD
+    event_time: str = None
+    event_type: str
+    venue_proposed: str
+    guest_count: int = None
+    notes: str = None
 
 def get_db():
     """Database session dependency"""
@@ -153,6 +164,30 @@ def update_profile(update_data: ProfileUpdateRequest, credentials = Depends(veri
     """Update current user's profile"""
     return update_user_profile(update_data.dict(exclude_unset=True), credentials, db)
 
+@app.get("/api/users/bookings")
+def get_user_bookings(credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Get all bookings for the currently logged-in user"""
+    user_id_val = credentials.get("sub")
+    if not user_id_val:
+        raise HTTPException(status_code=401, detail="Invalid user credentials")
+    user_id = int(user_id_val)
+
+    bookings = db.query(models.Booking).filter(models.Booking.customer_id == user_id).order_by(models.Booking.created_at.desc()).all()
+    
+    # Return formatted bookings
+    return [{
+        "id": b.id,
+        "booking_reference": b.booking_reference,
+        "event_type": b.event_type,
+        "event_date": b.event_date.isoformat() if b.event_date else None,
+        "event_time": b.event_time,
+        "venue_proposed": b.venue_proposed,
+        "guest_count": b.guest_count,
+        "total_price": b.total_price,
+        "status": b.status,
+        "created_at": b.created_at.isoformat() if b.created_at else None
+    } for b in bookings]
+
 @app.get("/api/users/{user_id}")
 def get_user(user_id: int, db: Session = Depends(get_db)):
     """Get specific user by ID"""
@@ -162,6 +197,59 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
 def list_users(db: Session = Depends(get_db)):
     """List all customer users"""
     return list_all_users(db)
+
+# ============================================================================
+# BOOKING ROUTES
+# ============================================================================
+
+import uuid
+from datetime import datetime
+
+@app.post("/api/bookings")
+def create_booking(request: BookingCreateRequest, credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Create a new booking for the logged-in user"""
+    user_id_val = credentials.get("sub")
+    if not user_id_val:
+        raise HTTPException(status_code=401, detail="Invalid user credentials")
+    user_id = int(user_id_val)
+
+    # Generate a unique booking reference
+    booking_ref = f"GC-{uuid.uuid4().hex[:8].upper()}"
+    
+    try:
+        # Convert date string to date object
+        event_date_obj = datetime.strptime(request.event_date, "%Y-%m-%d").date()
+        
+        new_booking = models.Booking(
+            booking_reference=booking_ref,
+            customer_id=user_id,
+            package_id=request.package_id,
+            event_date=event_date_obj,
+            event_time=request.event_time,
+            event_type=request.event_type,
+            venue_proposed=request.venue_proposed,
+            guest_count=request.guest_count,
+            notes=request.notes,
+            status="Pending",
+            total_price=0.0 # Will be calculated or set by admin later
+        )
+        
+        db.add(new_booking)
+        db.commit()
+        db.refresh(new_booking)
+        
+        return {
+            "success": True, 
+            "message": "Booking request submitted successfully",
+            "booking_reference": booking_ref,
+            "id": new_booking.id
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid date format: {str(e)}")
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to create booking: {str(e)}")
+
 
 # ============================================================================
 # ADMIN ROUTES
@@ -177,18 +265,45 @@ def get_admin_users_endpoint(db: Session = Depends(get_db)):
     """Get all admin users"""
     return get_admin_users(db)
 
+@app.get("/api/admin/bookings")
+def get_admin_bookings_endpoint(credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Get all active bookings for admin"""
+    return database_setup.get_active_bookings()
+
+@app.get("/api/admin/packages")
+def get_admin_packages_endpoint(credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Get all available packages for admin"""
+    return database_setup.get_available_packages()
+
+@app.get("/api/admin/metrics")
+def get_admin_metrics_endpoint(credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Get admin dashboard metrics"""
+    # get_dashboard_metrics returns a list with one dict
+    metrics = database_setup.get_dashboard_metrics()
+    return metrics[0] if metrics else {}
+
+@app.get("/api/admin/messages")
+def get_admin_messages_endpoint(credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Get recent unread messages for admin"""
+    return database_setup.get_recent_messages()
+
 # ============================================================================
 # ERROR HANDLERS
 # ============================================================================
 
+from fastapi.responses import JSONResponse
+
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request, exc):
     """Custom HTTP exception handler"""
-    return {
-        "error": True,
-        "status_code": exc.status_code,
-        "detail": exc.detail
-    }
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "error": True,
+            "status_code": exc.status_code,
+            "detail": exc.detail
+        }
+    )
 
 if __name__ == "__main__":
     import uvicorn

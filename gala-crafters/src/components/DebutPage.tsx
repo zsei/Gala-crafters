@@ -222,6 +222,7 @@ function DebutPage() {
       <BookingModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
+        initialEventType="Debut"
       />
 
     </div>

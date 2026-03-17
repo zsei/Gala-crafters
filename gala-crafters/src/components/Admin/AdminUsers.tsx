@@ -2,22 +2,49 @@ import React from 'react';
 import { Search, Bell, Plus, MoreVertical, Filter, Download } from 'lucide-react';
 import AdminSidebar from './AdminSidebar';
 import './Admin.css';
-
-const usersData = [];
-
-const stats = [];
+import { API_BASE_URL, API_ENDPOINTS } from '../../api/config';
 
 const AdminUsers = () => {
   const [isDark, setIsDark] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState('staff');
   const [isCollapsed, setIsCollapsed] = React.useState(false);
+  const [users, setUsers] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     const savedTheme = localStorage.getItem('galaAdminTheme');
     if (savedTheme === 'dark') {
       setIsDark(true);
     }
-  }, []);
+
+    const fetchUsers = async () => {
+      setLoading(true);
+      try {
+        const token = localStorage.getItem('token');
+        const endpoint = activeTab === 'staff' ? API_ENDPOINTS.ADMIN.USERS : API_ENDPOINTS.USERS.LIST;
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch users');
+        }
+        
+        const data = await response.json();
+        setUsers(data);
+      } catch (err: any) {
+        setError(err.message);
+        console.error('Error fetching users:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, [activeTab]);
 
   const toggleTheme = () => {
     const newTheme = !isDark;
@@ -26,6 +53,14 @@ const AdminUsers = () => {
   };
 
   const toggleSidebar = () => setIsCollapsed(prev => !prev);
+
+  // Stats logic based on fetched users (placeholder but derived)
+  const derivedStats = [
+    { label: 'TOTAL ACCOUNTS', value: users.length, borderLeft: true },
+    { label: 'NEW THIS MONTH', value: 0, indicator: 'success' },
+    { label: 'STAFF MEMBERS', value: activeTab === 'staff' ? users.length : '...', indicator: 'warning' },
+    { label: 'CLIENTS', value: activeTab === 'clients' ? users.length : '...' }
+  ];
 
   return (
     <div className={`admin-layout ${isDark ? 'admin-dark-theme' : ''}`}>
@@ -64,7 +99,7 @@ const AdminUsers = () => {
 
         {/* Stats Row */}
         <div className="users-stats-grid">
-          {stats.map((stat, i) => (
+          {derivedStats.map((stat, i) => (
             <div key={i} className={`admin-card user-stat-card ${stat.borderLeft ? 'border-left-accent' : ''}`}>
                <span className="stat-label">{stat.label}</span>
                <div className="stat-value-row">
@@ -120,39 +155,55 @@ const AdminUsers = () => {
               </tr>
             </thead>
             <tbody>
-              {usersData.map((user) => (
-                <tr key={user.id}>
-                  <td>
-                    <div className="user-detail-cell">
-                      <img src={user.avatar} alt={user.name} className="user-avatar" />
-                      <div className="user-info">
-                        <strong>{user.name}</strong>
-                        <span>Last active: {user.lastActive}</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <span className={`role-badge bg-${user.roleColor}-light text-${user.roleColor}`}>
-                      {user.role}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="contact-info">
-                      <span className="contact-email">{user.email}</span>
-                      <span className="contact-phone">{user.phone}</span>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="status-cell">
-                      <span className={`status-dot bg-${user.statusColor}`}></span>
-                      <span className={`text-${user.statusColor === 'sub' ? 'sub' : 'main'} font-medium`}>{user.status}</span>
-                    </div>
-                  </td>
-                  <td className="actions-cell">
-                    <button className="more-btn"><MoreVertical size={16} /></button>
-                  </td>
+              {loading ? (
+                <tr>
+                   <td colSpan={5} style={{ textAlign: 'center', padding: '40px' }}>Loading directory...</td>
                 </tr>
-              ))}
+              ) : error ? (
+                <tr>
+                   <td colSpan={5} style={{ textAlign: 'center', padding: '40px', color: 'red' }}>Error: {error}</td>
+                </tr>
+              ) : users.length === 0 ? (
+                <tr>
+                   <td colSpan={5} style={{ textAlign: 'center', padding: '40px' }}>No users found.</td>
+                </tr>
+              ) : (
+                users.map((user: any) => (
+                  <tr key={user.id}>
+                    <td>
+                      <div className="user-detail-cell">
+                        <div className="user-avatar" style={{ backgroundColor: 'var(--admin-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
+                           {(user.name || user.first_name)?.charAt(0)}
+                        </div>
+                        <div className="user-info">
+                          <strong>{user.name || `${user.first_name} ${user.last_name}`}</strong>
+                          <span>Last active: Recently</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span className={`role-badge bg-accent-light text-accent`}>
+                        {user.role || user.user_role}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="contact-info">
+                        <span className="contact-email">{user.email}</span>
+                        <span className="contact-phone">{user.phone}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <div className="status-cell">
+                        <span className={`status-dot bg-success`}></span>
+                        <span className={`text-main font-medium`}>{user.status || 'Active'}</span>
+                      </div>
+                    </td>
+                    <td className="actions-cell">
+                      <button className="more-btn"><MoreVertical size={16} /></button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
 

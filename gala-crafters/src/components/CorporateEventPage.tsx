@@ -221,6 +221,7 @@ function CorporateEventPage() {
       <BookingModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
+        initialEventType="Corporate"
       />
 
     </div>

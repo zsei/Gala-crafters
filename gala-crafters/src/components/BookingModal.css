@@ -2,79 +2,79 @@
    BOOKING MODAL STYLES - GOLDEN ELEGANT AURA
 */
 
-.modal-overlay {
+.booking-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(10, 15, 29, 0.85); /* Deep dark blue-black overlay */
+    background: rgba(10, 15, 29, 0.9); /* Slightly darker for better contrast */
     backdrop-filter: blur(12px);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 10000; /* Above everything */
     padding: 20px;
-    animation: fadeInModal 0.4s ease-out;
+    animation: fadeInBookingModal 0.4s ease-out;
 }
 
-@keyframes fadeInModal {
+@keyframes fadeInBookingModal {
     from { opacity: 0; }
     to { opacity: 1; }
 }
 
-.modal-content {
+.booking-modal-content {
     background: #0a0f1d;
-    border: 1px solid rgba(196, 154, 44, 0.3);
+    border: 1px solid rgba(196, 154, 44, 0.4);
     width: 100%;
     max-width: 700px;
     max-height: 90vh;
     overflow-y: auto;
-    padding: 50px 60px;
+    padding: 40px 50px;
     position: relative;
-    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
-    animation: slideUpModal 0.5s cubic-bezier(0.2, 1, 0.3, 1);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+    animation: slideUpBookingModal 0.5s cubic-bezier(0.2, 1, 0.3, 1);
 }
 
-@keyframes slideUpModal {
+@keyframes slideUpBookingModal {
     from { transform: translateY(30px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
 }
 
-.modal-close {
+.booking-modal-close {
     position: absolute;
-    top: 25px;
-    right: 25px;
+    top: 20px;
+    right: 20px;
     background: transparent;
     border: none;
-    color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.5);
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
-.modal-close:hover {
+.booking-modal-close:hover {
     color: #c49a2c;
     transform: rotate(90deg);
 }
 
-.modal-header {
+.booking-modal-header {
     text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: 35px;
 }
 
-.modal-header h2 {
+.booking-modal-header h2 {
     font-family: 'Playfair Display', serif;
-    font-size: 36px;
+    font-size: 32px;
     color: #ffffff;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     font-weight: 400;
 }
 
-.modal-header p {
+.booking-modal-header p {
     font-family: 'DM Sans', sans-serif;
     color: #c49a2c;
     letter-spacing: 1.5px;
-    font-size: 13px;
+    font-size: 12px;
     text-transform: uppercase;
 }
 
