@@ -6,7 +6,7 @@ function Hero() {
       <div className="hero-text">
         
         <p className="collection">
-          THE 2024 COLLECTION
+          Let's create an unforgettable celebration
         </p>
 
         <h1>
@@ -15,8 +15,7 @@ function Hero() {
         </h1>
 
         <p className="description">
-          Redefining event architecture through a lens of curated sophistication.
-          We believe every gathering is a blank canvas for editorial mastery.
+          We take care of every detail so you can focus on making memories. From small gatherings to big celebrations, we make it happen.
         </p>
 
         <div className="buttons">

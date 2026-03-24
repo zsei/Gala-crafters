@@ -203,7 +203,7 @@ function WeddingPage() {
             </button>
           </div>
           <div className="corporate-img-right">
-            <img src={img2} alt="Corporate Event Right" />
+            <img src={img1} alt="Corporate Event Right" />
           </div>
         </div>
       </section>

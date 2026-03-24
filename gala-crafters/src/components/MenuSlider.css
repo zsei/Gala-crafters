@@ -1,7 +1,7 @@
 /* MENU SLIDER SECTION */
 .menu-slider-section {
-    background-color: #f8f8f8;
-    /* Changed to a subtle off-white/gray */
+    background-color: #0a0f1d;
+    /* Changed to match footer color */
     padding: 120px 0;
     overflow: hidden;
     /* Prevent horizontal scroll on document */
@@ -23,7 +23,7 @@
 
 .menu-slider-overline {
     font-family: 'DM Sans', sans-serif;
-    color: #791c2b;
+    color: #c49a2c;
     /* A burgundy/maroon matching the image */
     font-size: 13px;
     font-weight: 800;
@@ -36,7 +36,7 @@
 .menu-slider-info h2 {
     font-family: 'Playfair Display', serif;
     font-size: 42px;
-    color: #0f172a;
+    color: #ffffff;
     line-height: 1.2;
     margin-bottom: 30px;
     letter-spacing: 2px;
@@ -46,7 +46,7 @@
 .menu-slider-info p {
     font-family: 'DM Sans', sans-serif;
     font-size: 14px;
-    color: #555;
+    color: #ffffff;
     line-height: 1.8;
     margin-bottom: 40px;
 }
@@ -61,8 +61,8 @@
     width: 50px;
     height: 50px;
     background: transparent;
-    border: 1px solid #791c2b;
-    color: #791c2b;
+    border: 1px solid #c49a2c;
+    color: #c49a2c;
     font-size: 20px;
     cursor: pointer;
     display: flex;
@@ -74,10 +74,10 @@
 .menu-slider-controls button:hover,
 .menu-slider-controls button:active {
     /* Give it a hover state like the second button in image */
-    background: #47111b;
+    background: #c49a2c;
     /* Dark maroon/burgundy */
     color: #fff;
-    border-color: #47111b;
+    border-color: #c49a2c;
 }
 
 /* Right Slider Area */

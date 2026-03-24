@@ -32,6 +32,10 @@ export const authService = {
       }
       throw new Error('No token received');
     } catch (error: any) {
+      // Check if it's a network error
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        throw new Error(`Cannot connect to server at ${API_BASE_URL}. Please ensure the backend is running.`);
+      }
       throw new Error(error.message || 'Login failed');
     }
   },
@@ -57,6 +61,10 @@ export const authService = {
       const data = await response.json();
       return data;
     } catch (error: any) {
+      // Check if it's a network error
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        throw new Error(`Cannot connect to server at ${API_BASE_URL}. Please ensure the backend is running.`);
+      }
       throw new Error(error.message || 'Registration failed');
     }
   },
@@ -91,6 +99,10 @@ export const authService = {
       }
       throw new Error('No token received');
     } catch (error: any) {
+      // Check if it's a network error
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        throw new Error(`Cannot connect to server at ${API_BASE_URL}. Please ensure the backend is running.`);
+      }
       throw new Error(error.message || 'Admin login failed');
     }
   },

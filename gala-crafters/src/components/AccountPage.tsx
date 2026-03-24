@@ -9,6 +9,18 @@ const AccountPage = () => {
   const [isEditAddressOpen, setIsEditAddressOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Form state for Edit Personal Information
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    dateOfBirth: '',
+    age: ''
+  });
+
+  const [formErrors, setFormErrors] = useState<any>({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -24,9 +36,87 @@ const AccountPage = () => {
     const userData = authService.getStoredUser();
     if (userData) {
       setUser(userData);
+      setFormData({
+        firstName: userData.first_name || '',
+        lastName: userData.last_name || '',
+        email: userData.email || '',
+        phone: userData.phone || '(+63 9)',
+        dateOfBirth: userData.date_of_birth || '',
+        age: calculateAge(userData.date_of_birth) || ''
+      });
     }
     setLoading(false);
   }, [navigate]);
+
+  const calculateAge = (birthDate: string) => {
+    if (!birthDate) return '';
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age > 0 ? age.toString() : '';
+  };
+
+  const validateName = (name: string) => {
+    return /^[a-zA-Z\s]*$/.test(name);
+  };
+
+  const validateEmail = (email: string) => {
+    return email.endsWith('@gmail.com');
+  };
+
+  const validatePhone = (phone: string) => {
+    const phoneNumbers = phone.replace(/[^\d]/g, '');
+    return phoneNumbers.length === 11 && phoneNumbers.startsWith('639');
+  };
+
+  const handleFormChange = (field: string, value: string) => {
+    setFormData(prev => {
+      const updated = { ...prev, [field]: value };
+      
+      if (field === 'dateOfBirth') {
+        updated.age = calculateAge(value);
+      }
+      
+      return updated;
+    });
+
+    // Clear error for this field
+    setFormErrors(prev => ({
+      ...prev,
+      [field]: ''
+    }));
+  };
+
+  const validateForm = () => {
+    const errors: any = {};
+
+    if (!validateName(formData.firstName)) {
+      errors.firstName = 'First name can only contain letters and spaces';
+    }
+    if (!validateName(formData.lastName)) {
+      errors.lastName = 'Last name can only contain letters and spaces';
+    }
+    if (!validateEmail(formData.email)) {
+      errors.email = 'Email must be @gmail.com';
+    }
+    if (!validatePhone(formData.phone)) {
+      errors.phone = 'Phone must be (+63 9) with 9 digits';
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSavePersonalInfo = () => {
+    if (validateForm()) {
+      // Save logic here
+      setIsEditPersonalOpen(false);
+    }
+  };
 
   if (loading) {
     return <div style={{ padding: '20px' }}>Loading...</div>;
@@ -75,7 +165,7 @@ const AccountPage = () => {
           <div className="profile-card">
             <div className="card-header">
               <h2 className="card-title">Personal Information</h2>
-              <button className="edit-btn-primary" onClick={() => setIsEditPersonalOpen(true)}>
+              <button className="edit-btn-primary" onClick={() => setIsEditPersonalOpen(true)} style={{ backgroundColor: '#c49a2c' }}>
                 Edit <Edit2 size={14} className="edit-icon" />
               </button>
             </div>
@@ -103,8 +193,13 @@ const AccountPage = () => {
               </div>
               
               <div className="info-item">
-                <div className="info-label">User Role</div>
-                <div className="info-value">{user.role || user.user_role}</div>
+                <div className="info-label">Date of Birth</div>
+                <div className="info-value">{user.date_of_birth}</div>
+              </div>
+              
+              <div className="info-item">
+                <div className="info-label">Age</div>
+                <div className="info-value">{calculateAge(user.date_of_birth)}</div>
               </div>
 
             </div>
@@ -156,38 +251,78 @@ const AccountPage = () => {
               <div className="modal-form-grid">
                 <div className="modal-form-field">
                   <label>First Name</label>
-                  <input type="text" defaultValue="Natashia" />
+                  <input 
+                    type="text" 
+                    value={formData.firstName}
+                    onChange={(e) => handleFormChange('firstName', e.target.value)}
+                    placeholder="Enter first name (letters only)"
+                  />
+                  {formErrors.firstName && <span className="error-text">{formErrors.firstName}</span>}
                 </div>
                 <div className="modal-form-field">
                   <label>Last Name</label>
-                  <input type="text" defaultValue="Khaleira" />
+                  <input 
+                    type="text" 
+                    value={formData.lastName}
+                    onChange={(e) => handleFormChange('lastName', e.target.value)}
+                    placeholder="Enter last name (letters only)"
+                  />
+                  {formErrors.lastName && <span className="error-text">{formErrors.lastName}</span>}
                 </div>
                 <div className="modal-form-field full-width">
                   <label>Email Address</label>
-                  <input type="email" defaultValue="info@binary-fusion.com" />
+                  <input 
+                    type="email" 
+                    value={formData.email}
+                    onChange={(e) => handleFormChange('email', e.target.value)}
+                    placeholder="example@gmail.com"
+                  />
+                  {formErrors.email && <span className="error-text">{formErrors.email}</span>}
                 </div>
                 <div className="modal-form-field full-width">
                   <label>Phone Number</label>
-                  <input type="tel" defaultValue="(+62) 821 2554-5846" />
+                  <input 
+                    type="tel" 
+                    value={formData.phone}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      const phoneNumbers = value.replace(/[^\d]/g, '');
+                      if (phoneNumbers.length <= 11) {
+                        handleFormChange('phone', value);
+                      }
+                    }}
+                    placeholder="(+63 9) XXXXXXXXX"
+                  />
+                  {formErrors.phone && <span className="error-text">{formErrors.phone}</span>}
                 </div>
-                <div className="modal-form-field full-width">
+                <div className="modal-form-field">
                   <label>Date of Birth</label>
-                  <div className="input-with-icon">
-                    <input type="text" defaultValue="12/10/1990" />
-                    <Lock size={14} className="input-lock-icon" />
-                  </div>
+                  <input 
+                    type="date" 
+                    value={formData.dateOfBirth}
+                    onChange={(e) => handleFormChange('dateOfBirth', e.target.value)}
+                  />
                 </div>
-                <div className="modal-form-field full-width">
-                  <label>User Role</label>
-                  <select defaultValue="Admin" className="custom-select">
-                    <option value="Admin">Admin</option>
-                    <option value="User">User</option>
-                  </select>
+                <div className="modal-form-field">
+                  <label>Age</label>
+                  <input 
+                    type="text" 
+                    value={formData.age}
+                    readOnly
+                    placeholder="Auto-calculated"
+                    style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
+                  />
                 </div>
               </div>
             </div>
             <div className="modal-footer">
-              <button className="modal-save-btn" onClick={() => setIsEditPersonalOpen(false)}>Save Changes</button>
+              <button 
+                className="modal-save-btn" 
+                onClick={handleSavePersonalInfo}
+                style={{ backgroundColor: '#c49a2c' }}
+              >
+                Save Changes
+              </button>
             </div>
           </div>
         </div>

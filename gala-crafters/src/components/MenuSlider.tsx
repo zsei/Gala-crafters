@@ -7,9 +7,9 @@ import img4 from '../assets/img11.jpg';
 
 const originalMenus = [
     { id: 1, title: 'Signature Plated', img: img1 },
-    { id: 2, title: 'American Plated', img: img2 },
-    { id: 3, title: 'Filipino Heritage', img: img3 },
-    { id: 4, title: 'Fusion Delight', img: img4 },
+    { id: 2, title: 'International Menu', img: img2 },
+    { id: 3, title: 'Traditional Filipino', img: img3 },
+    { id: 4, title: 'Chefs Special', img: img4 },
 ];
 
 // Duplicate the menus to create the infinite scroll illusion
