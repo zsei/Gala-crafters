@@ -25,7 +25,10 @@ import AdminBookings from './components/Admin/AdminBookings';
 import AdminUsers from './components/Admin/AdminUsers';
 import AdminMessages from './components/Admin/AdminMessages';
 import AdminLoginPage from './components/Admin/AdminLoginPage';
-import AdminPackages from './components/Admin/AdminPackages'; // We will create this next
+import AdminPackages from './components/Admin/AdminPackages';
+import AdminDiscounts from './components/Admin/AdminDiscounts';
+import AdminReviews from './components/Admin/AdminReviews';
+import AdminReports from './components/Admin/AdminReports';
 
 // Homepage Sections
 import Hero from './components/Hero';
@@ -85,6 +88,9 @@ const AppLayout = () => {
         <Route path="/admin/packages" element={<ProtectedRoute requiredRole="admin"><AdminPackages /></ProtectedRoute>} />
         <Route path="/admin/users" element={<ProtectedRoute requiredRole="admin"><AdminUsers /></ProtectedRoute>} />
         <Route path="/admin/messages" element={<ProtectedRoute requiredRole="admin"><AdminMessages /></ProtectedRoute>} />
+        <Route path="/admin/discounts" element={<ProtectedRoute requiredRole="admin"><AdminDiscounts /></ProtectedRoute>} />
+        <Route path="/admin/reviews" element={<ProtectedRoute requiredRole="admin"><AdminReviews /></ProtectedRoute>} />
+        <Route path="/admin/reports" element={<ProtectedRoute requiredRole="admin"><AdminReports /></ProtectedRoute>} />
       </Routes>
 
       {!isAdmin && !isAuth && <Footer />}

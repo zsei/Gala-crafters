@@ -32,6 +32,7 @@ class User(Base):
 
     # Relationships
     bookings = relationship("Booking", back_populates="customer")
+    reviews = relationship("Review", back_populates="customer")
 
 
 class AdminUser(Base):
@@ -108,6 +109,7 @@ class Booking(Base):
     customer = relationship("User", back_populates="bookings")
     package = relationship("EventPackage", back_populates="bookings")
     booking_services = relationship("BookingService", back_populates="booking")
+    reviews = relationship("Review", back_populates="booking")
 
 
 class BookingService(Base):
@@ -194,3 +196,21 @@ class DashboardMetric(Base):
     pending_approvals = Column(Integer)
     registered_users = Column(Integer)
     recorded_at = Column(DateTime, default=datetime.utcnow)
+
+
+class Review(Base):
+    """Review model"""
+    __tablename__ = "reviews"
+
+    id = Column(Integer, primary_key=True, index=True)
+    booking_id = Column(Integer, ForeignKey("bookings.id"), nullable=False)
+    customer_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    rating = Column(Integer, nullable=False) # 1-5 stars
+    comment = Column(Text)
+    status = Column(String(50), default="Visible")
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    booking = relationship("Booking", back_populates="reviews")
+    customer = relationship("User", back_populates="reviews")
+

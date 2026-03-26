@@ -77,6 +77,19 @@ class BookingCreateRequest(BaseModel):
     guest_count: int = None
     notes: str = None
 
+class PromoCodeRequest(BaseModel):
+    code: str
+    discount_percentage: float = None
+    discount_amount: float = None
+    expiry_date: str = None # YYYY-MM-DD
+    max_uses: int = None
+    status: str = "Active"
+
+class ReviewRequest(BaseModel):
+    booking_id: int
+    rating: int # 1-5
+    comment: str = None
+
 def get_db():
     """Database session dependency"""
     db = SessionLocal()
@@ -286,6 +299,111 @@ def get_admin_metrics_endpoint(credentials = Depends(verify_token), db: Session 
 def get_admin_messages_endpoint(credentials = Depends(verify_token), db: Session = Depends(get_db)):
     """Get recent unread messages for admin"""
     return database_setup.get_recent_messages()
+
+# --- DISCOUNT / PROMO CODE ENDPOINTS ---
+
+@app.get("/api/admin/promo-codes")
+def get_promo_codes(credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Get all promo codes for admin"""
+    return database_setup.get_all_promo_codes()
+
+@app.post("/api/admin/promo-codes")
+def create_promo_code(request: PromoCodeRequest, credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Create a new promo code"""
+    from datetime import datetime
+    
+    expires = None
+    if request.expiry_date:
+        try:
+            expires = datetime.strptime(request.expiry_date, "%Y-%m-%d").date()
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
+
+    new_code = models.PromoCode(
+        code=request.code,
+        discount_percentage=request.discount_percentage,
+        discount_amount=request.discount_amount,
+        expiry_date=expires,
+        max_uses=request.max_uses,
+        status=request.status
+    )
+    db.add(new_code)
+    try:
+        db.commit()
+        db.refresh(new_code)
+        return {"success": True, "message": "Promo code created", "id": new_code.id}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Failed to create promo code: {str(e)}")
+
+@app.put("/api/admin/promo-codes/{code_id}")
+def update_promo_code(code_id: int, request: PromoCodeRequest, credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Update an existing promo code"""
+    from datetime import datetime
+    
+    promo = db.query(models.PromoCode).filter(models.PromoCode.id == code_id).first()
+    if not promo:
+        raise HTTPException(status_code=404, detail="Promo code not found")
+    
+    promo.code = request.code
+    promo.discount_percentage = request.discount_percentage
+    promo.discount_amount = request.discount_amount
+    promo.max_uses = request.max_uses
+    promo.status = request.status
+    
+    if request.expiry_date:
+        try:
+            promo.expiry_date = datetime.strptime(request.expiry_date, "%Y-%m-%d").date()
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
+    
+    db.commit()
+    return {"success": True, "message": "Promo code updated"}
+
+@app.delete("/api/admin/promo-codes/{code_id}")
+def delete_promo_code(code_id: int, credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Delete a promo code"""
+    promo = db.query(models.PromoCode).filter(models.PromoCode.id == code_id).first()
+    if not promo:
+        raise HTTPException(status_code=404, detail="Promo code not found")
+    
+    db.delete(promo)
+    db.commit()
+    return {"success": True, "message": "Promo code deleted"}
+
+# --- REVIEW ENDPOINTS ---
+
+@app.get("/api/admin/reviews")
+def get_admin_reviews(credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Get all reviews for admin"""
+    return database_setup.get_all_reviews()
+
+@app.post("/api/reviews")
+def submit_review(request: ReviewRequest, credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Submit a review (Customer only)"""
+    user_id = int(credentials.get("sub"))
+    
+    # Check if booking exists and belongs to user
+    booking = db.query(models.Booking).filter(models.Booking.id == request.booking_id, models.Booking.customer_id == user_id).first()
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found or not authorized")
+    
+    new_review = models.Review(
+        booking_id=request.booking_id,
+        customer_id=user_id,
+        rating=request.rating,
+        comment=request.comment
+    )
+    db.add(new_review)
+    db.commit()
+    return {"success": True, "message": "Review submitted successfully"}
+
+# --- REPORT ENDPOINTS ---
+
+@app.get("/api/admin/reports/sales")
+def get_reports(credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Get sales reports for admin"""
+    return database_setup.get_sales_report()
 
 # ============================================================================
 # ERROR HANDLERS

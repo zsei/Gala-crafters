@@ -34,7 +34,13 @@ const AdminUsers = () => {
         }
         
         const data = await response.json();
-        setUsers(data);
+        
+        // Extract the correct array depending on the endpoint response structure
+        if (activeTab === 'staff') {
+          setUsers(data.admins || []);
+        } else {
+          setUsers(data.users || []);
+        }
       } catch (err: any) {
         setError(err.message);
         console.error('Error fetching users:', err);

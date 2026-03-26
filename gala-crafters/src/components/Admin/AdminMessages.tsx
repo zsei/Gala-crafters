@@ -58,7 +58,10 @@ const AdminMessages = () => {
         toggleSidebar={toggleSidebar}
       />
 
-      <main className={`admin-main messages-main ${isCollapsed ? 'collapsed-main' : ''}`}>
+      <main 
+        className={`admin-main messages-main ${isCollapsed ? 'collapsed-main' : ''}`}
+        style={{ padding: 0, height: '100vh', overflow: 'hidden', marginLeft: isCollapsed ? '80px' : '260px', transition: 'margin-left 0.3s ease' }}
+      >
         <div className="messages-layout">
           
           {/* Left Panel: Chat List (Using Messages from Database) */}
@@ -222,6 +225,25 @@ const AdminMessages = () => {
           </section>
         </div>
       </main>
+
+      <style>{`
+        .messages-main {
+          display: flex;
+          flex-direction: column;
+        }
+        .messages-layout {
+          display: flex;
+          height: 100%;
+          width: 100%;
+        }
+        .chat-list-item {
+          cursor: pointer;
+        }
+        .chat-list-item.active {
+          background-color: var(--admin-hover);
+          border-left: 3px solid var(--admin-accent);
+        }
+      `}</style>
     </div>
   );
 };

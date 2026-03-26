@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLocation } from 'react-router-dom'; // 1. IMPORT USELOCATION
+import { useLocation, useNavigate } from 'react-router-dom'; // 1. IMPORT USELOCATION & USENAVIGATION
 
 // Keep your icon variables here
 const IconWeb = () => (
@@ -28,6 +28,7 @@ const IconInstagram = () => (
 function Footer() {
   // 2. CHECK THE CURRENT PAGE
   const location = useLocation();
+  const navigate = useNavigate();
   const isHome = location.pathname === '/';
 
   return (
@@ -37,12 +38,11 @@ function Footer() {
       {isHome && (
         <section className="cta-section">
           <div className="container">
-            <h2 className="cta-title">DEFINE YOUR MOMENT.</h2>
+            <h2 className="cta-title"><span style={{ fontFamily: "'Playfair Display', serif", fontStyle: 'normal', color: '#ffffff' }}>Define your </span><span style={{ fontFamily: "'Playfair Display', serif", color: '#c49a2c', fontStyle: 'italic' }}>moment.</span></h2>
             <p className="cta-text">
-              Currently accepting inquiries for 2026/2027. Join our list of distinguished clients 
-              who settle for nothing less than absolute perfection.
+              We are now booking for 2026 and 2027. We’d love to hear about your plans and help you bring your vision to life.
             </p>
-            <button className="cta-btn">BEGIN YOUR STORY</button>
+            <button className="cta-btn" onClick={() => navigate('/login')}>BEGIN YOUR STORY</button>
           </div>
         </section>
       )}
@@ -57,8 +57,7 @@ function Footer() {
               GALA CRAFTERS
             </div>
             <p className="footer-bio">
-              The world's premier destination for high-end event planning and editorial design. 
-              Excellence is our only standard.
+              Professional event planning and design for your most important moments. We make every detail count.
             </p>
             <div className="social-links">
               <div className="social-box"><IconWeb /></div>
@@ -71,7 +70,7 @@ function Footer() {
           <div className="footer-col">
             <h4>STUDIO</h4>
             <ul>
-              <li>Our Process</li>
+              <li>Event</li>
               <li>Journal</li>
               <li>Portfolio</li>
               <li>Contact</li>

@@ -25,10 +25,10 @@ const IconShield = () => (
 );
 
 const collections = [
-  { id: 1, title: 'Weddings', subtitle: 'ENCHANTED UNIONS', img: img1 },
-  { id: 2, title: 'Corporate Galas', subtitle: 'PRESTIGE & INFLUENCE', img: img2 },
-  { id: 3, title: 'Private Soirees', subtitle: 'INTIMATE ELEGANCE', img: img3 },
-  { id: 4, title: 'Exhibitions', subtitle: 'CULTURAL CURATION', img: img4 },
+  { id: 1, title: 'Weddings', subtitle: 'CLASSIC CELEBRATION', img: img1 },
+  { id: 2, title: 'Corporate Galas', subtitle: 'PROFESSIONAL EVENTS', img: img2 },
+  { id: 3, title: 'Birthdays', subtitle: 'PERSONAL PARTIES', img: img3 },
+  { id: 4, title: 'Private Soirees', subtitle: 'INTIMATE ELEGANCE', img: img4 },
 ];
 
 function Services() {
@@ -38,9 +38,9 @@ function Services() {
       <section className="services-section">
         <div className="container">
           <div className="services-intro">
-            <h2>Curated Collections</h2>
+            <h2 style={{ color: '#c49a2c' }}>Crafter's Collections</h2>
             <div className="gold-line"></div>
-            <p>BESPOKE EXPERIENCES FOR LIFE'S MOST SIGNIFICANT MILESTONES</p>
+            <p>FROM BIG WEDDINGS AND PRIVATE PARTIES, WE MAKE IT HAPPEN.</p>
           </div>
 
           <div className="services-grid">
@@ -63,33 +63,36 @@ function Services() {
       {/* NEW SECTION: MENU SLIDER */}
       <MenuSlider />
 
-      {/* SECTION 2: CURATED EXCELLENCE (Gray Background) */}
+      {/* SECTION 2: CURATED EXCELLENCE (White Background) */}
       <section className="excellence-section">
         <div className="container">
           <div className="excellence-header">
             <div className="excellence-titles">
-              <h2>CURATED EXCELLENCE</h2>
+              <h2 style={{ letterSpacing: '0.05em' }}>Crafter's Excellence</h2>
               <p className="subtitle">CRAFTING THE UNFORGETTABLE WITH PRECISION AND GOLD-STANDARD AESTHETICS.</p>
             </div>
-            <div className="all-services-link">ALL SERVICES</div>
           </div>
 
           <div className="excellence-grid">
             <div className="excellence-card">
               <div className="icon-wrapper"><IconPalette /></div>
-              <h4><span>BESPOKE DESIGN</span></h4>
-              <p>Our signature aesthetic blends contemporary minimalism with the timeless warmth of gold, creating a visual language that speaks of luxury.</p>
+              <h4>CREATIVE STYLING</h4>
+              <p>We design every event from scratch to match your personal style and theme. No two celebrations are ever the same.</p>
             </div>
             <div className="excellence-card">
               <div className="icon-wrapper"><IconSparkle /></div>
-              <h4><span>GOLD STANDARD</span></h4>
-              <p>Uncompromising attention to detail for our elite clientele, ensuring every touchpoint reflects the highest tier of service excellence.</p>
+              <h4>QUALITY SERVICE</h4>
+              <p>We only work with the best partners and materials to ensure your event looks and feels premium from start to finish.</p>
             </div>
             <div className="excellence-card">
               <div className="icon-wrapper"><IconShield /></div>
-              <h4><span>WHITE-GLOVE</span></h4>
-              <p>Seamless coordination from the first concept sketch to the final curtain call, handled with the utmost discretion and care.</p>
+              <h4>STRESS-FREE PLANNING</h4>
+              <p>From the first meeting to the actual event day, we handle everything. You just need to show up and celebrate.</p>
             </div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '40px' }}>
+            <div className="all-services-link" onClick={() => window.location.href = '/services/packages'}>VIEW ALL PACKAGES</div>
           </div>
         </div>
       </section>
