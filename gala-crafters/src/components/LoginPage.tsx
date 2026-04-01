@@ -10,6 +10,8 @@ const LoginPage = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [isForgotPassword, setIsForgotPassword] = useState(false);
+    const [forgotMessage, setForgotMessage] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -37,6 +39,22 @@ const LoginPage = () => {
         }
     };
 
+    const handleForgotPassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+        setForgotMessage('');
+        setLoading(true);
+
+        try {
+            const response = await authService.forgotPassword(email);
+            setForgotMessage(response.message || 'If an account exists with this email, a password reset link has been sent.');
+        } catch (err: any) {
+            setError(err.message || 'Failed to send password reset request.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="auth-page">
             <div className="auth-form-side">
@@ -51,13 +69,49 @@ const LoginPage = () => {
                     </div>
 
                     <div className="auth-header">
-                        <h2>Welcome Back</h2>
-                        <p>Access your curated event management dashboard.</p>
+                        <h2>{isForgotPassword ? 'Reset Password' : 'Welcome Back'}</h2>
+                        <p>{isForgotPassword ? 'Enter your email to receive reset instructions.' : 'Access your curated event management dashboard.'}</p>
                     </div>
 
                     {error && <div className="auth-error" style={{ color: 'red', marginBottom: '15px' }}>{error}</div>}
+                    {forgotMessage && <div className="auth-success" style={{ color: 'green', marginBottom: '15px' }}>{forgotMessage}</div>}
 
-                    <form className="auth-form" onSubmit={handleSubmit}>
+                    {isForgotPassword ? (
+                        <form className="auth-form" onSubmit={handleForgotPassword}>
+                            <div className="form-group">
+                                <label>Email Address</label>
+                                <input 
+                                    type="email" 
+                                    placeholder="Enter your email" 
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    required 
+                                />
+                            </div>
+
+                            <button type="submit" className="auth-btn-primary" disabled={loading}>
+                                {loading ? 'Sending...' : 'Send Reset Link'}
+                            </button>
+
+                            <div style={{ textAlign: 'center', marginTop: '15px' }}>
+                                <button
+                                    type="button"
+                                    onClick={() => { setIsForgotPassword(false); setError(''); setForgotMessage(''); }}
+                                    style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        color: '#c49a2c', // Primary color
+                                        cursor: 'pointer',
+                                        textDecoration: 'underline',
+                                        fontSize: '14px'
+                                    }}
+                                >
+                                    Back to Login
+                                </button>
+                            </div>
+                        </form>
+                    ) : (
+                        <form className="auth-form" onSubmit={handleSubmit}>
                         <div className="form-group">
                             <label>Email Address</label>
                             <input 
@@ -102,14 +156,28 @@ const LoginPage = () => {
                             </div>
                         </div>
 
-                        <Link to="#" className="auth-link" style={{ alignSelf: 'flex-end', fontSize: '13px' }}>
+                        <button 
+                            type="button" 
+                            className="auth-link" 
+                            onClick={() => { setIsForgotPassword(true); setError(''); setForgotMessage(''); }}
+                            style={{ 
+                                alignSelf: 'flex-end', 
+                                fontSize: '13px', 
+                                background: 'none', 
+                                border: 'none', 
+                                padding: 0, 
+                                cursor: 'pointer',
+                                color: 'rgba(255, 255, 255, 0.6)'
+                            }}
+                        >
                             Forgot Password?
-                        </Link>
+                        </button>
 
                         <button type="submit" className="auth-btn-primary" disabled={loading}>
                             {loading ? 'Logging in...' : 'Log In'}
                         </button>
                     </form>
+                    )}
 
                     <div className="auth-footer">
                         Don't have an account? <Link to="/signup">Sign Up</Link>

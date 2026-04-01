@@ -13,6 +13,7 @@ from auth_endpoints import (
     login, 
     admin_login,
     register,
+    forgot_password,
     get_user_profile, 
     update_user_profile,
     get_user_by_id,
@@ -48,6 +49,9 @@ app.add_middleware(
 class LoginRequest(BaseModel):
     email: str
     password: str
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
 
 class RegistrationRequest(BaseModel):
     first_name: str
@@ -162,6 +166,13 @@ def admin_login_endpoint(request: LoginRequest, db: Session = Depends(get_db)):
     - Password: hashed_admin_123
     """
     return admin_login(request.email, request.password, db)
+
+@app.post("/api/auth/forgot-password")
+def request_password_reset(request: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    """
+    Endpoint for requesting a password reset link
+    """
+    return forgot_password(request.email, db)
 
 # ============================================================================
 # USER PROFILE ROUTES

@@ -108,6 +108,33 @@ export const authService = {
   },
 
   /**
+   * Request password reset
+   */
+  forgotPassword: async (email: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.FORGOT_PASSWORD}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Failed to request password reset');
+      }
+
+      return await response.json();
+    } catch (error: any) {
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        throw new Error(`Cannot connect to server at ${API_BASE_URL}. Please ensure the backend is running.`);
+      }
+      throw new Error(error.message || 'Error processing forgot password request');
+    }
+  },
+
+  /**
    * Logout
    */
   logout: () => {

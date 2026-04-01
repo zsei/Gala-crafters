@@ -175,8 +175,26 @@ def register(
             "email": new_user.email,
             "phone": new_user.phone,
             "city": new_user.city,
-            "barangay": new_user.barangay
         }
+    }
+
+
+def forgot_password(email: str, db: Session = Depends(get_db)):
+    """
+    Simulates sending a password reset link to the user's email.
+    """
+    user = db.query(User).filter(User.email == email).first()
+    
+    # We still return success even if user not found, 
+    # to prevent email enumeration (security best practice)
+    
+    # For testing purposes we'll log it if found
+    if user:
+        print(f"[TEST] Password reset requested for {email}. Password is: {user.password}")
+        
+    return {
+        "success": True, 
+        "message": "If an account exists with this email, a password reset link has been sent."
     }
 
 

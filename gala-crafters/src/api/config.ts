@@ -6,6 +6,7 @@ export const API_ENDPOINTS = {
     LOGIN: '/api/auth/login',
     REGISTER: '/api/auth/register',
     ADMIN_LOGIN: '/api/auth/admin-login',
+    FORGOT_PASSWORD: '/api/auth/forgot-password',
   },
   USERS: {
     PROFILE: '/api/users/profile',
