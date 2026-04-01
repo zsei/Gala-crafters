@@ -29,6 +29,8 @@ class User(Base):
     status = Column(String(50), default="Active")
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    reset_token = Column(String(255), nullable=True)
+    reset_token_expires = Column(DateTime, nullable=True)
 
     # Relationships
     bookings = relationship("Booking", back_populates="customer")

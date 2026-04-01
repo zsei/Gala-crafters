@@ -14,6 +14,7 @@ from auth_endpoints import (
     admin_login,
     register,
     forgot_password,
+    reset_password,
     get_user_profile, 
     update_user_profile,
     get_user_by_id,
@@ -52,6 +53,10 @@ class LoginRequest(BaseModel):
 
 class ForgotPasswordRequest(BaseModel):
     email: str
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    password: str
 
 class RegistrationRequest(BaseModel):
     first_name: str
@@ -173,6 +178,13 @@ def request_password_reset(request: ForgotPasswordRequest, db: Session = Depends
     Endpoint for requesting a password reset link
     """
     return forgot_password(request.email, db)
+
+@app.post("/api/auth/reset-password")
+def execute_password_reset(request: ResetPasswordRequest, db: Session = Depends(get_db)):
+    """
+    Endpoint for executing the actual password reset using a token
+    """
+    return reset_password(request.token, request.password, db)
 
 # ============================================================================
 # USER PROFILE ROUTES

@@ -14,6 +14,7 @@ import ContactUsPage from './components/ContactUsPage';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
 import SignUpPage from './components/SignUpPage';
+import ResetPasswordPage from './components/ResetPasswordPage';
 import AccountPage from './components/AccountPage';
 import TransactionHistory from './components/TransactionHistory';
 import Dashboard from './components/Dashboard';
@@ -49,7 +50,9 @@ const Home = () => (
 const AppLayout = () => {
   const location = useLocation();
   const isAdmin = location.pathname.toLowerCase().startsWith('/admin');
-  const isAuth = location.pathname.toLowerCase().startsWith('/login') || location.pathname.toLowerCase().startsWith('/signup');
+  const isAuth = location.pathname.toLowerCase().startsWith('/login') || 
+                 location.pathname.toLowerCase().startsWith('/signup') ||
+                 location.pathname.toLowerCase().startsWith('/reset-password');
 
   return (
     <>
@@ -59,6 +62,7 @@ const AppLayout = () => {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<RegisterPage />} />
+        <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/events" element={<EventsPage />} />
         <Route path="/about" element={<AboutUsPage />} />
