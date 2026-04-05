@@ -1,5 +1,7 @@
 -- Drop existing tables if they exist (clean slate)
+DROP TABLE IF EXISTS reviews CASCADE;
 DROP TABLE IF EXISTS booking_services CASCADE;
+DROP TABLE IF EXISTS promo_codes CASCADE;
 DROP TABLE IF EXISTS bookings CASCADE;
 DROP TABLE IF EXISTS admin_messages CASCADE;
 DROP TABLE IF EXISTS pending_approvals CASCADE;
@@ -164,6 +166,32 @@ CREATE TABLE dashboard_metrics (
     recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Create Reviews table
+CREATE TABLE reviews (
+    id SERIAL PRIMARY KEY,
+    booking_id INT NOT NULL,
+    customer_id INT NOT NULL,
+    rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    comment TEXT,
+    status VARCHAR(50) DEFAULT 'Visible',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (booking_id) REFERENCES bookings(id),
+    FOREIGN KEY (customer_id) REFERENCES users(id)
+);
+
+-- Create Promo Codes table
+CREATE TABLE promo_codes (
+    id SERIAL PRIMARY KEY,
+    code VARCHAR(50) UNIQUE NOT NULL,
+    discount_percentage DECIMAL(5,2),
+    discount_amount DECIMAL(10,2),
+    expiry_date DATE,
+    max_uses INT,
+    current_uses INT DEFAULT 0,
+    status VARCHAR(50) DEFAULT 'Active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- ============================================================================
 -- INSERT SAMPLE DATA
 -- ============================================================================
@@ -261,3 +289,10 @@ VALUES
     ('2026-03-02', 45200.00, 158, 11, 1210),
     ('2026-03-03', 48500.00, 160, 10, 1215),
     ('2026-03-17', 51200.00, 165, 8, 1248);
+
+-- Insert Sample Reviews
+INSERT INTO reviews (booking_id, customer_id, rating, comment)
+VALUES
+    (1, 1, 5, 'The wedding was magical! Everything was perfect.'),
+    (3, 3, 4, 'Great corporate event. Highly professional.'),
+    (5, 5, 5, 'Best birthday bash ever! The catering was amazing.');

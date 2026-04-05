@@ -16,6 +16,7 @@ import ContactUsPage from './components/ContactUsPage';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
 import SignUpPage from './components/SignUpPage';
+import ResetPasswordPage from './components/ResetPasswordPage';
 import AccountPage from './components/AccountPage';
 import SettingsPage from './components/SettingsPage';
 import MessagesPage from './components/MessagesPage';
@@ -30,7 +31,10 @@ import AdminBookings from './components/Admin/AdminBookings';
 import AdminUsers from './components/Admin/AdminUsers';
 import AdminMessages from './components/Admin/AdminMessages';
 import AdminLoginPage from './components/Admin/AdminLoginPage';
-import AdminPackages from './components/Admin/AdminPackages'; // We will create this next
+import AdminPackages from './components/Admin/AdminPackages';
+import AdminDiscounts from './components/Admin/AdminDiscounts';
+import AdminReviews from './components/Admin/AdminReviews';
+import AdminReports from './components/Admin/AdminReports';
 
 import Hero from './components/Hero';
 import Services from './components/Services';
@@ -50,7 +54,9 @@ const AppLayout = () => {
   const [isLoggedIn, setIsLoggedIn] = React.useState(false);
   const location = useLocation();
   const isAdmin = location.pathname.toLowerCase().startsWith('/admin');
-  const isAuth = location.pathname.toLowerCase().startsWith('/login') || location.pathname.toLowerCase().startsWith('/signup');
+  const isAuth = location.pathname.toLowerCase().startsWith('/login') || 
+                 location.pathname.toLowerCase().startsWith('/signup') ||
+                 location.pathname.toLowerCase().startsWith('/reset-password');
 
   React.useEffect(() => {
     const checkAuth = () => {
@@ -71,6 +77,7 @@ const AppLayout = () => {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<RegisterPage />} />
+        <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/events" element={<EventsPage />} />
         <Route path="/about" element={<AboutUsPage />} />
@@ -101,6 +108,9 @@ const AppLayout = () => {
         <Route path="/admin/packages" element={<ProtectedRoute requiredRole="admin"><AdminPackages /></ProtectedRoute>} />
         <Route path="/admin/users" element={<ProtectedRoute requiredRole="admin"><AdminUsers /></ProtectedRoute>} />
         <Route path="/admin/messages" element={<ProtectedRoute requiredRole="admin"><AdminMessages /></ProtectedRoute>} />
+        <Route path="/admin/discounts" element={<ProtectedRoute requiredRole="admin"><AdminDiscounts /></ProtectedRoute>} />
+        <Route path="/admin/reviews" element={<ProtectedRoute requiredRole="admin"><AdminReviews /></ProtectedRoute>} />
+        <Route path="/admin/reports" element={<ProtectedRoute requiredRole="admin"><AdminReports /></ProtectedRoute>} />
       </Routes>
 
       {!isAdmin && !isAuth && <Footer />}

@@ -11,11 +11,13 @@ const LoginPage = () => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
+    const [isForgotPassword, setIsForgotPassword] = useState(false);
+    const [forgotMessage, setForgotMessage] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
         window.scrollTo(0, 0);
-        
+
         // Check for remembered email
         const savedEmail = localStorage.getItem('rememberedEmail');
         if (savedEmail) {
@@ -52,6 +54,22 @@ const LoginPage = () => {
         }
     };
 
+    const handleForgotPassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+        setForgotMessage('');
+        setLoading(true);
+
+        try {
+            const response = await authService.forgotPassword(email);
+            setForgotMessage(response.message || 'If an account exists with this email, a password reset link has been sent.');
+        } catch (err: any) {
+            setError(err.message || 'Failed to send password reset request.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="auth-page">
             <div className="auth-form-side">
@@ -66,76 +84,126 @@ const LoginPage = () => {
                     </div>
 
                     <div className="auth-header">
-                        <h2>Hello Again</h2>
-                        <p>Log in to continue planning your next great celebration.</p>
+                        <h2>Welcome Back</h2>
+                        <p>Access your curated event management dashboard.</p>
                     </div>
 
                     {error && <div className="auth-error" style={{ color: 'red', marginBottom: '15px' }}>{error}</div>}
+                    {forgotMessage && <div className="auth-success" style={{ color: 'green', marginBottom: '15px' }}>{forgotMessage}</div>}
 
-                    <form className="auth-form" onSubmit={handleSubmit}>
-                        <div className="form-group">
-                            <label>Email Address</label>
-                            <input
-                                type="email"
-                                placeholder=""
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label>Password</label>
-                            <div style={{ position: 'relative' }}>
+                    {isForgotPassword ? (
+                        <form className="auth-form" onSubmit={handleForgotPassword}>
+                            <div className="form-group">
+                                <label>Email Address</label>
                                 <input
-                                    type={showPassword ? "text" : "password"}
-                                    placeholder="••••••••••••"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
+                                    type="email"
+                                    placeholder="Enter your email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
                                     required
-                                    style={{ width: '100%', paddingRight: '45px' }}
                                 />
+                            </div>
+
+                            <button type="submit" className="auth-btn-primary" disabled={loading}>
+                                {loading ? 'Sending...' : 'Send Reset Link'}
+                            </button>
+
+                            <div style={{ textAlign: 'center', marginTop: '15px' }}>
                                 <button
                                     type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
+                                    onClick={() => { setIsForgotPassword(false); setError(''); setForgotMessage(''); }}
                                     style={{
-                                        position: 'absolute',
-                                        right: '15px',
-                                        top: '50%',
-                                        transform: 'translateY(-50%)',
                                         background: 'none',
                                         border: 'none',
-                                        color: 'rgba(255, 255, 255, 0.6)',
+                                        color: '#c49a2c', // Primary color
                                         cursor: 'pointer',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        padding: 0
+                                        textDecoration: 'underline',
+                                        fontSize: '14px'
                                     }}
                                 >
-                                    {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
+                                    Back to Login
                                 </button>
                             </div>
-                        </div>
-
-                        <div className="login-options">
-                            <label className="remember-me">
-                                <input 
-                                    type="checkbox" 
-                                    checked={rememberMe}
-                                    onChange={(e) => setRememberMe(e.target.checked)}
+                        </form>
+                    ) : (
+                        <form className="auth-form" onSubmit={handleSubmit}>
+                            <div className="form-group">
+                                <label>Email Address</label>
+                                <input
+                                    type="email"
+                                    placeholder=""
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    required
                                 />
-                                <span className="checkmark"></span>
-                                Remember Me
-                            </label>
-                            <Link to="#" className="auth-link">
-                                Forgot Password?
-                            </Link>
-                        </div>
+                            </div>
 
-                        <button type="submit" className="auth-btn-primary" disabled={loading}>
-                            {loading ? 'Logging in...' : 'Log In'}
-                        </button>
-                    </form>
+                            <div className="form-group">
+                                <label>Password</label>
+                                <div style={{ position: 'relative' }}>
+                                    <input
+                                        type={showPassword ? "text" : "password"}
+                                        placeholder="••••••••••••"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        required
+                                        style={{ width: '100%', paddingRight: '45px' }}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        style={{
+                                            position: 'absolute',
+                                            right: '15px',
+                                            top: '50%',
+                                            transform: 'translateY(-50%)',
+                                            background: 'none',
+                                            border: 'none',
+                                            color: 'rgba(255, 255, 255, 0.6)',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            padding: 0
+                                        }}
+                                    >
+                                        {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="login-options">
+                                <label className="remember-me">
+                                    <input
+                                        type="checkbox"
+                                        checked={rememberMe}
+                                        onChange={(e) => setRememberMe(e.target.checked)}
+                                    />
+                                    <span className="checkmark"></span>
+                                    Remember Me
+                                </label>
+                                <button
+                                    type="button"
+                                    className="auth-link"
+                                    onClick={() => { setIsForgotPassword(true); setError(''); setForgotMessage(''); }}
+                                    style={{
+                                        alignSelf: 'flex-end',
+                                        fontSize: '13px',
+                                        background: 'none',
+                                        border: 'none',
+                                        padding: 0,
+                                        cursor: 'pointer',
+                                        color: 'rgba(255, 255, 255, 0.6)'
+                                    }}
+                                >
+                                    Forgot Password?
+                                </button>
+                            </div>
+
+                            <button type="submit" className="auth-btn-primary" disabled={loading}>
+                                {loading ? 'Logging in...' : 'Log In'}
+                            </button>
+                        </form>
+                    )}
 
                     <div className="auth-footer">
                         Don't have an account? <Link to="/signup">Sign Up</Link>

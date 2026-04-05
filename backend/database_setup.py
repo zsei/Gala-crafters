@@ -134,8 +134,6 @@ def get_monthly_revenue():
     ORDER BY month DESC
     """
     return execute_raw_query(query)
-
-
 def get_available_packages():
     """Get all available event packages"""
     query = """
@@ -151,6 +149,64 @@ def get_available_packages():
     ORDER BY base_price ASC
     """
     return execute_raw_query(query)
+
+def get_all_promo_codes():
+    """Get all promo codes"""
+    query = "SELECT * FROM promo_codes ORDER BY created_at DESC"
+    return execute_raw_query(query)
+
+
+def get_all_reviews():
+    """Get all reviews with customer and booking info"""
+    query = """
+    SELECT 
+        r.id,
+        r.rating,
+        r.comment,
+        r.status,
+        r.created_at,
+        r.booking_id,
+        b.booking_reference,
+        b.event_type,
+        u.first_name,
+        u.last_name,
+        u.email
+    FROM reviews r
+    JOIN bookings b ON r.booking_id = b.id
+    JOIN users u ON r.customer_id = u.id
+    ORDER BY r.created_at DESC
+    """
+    return execute_raw_query(query)
+
+
+def get_sales_report():
+    """Get monthly and yearly sales reports"""
+    monthly_query = """
+    SELECT 
+        TO_CHAR(event_date, 'YYYY-MM') as month,
+        COUNT(*) as total_bookings,
+        SUM(total_price) as total_sales
+    FROM bookings
+    WHERE status != 'Cancelled'
+    GROUP BY month
+    ORDER BY month DESC
+    """
+    
+    yearly_query = """
+    SELECT 
+        TO_CHAR(event_date, 'YYYY') as year,
+        COUNT(*) as total_bookings,
+        SUM(total_price) as total_sales
+    FROM bookings
+    WHERE status != 'Cancelled'
+    GROUP BY year
+    ORDER BY year DESC
+    """
+    
+    return {
+        "monthly": execute_raw_query(monthly_query),
+        "yearly": execute_raw_query(yearly_query)
+    }
 
 
 def update_booking_status(booking_reference: str, new_status: str):

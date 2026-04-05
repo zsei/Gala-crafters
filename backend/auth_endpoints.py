@@ -11,6 +11,8 @@ from models import User, AdminUser
 import models
 from datetime import datetime, timedelta
 import jwt
+import uuid
+from email_service import send_reset_email
 
 # Create tables
 models.Base.metadata.create_all(bind=engine)
@@ -183,9 +185,63 @@ def register(
             "email": new_user.email,
             "phone": new_user.phone,
             "city": new_user.city,
-            "barangay": new_user.barangay
         }
     }
+
+
+def forgot_password(email: str, db: Session = Depends(get_db)):
+    """
+    Simulates sending a password reset link to the user's email.
+    """
+    user = db.query(User).filter(User.email == email).first()
+    
+    # We still return success even if user not found, 
+    # to prevent email enumeration (security best practice)
+    if user:
+        # Generate token and expiry
+        token = str(uuid.uuid4())
+        expiry = datetime.utcnow() + timedelta(hours=1)
+        
+        user.reset_token = token
+        user.reset_token_expires = expiry
+        db.commit()
+        
+        # Link structure assumes standard vite frontend dev port
+        reset_link = f"http://localhost:5173/reset-password/{token}"
+        send_reset_email(user.email, reset_link)
+        
+    return {
+        "success": True, 
+        "message": "If an account exists with this email, a password reset link has been sent."
+    }
+
+def reset_password(token: str, new_password: str, db: Session = Depends(get_db)):
+    """
+    Resets the password if the token is valid and not expired.
+    """
+    user = db.query(User).filter(User.reset_token == token).first()
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired reset token"
+        )
+        
+    if user.reset_token_expires < datetime.utcnow():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Reset token has expired"
+        )
+        
+    # Set new password
+    user.password = new_password
+    
+    # Invalidate token
+    user.reset_token = None
+    user.reset_token_expires = None
+    db.commit()
+    
+    return {"success": True, "message": "Password has been successfully changed."}
 
 
 def create_access_token(data: dict, expires_delta: timedelta = None):
