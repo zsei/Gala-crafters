@@ -1,0 +1,192 @@
+.style-section {
+  position: relative;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 80px 0;
+}
+
+/* Base Editorial Typography */
+.editorial-text-box {
+  width: 100%;
+  position: relative;
+  z-index: 10;
+}
+
+.editorial-text-box h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 85px;
+  line-height: 1.1;
+  color: #d4af37; /* Gala Gold/Bronze */
+  margin-bottom: 24px;
+  letter-spacing: -2px;
+  font-style: italic;
+  font-weight: 500;
+  text-shadow: 2px 2px 20px rgba(255, 255, 255, 0.8);
+}
+
+.editorial-text-box p {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  line-height: 1.8;
+  color: #444;
+  max-width: 400px;
+  padding: 20px;
+  background: transparent;
+  border-left: 2px solid #d4af37;
+}
+
+/* Image Wrapper with reveal effect */
+.img-wrapper {
+  position: relative;
+  overflow: hidden;
+  background-color: #f8f8f8;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+}
+
+.img-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.reveal-mask {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ffffff; /* Page Background match */
+  z-index: 2;
+  transform-origin: right;
+}
+
+/* =======================================
+   STYLE 1 GRID - 3 IMAGES
+   ======================================= */
+.style-1-editorial {
+  display: grid;
+  grid-template-columns: 1.2fr 2fr;
+  gap: 40px;
+  align-items: center;
+}
+
+.style-1-text {
+  margin-right: -150px; /* Critical: Creates the negative space overlap! */
+  margin-top: -100px;
+}
+
+.style-1-images {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 300px 300px;
+  gap: 30px;
+}
+
+/* Asymmetric Image Heights */
+.style-1-images .img-1 {
+  grid-column: 1 / 2;
+  grid-row: 1 / 2;
+  height: 100%;
+  width: 100%;
+}
+.style-1-images .img-2 {
+  grid-column: 2 / 3;
+  grid-row: 1 / 3;
+  height: 110%; /* Stretches taller to break the grid */
+  margin-top: -5%;
+}
+.style-1-images .img-3 {
+  grid-column: 1 / 2;
+  grid-row: 2 / 3;
+  align-self: flex-end;
+  height: 80%;
+  width: 90%;
+  margin-left: 10%; /* Shifts it slightly */
+}
+
+/* =======================================
+   STYLE 2 GRID - 2 IMAGES
+   ======================================= */
+.style-2-editorial {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 0;
+  margin-top: 100px;
+}
+
+.style-2-images {
+  display: flex;
+  position: relative;
+  height: 550px;
+}
+
+.style-2-images .img-1 {
+  width: 60%;
+  height: 100%;
+  z-index: 1;
+}
+
+.style-2-images .img-2 {
+  width: 50%;
+  height: 70%;
+  position: absolute;
+  bottom: -40px;
+  right: -20px;
+  z-index: 2;
+  border: none;
+}
+
+.style-2-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  margin-left: -60px; /* The textual overlap */
+  z-index: 10;
+}
+
+.style-2-text p {
+  border-left: none;
+  border-right: 2px solid #d4af37;
+  text-align: right;
+  background: transparent;
+  padding: 0 20px 0 0;
+  margin-top: 20px;
+  color: #444;
+}
+
+.style-2-text h3 {
+  color: #d4af37;
+  text-shadow: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+  .style-1-editorial, .style-2-editorial {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  
+  .style-1-text, .style-2-text {
+    margin: 0;
+    text-align: center;
+  }
+
+  .style-2-text { margin-bottom: 50px; }
+  
+  .style-1-text p, .style-2-text p {
+    margin: 0 auto;
+    text-align: center;
+    border-left: none;
+    border-right: none;
+  }
+
+  .style-1-images, .style-2-images {
+    width: 100%;
+  }
+
+  .editorial-text-box h3 {
+    font-size: 50px;
+  }
+}

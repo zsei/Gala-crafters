@@ -1,5 +1,7 @@
-import React from 'react';
-import { useLocation, useNavigate } from 'react-router-dom'; // 1. IMPORT USELOCATION & USENAVIGATION
+import React, { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import TermsModal from './TermsModal';
+import { authService } from '../api/auth';
 
 // Keep your icon variables here
 const IconWeb = () => (
@@ -29,7 +31,16 @@ function Footer() {
   // 2. CHECK THE CURRENT PAGE
   const location = useLocation();
   const navigate = useNavigate();
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const isHome = location.pathname === '/';
+
+  React.useEffect(() => {
+    setIsLoggedIn(authService.isLoggedIn());
+    const checkAuth = () => setIsLoggedIn(authService.isLoggedIn());
+    window.addEventListener('storage', checkAuth);
+    return () => window.removeEventListener('storage', checkAuth);
+  }, [location]);
 
   return (
     <footer className="main-footer">
@@ -68,12 +79,13 @@ function Footer() {
 
           {/* Column 2: Studio Links */}
           <div className="footer-col">
-            <h4>STUDIO</h4>
+            <h4>QUICK LINKS</h4>
             <ul>
-              <li>Event</li>
-              <li>Journal</li>
-              <li>Portfolio</li>
-              <li>Contact</li>
+              <li onClick={() => navigate('/')}>Home</li>
+              <li onClick={() => navigate('/events')}>Events</li>
+              <li onClick={() => navigate('/services')}>Services</li>
+              <li onClick={() => navigate('/about')}>About Us</li>
+              {!isLoggedIn && <li onClick={() => navigate('/contact')}>Contact Us</li>}
             </ul>
           </div>
 
@@ -93,11 +105,12 @@ function Footer() {
           <div className="container bottom-flex">
             <p>© 2026 GALA CRAFTERS. ALL RIGHTS RESERVED.</p>
             <div className="legal-links">
-              <span>PRIVACY POLICY</span>
-              <span>TERMS OF SERVICE</span>
+              <span onClick={() => setIsTermsOpen(true)} style={{ cursor: 'pointer' }}>TERMS AND CONDITIONS</span>
             </div>
           </div>
         </div>
+
+        <TermsModal isOpen={isTermsOpen} onClose={() => setIsTermsOpen(false)} />
       </div>
     </footer>
   );

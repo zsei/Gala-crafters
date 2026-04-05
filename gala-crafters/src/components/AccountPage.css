@@ -1,8 +1,6 @@
 /* Elegant Profile Page CSS matching Mockup */
 
 .account-layout {
-  background-color: #f2f4f7; /* Light gray background */
-  font-family: 'DM Sans', sans-serif;
   min-height: 100vh;
 }
 
@@ -18,7 +16,7 @@
 }
 
 .page-main-title {
-  color: #0d382d; /* Dark pine green */
+  color: #c49a2c;
   font-size: 22px;
   font-weight: 700;
   margin-bottom: 24px;
@@ -75,7 +73,7 @@
   position: absolute;
   bottom: 0px;
   right: 0px;
-  background-color: #0d382d;
+  background-color: #c49a2c;
   color: #ffffff;
   width: 28px;
   height: 28px;
@@ -99,7 +97,7 @@
 }
 
 .user-name {
-  color: #0d382d;
+  color: #ffffff;
   font-size: 20px;
   font-weight: 700;
   margin: 0;
@@ -107,7 +105,7 @@
 
 .user-role-label,
 .user-location {
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.6);
   font-size: 14.5px;
 }
 
@@ -117,12 +115,12 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 30px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding-bottom: 25px;
 }
 
 .card-title {
-  color: #0d382d;
+  color: #c49a2c;
   font-size: 19px;
   font-weight: 700;
   margin: 0;
@@ -149,9 +147,9 @@
 }
 
 .edit-btn-secondary {
-  background-color: #c49a2c;
-  color: #ffffff;
-  border: none;
+  background-color: transparent;
+  color: #c49a2c;
+  border: 1px solid #c49a2c;
   border-radius: 6px;
   padding: 8px 16px;
   font-size: 13.5px;
@@ -164,7 +162,7 @@
 }
 
 .edit-btn-secondary:hover {
-  background-color: #b8860b;
+  background-color: rgba(196, 154, 44, 0.1);
 }
 
 /* DATA GRIDS */
@@ -189,12 +187,12 @@
 }
 
 .info-label {
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.5);
   font-size: 13.5px;
 }
 
 .info-value {
-  color: #1e293b;
+  color: #ffffff;
   font-size: 15.5px;
   font-weight: 600;
 }
@@ -219,34 +217,37 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(5px);
 }
 
 .modal-container {
-  background: #ffffff;
+  background: #0a0f1d;
   width: 90%;
   max-width: 500px;
   border-radius: 12px;
   padding: 30px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
   display: flex;
   flex-direction: column;
   gap: 20px;
+  border: 1px solid rgba(196, 154, 44, 0.2);
 }
 
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border-bottom: 1px solid rgba(196, 154, 44, 0.2);
+  padding-bottom: 15px;
 }
 
 .modal-title {
-  color: #0d382d;
+  color: rgba(255, 255, 255, 0.5);
   font-size: 20px;
   font-weight: 700;
   margin: 0;
@@ -255,7 +256,7 @@
 .modal-close-btn {
   background: transparent;
   border: none;
-  color: #64748b;
+  color: #ffffff;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -281,17 +282,18 @@
 
 .modal-form-field label {
   font-size: 13px;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.5);
   font-weight: 500;
 }
 
 .modal-form-field input,
 .modal-form-field .custom-select {
   padding: 12px 16px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid rgba(196, 154, 44, 0.3);
+  background-color: rgba(255, 255, 255, 0.05);
   border-radius: 8px;
   font-family: 'DM Sans', sans-serif;
-  color: #1e293b;
+  color: #ffffff;
   font-size: 14px;
   outline: none;
   transition: border-color 0.2s;
@@ -301,29 +303,7 @@
 
 .modal-form-field input:focus,
 .modal-form-field .custom-select:focus {
-  border-color: #f27c15;
-}
-
-.input-with-icon {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.input-with-icon input {
-  padding-right: 40px;
-}
-
-.input-lock-icon {
-  position: absolute;
-  right: 16px;
-  color: #0d382d;
-}
-
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 10px;
+  border-color: #c49a2c;
 }
 
 .modal-save-btn {
@@ -342,21 +322,28 @@
   background-color: #b8860b;
 }
 
-@media (max-width: 540px) {
-  .modal-form-grid {
-    grid-template-columns: 1fr;
-  }
+/* NEW GLASSMORPHISM AND DARK THEME REFINEMENTS */
+.glass-morphism {
+    background: rgba(10, 15, 29, 0.5) !important;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(196, 154, 44, 0.2) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+    color: #ffffff;
 }
 
-/* ERROR STYLING */
-.error-text {
-  color: #dc2626;
-  font-size: 12px;
-  margin-top: 4px;
-  display: block;
+.glass-morphism .card-title {
+    color: rgba(255, 255, 255, 0.5) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
-.modal-form-field input:invalid {
-  border-color: #fca5a5;
-  background-color: #fef2f2;
+.glass-morphism .info-label {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.glass-morphism .info-value {
+    color: #ffffff !important;
+}
+
+.profile-card.glass-morphism {
+    padding: 35px 40px;
 }

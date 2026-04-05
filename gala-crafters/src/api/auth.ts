@@ -139,6 +139,81 @@ export const authService = {
   },
 
   /**
+   * Update user profile
+   */
+  updateProfile: async (userData: any) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No token found');
+      }
+
+      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.USERS.UPDATE}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(userData)
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Update failed');
+      }
+
+      const data = await response.json();
+      
+      // Update stored user data if successful
+      if (data.user) {
+        localStorage.setItem('user', JSON.stringify(data.user));
+      } else {
+        // Fallback: if backend only returns success, we manually merge
+        const existing = JSON.parse(localStorage.getItem('user') || '{}');
+        const updated = { ...existing, ...userData };
+        localStorage.setItem('user', JSON.stringify(updated));
+      }
+      
+      return data;
+    } catch (error: any) {
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        throw new Error(`Cannot connect to server at ${API_BASE_URL}. Please ensure the backend is running.`);
+      }
+      throw new Error(error.message || 'Update failed');
+    }
+  },
+
+  /**
+   * Get all bookings for current user
+   */
+  getUserBookings: async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No token found');
+      }
+
+      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.BOOKINGS.USER_HISTORY}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Failed to fetch bookings');
+      }
+
+      return response.json();
+    } catch (error: any) {
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        throw new Error(`Cannot connect to server at ${API_BASE_URL}. Please ensure the backend is running.`);
+      }
+      throw new Error(error.message || 'Failed to fetch bookings');
+    }
+  },
+
+  /**
    * Check if user is logged in
    */
   isLoggedIn: (): boolean => {

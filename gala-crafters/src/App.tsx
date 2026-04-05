@@ -6,18 +6,23 @@ import Footer from './components/Footer';
 // Page Imports
 import EventsPage from './components/EventsPage';
 import ServicesPage from './components/ServicesPage';
-import WeddingPage from './components/WeddingPage'; // <--- 1. ADD THIS NEW IMPORT!
+import WeddingPage from './components/WeddingPage'; 
 import CorporateEventPage from './components/CorporateEventPage';
 import DebutPage from './components/DebutPage';
+import ChildrensPartyPage from './components/ChildrensPartyPage';
+import SpecialOccasionsPage from './components/SpecialOccasionsPage';
 import AboutUsPage from './components/AboutUsPage';
 import ContactUsPage from './components/ContactUsPage';
 import LoginPage from './components/LoginPage';
 import RegisterPage from './components/RegisterPage';
 import SignUpPage from './components/SignUpPage';
 import AccountPage from './components/AccountPage';
+import SettingsPage from './components/SettingsPage';
+import MessagesPage from './components/MessagesPage';
 import TransactionHistory from './components/TransactionHistory';
 import Dashboard from './components/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
+import { authService } from './api/auth';
 
 // Admin Imports
 import AdminDashboard from './components/Admin/AdminDashboard'; 
@@ -27,10 +32,9 @@ import AdminMessages from './components/Admin/AdminMessages';
 import AdminLoginPage from './components/Admin/AdminLoginPage';
 import AdminPackages from './components/Admin/AdminPackages'; // We will create this next
 
-// Homepage Sections
 import Hero from './components/Hero';
-import Philosophy from './components/Philosophy';
 import Services from './components/Services';
+import FloatingChat from './components/FloatingChat';
 import './App.css';
 
 const Home = () => (
@@ -39,14 +43,25 @@ const Home = () => (
       <Hero />
     </div>
     <Services />
-    <Philosophy />
   </>
 );
 
 const AppLayout = () => {
+  const [isLoggedIn, setIsLoggedIn] = React.useState(false);
   const location = useLocation();
   const isAdmin = location.pathname.toLowerCase().startsWith('/admin');
   const isAuth = location.pathname.toLowerCase().startsWith('/login') || location.pathname.toLowerCase().startsWith('/signup');
+
+  React.useEffect(() => {
+    const checkAuth = () => {
+      const loggedIn = authService.isLoggedIn();
+      setIsLoggedIn(loggedIn);
+    };
+    checkAuth();
+    // Listen for storage changes
+    window.addEventListener('storage', checkAuth);
+    return () => window.removeEventListener('storage', checkAuth);
+  }, [location]);
 
   return (
     <>
@@ -65,17 +80,18 @@ const AppLayout = () => {
         <Route path="/services" element={<ServicesPage />} />
 
         {/* Account Settings & Transactions */}
-        <Route path="/account" element={<AccountPage />} />
+        <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+        <Route path="/messages" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
         <Route path="/transactions" element={<ProtectedRoute><TransactionHistory /></ProtectedRoute>} />
 
         {/* === UPDATED: Wedding Page Route === */}
         <Route path="/services/weddings" element={<WeddingPage />} />
 
-        {/* Other dropdown links (still pointing to the main Services page for now) */}
+        {/* Other dropdown links */}
         <Route path="/corporate" element={<CorporateEventPage />} />
         <Route path="/debut" element={<DebutPage />} />
-        <Route path="/services/childrens-party" element={<ServicesPage />} />
-        <Route path="/services/special-occasions" element={<ServicesPage />} />
+        <Route path="/services/childrens-party" element={<ChildrensPartyPage />} />
+        <Route path="/services/special-occasions" element={<SpecialOccasionsPage />} />
         <Route path="/services/packages" element={<ServicesPage />} />
 
         {/* Admin Routes */}
@@ -88,6 +104,7 @@ const AppLayout = () => {
       </Routes>
 
       {!isAdmin && !isAuth && <Footer />}
+      {!isAdmin && !isAuth && isLoggedIn && <FloatingChat />}
     </>
   );
 };

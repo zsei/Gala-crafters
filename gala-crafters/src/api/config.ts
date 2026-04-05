@@ -9,6 +9,7 @@ export const API_ENDPOINTS = {
   },
   USERS: {
     PROFILE: '/api/users/profile',
+    UPDATE: '/api/users/profile',
     LIST: '/api/users',
     GET: (id: number) => `/api/users/${id}`
   },

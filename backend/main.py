@@ -62,11 +62,16 @@ class RegistrationRequest(BaseModel):
 
 class ProfileUpdateRequest(BaseModel):
     first_name: str = None
+    middle_name: str = None
     last_name: str = None
+    email: str = None
     phone: str = None
+    date_of_birth: str = None
     city: str = None
     country: str = None
     postal_code: str = None
+    barangay: str = None
+    building_details: str = None
 
 class BookingCreateRequest(BaseModel):
     package_id: int
@@ -116,7 +121,7 @@ def customer_login(request: LoginRequest, db: Session = Depends(get_db)):
     
     Test credentials:
     - Email: natasha.khaleira@email.com
-    - Password: hashed_password_123
+    - Password: hashed_pw123
     """
     return login(request.email, request.password, db)
 

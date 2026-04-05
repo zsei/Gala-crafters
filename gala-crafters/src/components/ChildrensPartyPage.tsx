@@ -7,21 +7,21 @@ import PackageDetailsModal from './PackageDetailsModal';
 import ReservationModal from './ReservationModal';
 
 // Assets
-import heroBg from '../assets/banner-1.jpg'; 
-import img1 from '../assets/DSC9724.jpg'; 
-import img2 from '../assets/DSC9804.jpg'; 
-import img3 from '../assets/banner-2.jpg'; 
-import img4 from '../assets/img1a.jpg';
-import { FaBriefcase, FaHandshake } from "react-icons/fa";
+import heroBg from '../assets/pink.jpg'; 
+import img1 from '../assets/blue.jpg'; 
+import img2 from '../assets/img5.jpg'; 
+import img3 from '../assets/img1a.jpg'; 
+import img4 from '../assets/DSC9849.jpg';
+import { FaBirthdayCake, FaStar } from "react-icons/fa";
 
 const sliderImages = [heroBg, img1, img2, img3];
-const corporateGalleryImages = [img1, img2, img3, img4, img1, img2, img3, img4];
+const partyGalleryImages = [heroBg, img1, img2, img3, img4, heroBg, img1, img2];
 
-function CorporateEventPage() {
+function ChildrensPartyPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showPackageModal, setShowPackageModal] = useState(false);
   const [showReservationModal, setShowReservationModal] = useState(false);
-  const [selectedPackage, setSelectedPackage] = useState<'corporateSetA' | 'corporateSetB' | 'corporateSetC'>('corporateSetA');
+  const [selectedPackage, setSelectedPackage] = useState<'kiddiePlayful' | 'kiddieAdventure' | 'kiddieCarnival'>('kiddiePlayful');
   const [reservationData, setReservationData] = useState<any>(null);
 
   useEffect(() => {
@@ -35,7 +35,7 @@ function CorporateEventPage() {
     return () => clearInterval(timer);
   }, []);
 
-  const openPackageModal = (type: 'corporateSetA' | 'corporateSetB' | 'corporateSetC') => {
+  const openPackageModal = (type: 'kiddiePlayful' | 'kiddieAdventure' | 'kiddieCarnival') => {
     setSelectedPackage(type);
     setShowPackageModal(true);
   };
@@ -55,27 +55,27 @@ function CorporateEventPage() {
     setShowPackageModal(true);
   };
 
-  const corporateServices: ServiceItem[] = [
+  const kiddieServices: ServiceItem[] = [
     {
-      title: "Corporate Set A",
-      desc: "Our premier selection featuring a full course buffet, executive setup, and VIP seated service for professional gatherings.",
+      title: "The Playful Set",
+      desc: "Our delightful starter package for a fun-filled birthday! Featuring kid-friendly favorites, colorful styling, and our cheerful service team.",
+      link: "#",
+      bg: heroBg,
+      onClick: () => openPackageModal('kiddiePlayful')
+    },
+    {
+      title: "The Adventure Set",
+      desc: "An action-packed celebration featuring customized dining stations, a custom pasta station, and grand thematic character styling.",
       link: "#",
       bg: img1,
-      onClick: () => openPackageModal('corporateSetA')
+      onClick: () => openPackageModal('kiddieAdventure')
     },
     {
-      title: "Corporate Set B",
-      desc: "An elevated experience with specialized carving stations and premium bar setups for grander corporate milestones.",
+      title: "The Carnival Set",
+      desc: "The ultimate grand celebration featuring a grand entrance arch, dessert extravaganza, and full-scale party lighting.",
       link: "#",
       bg: img2,
-      onClick: () => openPackageModal('corporateSetB')
-    },
-    {
-      title: "Corporate Set C",
-      desc: "The ultimate corporate gala experience with dual carving stations, wine service, and full-scale event production.",
-      link: "#",
-      bg: img3,
-      onClick: () => openPackageModal('corporateSetC')
+      onClick: () => openPackageModal('kiddieCarnival')
     }
   ];
 
@@ -92,7 +92,7 @@ function CorporateEventPage() {
               style={{ backgroundImage: `url(${image})` }}
             ></div>
           ))}
-          <div className="events-overlay"></div>
+          <div className="events-overlay" style={{ background: 'rgba(0, 0, 0, 0.4)' }}></div>
 
           {/* SLIDER PAGINATION DOTS */}
           <div className="slider-dots-container">
@@ -108,30 +108,30 @@ function CorporateEventPage() {
 
         <div className="container events-content-wrapper">
           <div className="events-text-box">
-            <span className="events-overline">CORPORATE EVENT EXPERTISE</span>
+            <span className="events-overline">CHILDREN'S PARTY SERVICES</span>
             <h2 className="events-main-title">
-              <span className="italic-text">Professional</span> <br />
-              <span className="gold-text">Excellence</span>
+              <span className="italic-text">Magical</span> <br />
+              <span className="gold-text">Celebrations</span>
             </h2>
             <p>
-              Elevate your corporate gatherings with a touch of sophistication. From grand galas to intimate executive dinners, we deliver flawless execution and bespoke styling that leave a lasting impression.
+              Make your child's dream party a reality. From whimsical themes to engaging activities and kid-friendly menus, we craft unforgettable moments for your little ones and their friends.
             </p>
           </div>
         </div>
       </section>
 
-      {/* 2. GALLERY SECTION (WITH FULL TEXT RESTORED) */}
+      {/* 2. GALLERY SECTION */}
       <section className="debut-gallery-section" style={{ padding: '80px 0' }}>
         <div className="debut-gallery-header" style={{ textAlign: 'center' }}>
-          <h2 style={{ fontFamily: '"Playfair Display", serif', fontSize: '42px', color: '#c49a2c', marginBottom: '15px', fontWeight: 'bold' }}>Gala Crafters Corporate Catering Services</h2>
+          <h2 style={{ fontFamily: '"Playfair Display", serif', fontSize: '42px', color: '#c49a2c', marginBottom: '15px', fontWeight: 'bold' }}>Gala Crafters Kids' Party Services</h2>
           <div className="gold-line" style={{ margin: '15px auto 25px auto' }}></div>
           <p>
-            Whether hosting a product launch, an annual gala, or an awards ceremony, your corporate event should reflect your brand’s standards and success. With Gala Crafters as your partner, you can expect nothing short of excellence. Our bespoke approach ensures that every detail aligns with your corporate vision, delivering an exceptional experience for your guests.
+            A child's birthday is a milestone full of wonder and joy. At Gala Crafters, we specialize in bringing magical concepts to life. Whether it’s an enchanted princess ball, a superhero adventure, or a colorful carnival, our bespoke designs and dedicated planning ensure an atmosphere full of laughter, fun, and picture-perfect memories.
           </p>
         </div>
         <div style={{ padding: '0 5%', maxWidth: '1600px', margin: '0 auto' }}>
           <div className="services-grid">
-            {corporateGalleryImages.map((image, index) => (
+            {partyGalleryImages.map((image, index) => (
               <motion.div 
                 key={index}
                 className="service-item"
@@ -141,7 +141,7 @@ function CorporateEventPage() {
                 transition={{ duration: 0.6, delay: (index % 4) * 0.15 }}
               >
                 <div className="image-container">
-                  <img src={image} alt={`Corporate Layout ${index + 1}`} />
+                  <img src={image} alt={`Kids Party Layout ${index + 1}`} />
                 </div>
               </motion.div>
             ))}
@@ -153,16 +153,16 @@ function CorporateEventPage() {
         <div className="debut-experience-container">
 
           <div className="debut-experience-text">
-            <h2>The Corporate Experience</h2>
+            <h2>The Magical Experience</h2>
             <div className="gold-line" style={{ margin: '0 0 20px 0' }}></div>
 
             <p>
-              From securing the ideal venue and curating a refined menu to executing flawless event styling and coordinating intricate logistics, your corporate event will be meticulously planned down to the last detail. Gala Crafters stays ahead of industry trends and brings expertise to essential corporate event components:
+              From custom-themed decorations and colorful dessert buffets to exciting entertainment and play areas, we curate everything to capture your child's imagination. Gala Crafters provides full-service solutions specifically tailored for children’s parties:
             </p>
           </div>
 
           <div className="debut-experience-image">
-            <img src={img1} alt="Corporate Event" />
+            <img src={heroBg} alt="Children's Party" />
           </div>
 
         </div>
@@ -170,18 +170,18 @@ function CorporateEventPage() {
         <div className="container debut-traditions-grid">
 
           <div className="tradition-card">
-            <FaBriefcase className="tradition-icon" />
-            <h3>Professional Planning</h3>
+            <FaBirthdayCake className="tradition-icon" />
+            <h3>Themed Catering & Cakes</h3>
             <p>
-              We work closely with your team to understand your objectives and brand identity. From concept to execution, our dedicated coordinators plan every aspect of your event to ensure a seamless and impactful experience for your clients and employees.
+              Delight both kids and adults with our thoughtfully planned menus. We offer fun, bite-sized kid favorites alongside elegant adult dishes, topped off with a spectacular customized birthday cake that perfectly matches your chosen theme.
             </p>
           </div>
 
           <div className="tradition-card">
-            <FaHandshake className="tradition-icon" />
-            <h3>Tailored Experiences</h3>
+            <FaStar className="tradition-icon" />
+            <h3>Creative Venues & Styling</h3>
             <p>
-              Through customized menus and sophisticated styling, we create experiences that foster connection and celebration. We ensure that every guest feels valued and that your corporate milestones are recognized appropriately.
+              Our expert stylists transform any space into a vibrant playground. With playful backdrops, balloon installations, and thematic table settings, we ensure every corner sparks joy and creates a fantastic backdrop for photos.
             </p>
           </div>
 
@@ -193,19 +193,19 @@ function CorporateEventPage() {
         <div className="why-choose-container">
 
           <div className="why-choose-image">
-            <img src={img3} alt="Corporate Event Setting" />
+            <img src={img1} alt="Kids Event Setting" />
           </div>
 
           <div className="why-choose-content">
-            <h2>Why Choose Gala Crafters for Your Corporate Events</h2>
+            <h2>Why Choose Gala Crafters for Your Kids' Parties</h2>
             <div className="gold-line" style={{ margin: '0 0 20px 0' }}></div>
 
             <p>
-              Our event planning experts collaborate with you to ensure every aspect of your corporate function is executed flawlessly. Our reputation is built on our ability to coordinate and provide world-class catering services that align with the rigorous standards of our corporate clients, all without compromising quality. Your team can focus on networking and celebrating achievements while we handle the finer details.
+              Planning a children's party requires boundless creativity and a keen eye for detail. Our team works hand-in-hand with parents to ensure every aspect—from the games to the giveaways—is tailored to the birthday celebrant's unique personality and interests. We take the stress out of planning so you can fully enjoy the festivities with your child.
             </p>
 
             <p>
-              Premium food selections, exquisite table settings, specialized audiovisual coordination, and professionally trained staff are just a few of the services we offer. Inquire with us to discover how we can elevate your next corporate gathering!
+              We partner with trusted entertainers, face painters, and activity hosts to keep the little ones engaged. Inquire with us today to start planning a spectacular, stress-free celebration your child will cherish forever!
             </p>
           </div>
 
@@ -213,9 +213,9 @@ function CorporateEventPage() {
       </section>
 
       <ServicesSlider 
-        title="Corporate Packages" 
-        desc="Elevate your corporate events with our expertly curated buffet selections and professional service teams. Choose the package that best fits your business goals."
-        services={corporateServices}
+        title="Children's Party Packages" 
+        desc="Choose from our expertly themed party sets designed to spark joy and create magical memories for your little ones."
+        services={kiddieServices}
       />
 
       <ClientTestimonials />
@@ -226,7 +226,7 @@ function CorporateEventPage() {
       <PackageDetailsModal 
         isOpen={showPackageModal} 
         onClose={closePackageModal} 
-        packageType={selectedPackage}
+        packageType={selectedPackage as any}
         onReserve={handleReserve}
       />
 
@@ -241,4 +241,4 @@ function CorporateEventPage() {
   );
 }
 
-export default CorporateEventPage;
+export default ChildrensPartyPage;

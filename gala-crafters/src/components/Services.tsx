@@ -1,9 +1,14 @@
-import React from 'react';
 import MenuSlider from './MenuSlider';
+import ClientTestimonials from './ClientTestimonials';
+import { useNavigate } from 'react-router-dom';
 import img1 from '../assets/glamour-2.jpg';
 import img2 from '../assets/glamour-3.jpg';
 import img3 from '../assets/glamour-4.jpg';
 import img4 from '../assets/img5.jpg';
+import img5 from '../assets/DSC9804.jpg';
+import img6 from '../assets/DSC9849.jpg';
+import img7 from '../assets/DSC9850.jpg';
+import img8 from '../assets/DSC9852.jpg';
 
 // Gold SVG Icons
 const IconPalette = () => (
@@ -32,10 +37,11 @@ const collections = [
 ];
 
 function Services() {
+  const navigate = useNavigate();
   return (
     <>
       {/* SECTION 1: PHOTO GALLERY (White Background) */}
-      <section className="services-section">
+      <section className="services-section collections-grayscale">
         <div className="container">
           <div className="services-intro">
             <h2 style={{ color: '#c49a2c' }}>Crafter's Collections</h2>
@@ -68,8 +74,9 @@ function Services() {
         <div className="container">
           <div className="excellence-header">
             <div className="excellence-titles">
-              <h2 style={{ letterSpacing: '0.05em' }}>Crafter's Excellence</h2>
-              <p className="subtitle">CRAFTING THE UNFORGETTABLE WITH PRECISION AND GOLD-STANDARD AESTHETICS.</p>
+              <h2>Crafter's Excellence</h2>
+              <div className="gold-line" style={{ margin: '0 0 20px 0' }}></div>
+              <p className="subtitle">Exceptional taste meets stunning design in every detail.</p>
             </div>
           </div>
 
@@ -96,6 +103,53 @@ function Services() {
           </div>
         </div>
       </section>
+
+      {/* NEW SECTION: ART OF GALA CRAFTERS */}
+      <section className="services-section art-gallery-section" style={{ paddingTop: '100px', backgroundColor: '#0a0f1d' }}>
+        <div className="container">
+          <div className="services-intro" style={{ 
+            textAlign: 'left', 
+            marginBottom: '40px', 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'baseline' 
+          }}>
+            <div className="titles-wrapper">
+              <h2 style={{ fontFamily: '"Playfair Display", serif', fontSize: '42px', fontWeight: 'bold' }}>
+                <span style={{ color: '#ffffff', fontFamily: '"Playfair Display", serif' }}>Gallery of </span>
+                <span style={{ color: '#c49a2c', fontFamily: '"Playfair Display", serif', fontStyle: 'italic' }}>Moments</span>
+              </h2>
+              <div className="gold-line" style={{ margin: '15px 0 25px 0' }}></div>
+            </div>
+            
+            <div 
+              style={{ 
+                color: '#c49a2c', 
+                fontSize: '12px', 
+                fontWeight: '700', 
+                letterSpacing: '1.5px', 
+                cursor: 'pointer', 
+                textTransform: 'uppercase', 
+                borderBottom: '1px solid #c49a2c', 
+                padding: '5px 0',
+                fontFamily: '"DM Sans", sans-serif'
+              }}
+              onClick={() => navigate('/events')}
+            >
+              VIEW COLLECTION
+            </div>
+          </div>
+
+          <div className="art-grid">
+            {[img1, img2, img3, img4, img5, img6, img7, img8].map((imgUrl, index) => (
+              <div key={index} className="art-item">
+                <img src={imgUrl} alt={`Gala Crafters Art ${index + 1}`} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      <ClientTestimonials variant="light" />
     </>
   );
 }

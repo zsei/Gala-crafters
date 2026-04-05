@@ -39,7 +39,7 @@ def login(email: str, password: str, db: Session = Depends(get_db)):
     
     Test credentials:
     - Email: natasha.khaleira@email.com
-    - Password: hashed_password_123
+    - Password: hashed_pw123
     """
     # Query user by email
     user = db.query(User).filter(User.email == email).first()
@@ -70,10 +70,18 @@ def login(email: str, password: str, db: Session = Depends(get_db)):
         "user": {
             "id": user.id,
             "first_name": user.first_name,
+            "middle_name": user.middle_name,
             "last_name": user.last_name,
             "email": user.email,
-            "role": user.user_role,
-            "status": user.status
+            "phone": user.phone,
+            "date_of_birth": user.date_of_birth,
+            "building_details": user.building_details,
+            "country": user.country,
+            "city": user.city,
+            "barangay": user.barangay,
+            "postal_code": user.postal_code,
+            "status": user.status,
+            "user_role": user.user_role
         }
     }
 
@@ -244,20 +252,51 @@ def update_user_profile(
     """Update user profile"""
     user = db.query(User).filter(User.email == token_data.get("email")).first()
     
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
     # Update allowed fields
-    allowed_fields = ["first_name", "last_name", "phone", "city", "country", "postal_code"]
+    allowed_fields = [
+        "first_name", "last_name", "phone", "city", "country", "postal_code", 
+        "date_of_birth", "barangay", "building_details", "middle_name", "email"
+    ]
     for field in allowed_fields:
         if field in update_data:
-            setattr(user, field, update_data[field])
+            if field == "date_of_birth" and update_data[field]:
+                try:
+                    # Convert string to date object
+                    from datetime import datetime
+                    if isinstance(update_data[field], str):
+                        setattr(user, field, datetime.strptime(update_data[field], "%Y-%m-%d").date())
+                    else:
+                        setattr(user, field, update_data[field])
+                except ValueError:
+                    # Skip if invalid date format
+                    pass
+            else:
+                setattr(user, field, update_data[field])
     
     user.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(user)
     
-    return {"success": True, "message": "Profile updated successfully"}
+    return {
+        "success": True, 
+        "message": "Profile updated successfully",
+        "user": {
+            "id": user.id,
+            "first_name": user.first_name,
+            "middle_name": user.middle_name,
+            "last_name": user.last_name,
+            "email": user.email,
+            "phone": user.phone,
+            "date_of_birth": user.date_of_birth.isoformat() if user.date_of_birth else None,
+            "building_details": user.building_details,
+            "country": user.country,
+            "city": user.city,
+            "barangay": user.barangay,
+            "postal_code": user.postal_code,
+            "status": user.status,
+            "user_role": user.user_role
+        }
+    }
 
 
 def get_user_by_id(user_id: int, db: Session = Depends(get_db)):

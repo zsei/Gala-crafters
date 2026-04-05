@@ -1,0 +1,101 @@
+/* LOCATIONS SECTION STYLING */
+.locations-section {
+    padding: 100px 0;
+    background-color: #ffffff;
+    font-family: 'DM Sans', sans-serif;
+}
+
+.locations-container {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.locations-header {
+    text-align: center;
+    margin-bottom: 60px;
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.locations-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 42px;
+    color: #c49a2c;
+    margin-bottom: 15px;
+    font-weight: 700;
+}
+
+.locations-header .gold-line {
+    width: 80px;
+    height: 2px;
+    background-color: #c49a2c;
+    margin: 15px auto 25px auto;
+}
+
+.locations-subtitle {
+    font-size: 15px;
+    color: rgba(0, 0, 0, 0.6);
+    line-height: 1.8;
+}
+
+.locations-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+}
+
+.location-card {
+    border: 1px solid rgba(196, 154, 44, 0.3);
+    padding: 40px 35px;
+    text-align: left;
+    transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.location-card:hover {
+    border-color: #c49a2c;
+    box-shadow: 0 10px 30px rgba(196, 154, 44, 0.1);
+}
+
+.location-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    color: #c49a2c;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+.location-description {
+    font-size: 15px;
+    color: rgba(0, 0, 0, 0.7);
+    line-height: 1.8;
+}
+
+/* RESPONSIVE DESIGN */
+@media (max-width: 1024px) {
+    .locations-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .locations-section {
+        padding: 70px 0;
+    }
+    
+    .locations-header h2 {
+        font-size: 34px;
+    }
+    
+    .locations-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .locations-container {
+        padding: 0 25px;
+    }
+}

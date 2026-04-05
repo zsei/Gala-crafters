@@ -69,6 +69,7 @@ const MenuSlider = () => {
                 <div className="menu-slider-info">
                     <span className="menu-slider-overline">Our Menus</span>
                     <h2>Gala Crafters's Signature Plated Catering Menus</h2>
+                    <div className="gold-line" style={{ margin: '20px 0' }}></div>
                     <p>
                         Whether savoring Filipino classics, international delights, or
                         bespoke creations crafted to your specifications, each menu for

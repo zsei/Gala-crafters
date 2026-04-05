@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, X } from 'lucide-react';
+import { Eye, EyeOff, X, ArrowLeft, Check } from 'lucide-react';
 import { authService } from '../api/auth';
 import './Auth.css';
 
@@ -15,7 +15,7 @@ const RegisterPage = () => {
         zip: '',
         city: '',
         barangay: '',
-        phone: '+63 9',
+        phone: '+63 9 | ',
     });
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -23,10 +23,25 @@ const RegisterPage = () => {
     const [loading, setLoading] = useState(false);
     const [showTermsModal, setShowTermsModal] = useState(false);
     const [termsChecked, setTermsChecked] = useState(false);
+    const [hasReadTerms, setHasReadTerms] = useState(false);
+    const [passwordStrength, setPasswordStrength] = useState(0); // This will now be 0-100 percentage
     const navigate = useNavigate();
 
     useEffect(() => {
         window.scrollTo(0, 0);
+        // Explicitly clear any stale form data on mount
+        setFormData({
+            first_name: '',
+            last_name: '',
+            email: '',
+            password: '',
+            confirm_password: '',
+            building_details: '',
+            zip: '',
+            city: '',
+            barangay: '',
+            phone: '',
+        });
     }, []);
 
     // Validation functions
@@ -35,7 +50,7 @@ const RegisterPage = () => {
     };
 
     const validateEmail = (email: string) => {
-        return email.endsWith('@gmail.com');
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     };
 
     const validatePassword = (password: string) => {
@@ -46,41 +61,56 @@ const RegisterPage = () => {
     };
 
     const validatePhone = (phone: string) => {
-        // Should be +63 9 + exactly 9 digits
-        const phoneRegex = /^\+63 9\d{9}$/;
-        return phoneRegex.test(phone);
+        return phone.length === 9;
+    };
+
+    const calculateStrength = (password: string) => {
+        if (!password) return 0;
+        
+        let percentage = 0;
+        
+        // 1. Length Progress (Max 33%)
+        // We give progress for each character up to 8
+        const lengthScore = Math.min(password.length, 8) / 8 * 33;
+        percentage += lengthScore;
+        
+        // 2. Number Requirement (33%)
+        if (/\d/.test(password)) {
+            percentage += 33;
+        }
+        
+        // 3. Special Character Requirement (34%)
+        if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+            percentage += 34;
+        }
+        
+        return Math.min(percentage, 100);
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
 
-        // Special handling for first_name and last_name - no numbers or special chars
+        // Special handling for first_name and last_name - no numbers or special chars, max 30
         if (name === 'first_name' || name === 'last_name') {
-            if (!validateName(value) && value !== '') {
-                return; // Don't update if invalid
+            const filteredValue = value.replace(/[^a-zA-Z\s]/g, '');
+            if (filteredValue.length <= 30) {
+                setFormData(prev => ({
+                    ...prev,
+                    [name]: filteredValue
+                }));
             }
+            return;
         }
 
         // Special handling for phone
         if (name === 'phone') {
-            // Only allow +63 9 followed by numbers
-            let newValue = value;
-            // Remove everything except digits
             const digitsOnly = value.replace(/\D/g, '');
-            if (digitsOnly.length === 0) {
-                newValue = '+63 9';
-            } else if (digitsOnly.startsWith('639')) {
-                const remaining = digitsOnly.slice(3);
-                if (remaining.length <= 9) {
-                    newValue = '+63 9' + remaining;
-                } else {
-                    newValue = '+63 9' + remaining.slice(0, 9);
-                }
+            if (digitsOnly.length <= 9) {
+                setFormData(prev => ({
+                    ...prev,
+                    phone: digitsOnly
+                }));
             }
-            setFormData(prev => ({
-                ...prev,
-                [name]: newValue
-            }));
             return;
         }
 
@@ -88,6 +118,10 @@ const RegisterPage = () => {
             ...prev,
             [name]: value
         }));
+
+        if (name === 'password') {
+            setPasswordStrength(calculateStrength(value));
+        }
     };
 
     const validateForm = () => {
@@ -112,7 +146,7 @@ const RegisterPage = () => {
             return false;
         }
         if (!validateEmail(formData.email)) {
-            setError('Please use a valid Gmail address (@gmail.com)');
+            setError('Please enter a valid email address');
             return false;
         }
         if (!formData.password) {
@@ -132,7 +166,7 @@ const RegisterPage = () => {
             return false;
         }
         if (!validatePhone(formData.phone)) {
-            setError('Phone must be +63 9 followed by exactly 9 digits');
+            setError('Phone must be exactly 9 digits after +63 9');
             return false;
         }
         if (!formData.city.trim()) {
@@ -154,13 +188,8 @@ const RegisterPage = () => {
             return;
         }
 
-        // Show terms modal instead of submitting directly
-        setShowTermsModal(true);
-    };
-
-    const handleAgreeTerms = async () => {
         if (!termsChecked) {
-            setError('You must agree to the terms and conditions');
+            setError('Please agree to the Terms and Conditions');
             return;
         }
 
@@ -177,19 +206,24 @@ const RegisterPage = () => {
                 zip: formData.zip || null,
                 city: formData.city,
                 barangay: formData.barangay,
-                phone: formData.phone,
+                phone: '+63 9' + formData.phone,
             });
             
-            // Redirect to login page
-            navigate('/login');
+            // Redirect to login page and prevent going back to a filled signup form
+            navigate('/login', { replace: true });
         } catch (err: any) {
             const errorMessage = err.message || 'Registration failed. Please try again.';
             setError(errorMessage);
             console.error('Registration error:', err);
-            setShowTermsModal(false);
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleOpenTerms = (e: React.MouseEvent) => {
+        e.preventDefault();
+        setShowTermsModal(true);
+        setHasReadTerms(true);
     };
 
     return (
@@ -197,11 +231,11 @@ const RegisterPage = () => {
             <div className="auth-form-side">
                 <div className="auth-container">
                     
+                    <Link to="/login" className="back-to-home">
+                        <ArrowLeft size={16} />
+                        BACK TO LOGIN
+                    </Link>
                     <div className="auth-logo-header">
-                        <svg width="28" height="28" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="16" cy="20" r="12" stroke="#c49a2c" strokeWidth="2" />
-                            <circle cx="24" cy="20" r="12" stroke="#c49a2c" strokeWidth="2" />
-                        </svg>
                         Gala Crafters
                     </div>
 
@@ -212,7 +246,7 @@ const RegisterPage = () => {
 
                     {error && <div className="auth-error" style={{ color: 'red', marginBottom: '15px' }}>{error}</div>}
 
-                    <form className="auth-form register-form-grid" onSubmit={handleSubmit}>
+                    <form className="auth-form register-form-grid" onSubmit={handleSubmit} autoComplete="off">
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', width: '100%' }}>
                             <div className="form-group">
                                 <label>First Name</label>
@@ -222,7 +256,9 @@ const RegisterPage = () => {
                                     placeholder="Enter first name" 
                                     value={formData.first_name}
                                     onChange={handleChange}
+                                    autoComplete="off"
                                     required 
+                                    maxLength={30}
                                 />
                             </div>
 
@@ -234,7 +270,9 @@ const RegisterPage = () => {
                                     placeholder="Enter last name" 
                                     value={formData.last_name}
                                     onChange={handleChange}
+                                    autoComplete="off"
                                     required 
+                                    maxLength={30}
                                 />
                             </div>
                         </div>
@@ -248,20 +286,41 @@ const RegisterPage = () => {
                                     placeholder="example@gmail.com" 
                                     value={formData.email}
                                     onChange={handleChange}
+                                    autoComplete="off"
                                     required 
                                 />
                             </div>
 
                             <div className="form-group">
-                                <label>Phone #</label>
-                                <input 
-                                    type="text" 
-                                    name="phone"
-                                    placeholder="+63 9" 
-                                    value={formData.phone}
-                                    onChange={handleChange}
-                                    required 
-                                />
+                                <label>Phone Number</label>
+                                <div className="phone-input-wrapper" style={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                                    borderRadius: '8px',
+                                    padding: '0 15px'
+                                }}>
+                                    <span className="phone-prefix" style={{ color: '#c49a2c', fontWeight: 'bold', marginRight: '5px' }}>+63 9</span>
+                                    <input 
+                                        type="tel" 
+                                        name="phone"
+                                        placeholder="XXXXXXXXX" 
+                                        value={formData.phone}
+                                        onChange={handleChange}
+                                        autoComplete="off"
+                                        required 
+                                        style={{ 
+                                            border: 'none', 
+                                            background: 'transparent', 
+                                            padding: '12px 0',
+                                            color: '#ffffff',
+                                            outline: 'none',
+                                            width: '100%',
+                                            boxSizing: 'border-box'
+                                        }}
+                                    />
+                                </div>
                             </div>
                         </div>
 
@@ -272,9 +331,10 @@ const RegisterPage = () => {
                                     <input 
                                         type={showPassword ? "text" : "password"} 
                                         name="password"
-                                        placeholder="8-12 chars, 1 number, 1 special char" 
+                                        placeholder="••••••••••••" 
                                         value={formData.password}
                                         onChange={handleChange}
+                                        autoComplete="new-password"
                                         required 
                                         style={{ width: '100%', paddingRight: '45px', boxSizing: 'border-box' }}
                                     />
@@ -295,9 +355,53 @@ const RegisterPage = () => {
                                             padding: 0
                                         }}
                                     >
-                                        {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
                                     </button>
                                 </div>
+                                {formData.password && (
+                                    <div className="password-strength-container">
+                                        <div className="strength-meter">
+                                            <div 
+                                                className={`strength-bar ${
+                                                    passwordStrength < 40 ? 'bar-weak' : 
+                                                    passwordStrength < 80 ? 'bar-medium' : 'bar-strong'
+                                                }`} 
+                                                style={{ width: `${passwordStrength}%` }}
+                                            ></div>
+                                        </div>
+                                        <span className={`strength-label ${
+                                            passwordStrength < 40 ? 'label-weak' : 
+                                            passwordStrength < 80 ? 'label-medium' : 'label-strong'
+                                        }`}>
+                                            {passwordStrength < 25 && "very weak"}
+                                            {passwordStrength >= 25 && passwordStrength < 50 && "weak"}
+                                            {passwordStrength >= 50 && passwordStrength < 85 && "medium"}
+                                            {passwordStrength >= 85 && "strong"}
+                                        </span>
+                                    </div>
+                                )}
+
+                                {formData.password && (
+                                    <div className="password-requirements">
+                                        <div className={`requirement-item ${formData.password.length >= 8 ? 'met' : ''}`}>
+                                            <div className="check-outer">
+                                                <Check size={12} className="check-icon" />
+                                            </div>
+                                            <span>At least 8 characters</span>
+                                        </div>
+                                        <div className={`requirement-item ${/\d/.test(formData.password) ? 'met' : ''}`}>
+                                            <div className="check-outer">
+                                                <Check size={12} className="check-icon" />
+                                            </div>
+                                            <span>Includes a number</span>
+                                        </div>
+                                        <div className={`requirement-item ${/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(formData.password) ? 'met' : ''}`}>
+                                            <div className="check-outer">
+                                                <Check size={12} className="check-icon" />
+                                            </div>
+                                            <span>Includes a symbol</span>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="form-group">
@@ -309,6 +413,7 @@ const RegisterPage = () => {
                                         placeholder="••••••••••••" 
                                         value={formData.confirm_password}
                                         onChange={handleChange}
+                                        autoComplete="new-password"
                                         required 
                                         style={{ width: '100%', paddingRight: '45px', boxSizing: 'border-box' }}
                                     />
@@ -344,6 +449,7 @@ const RegisterPage = () => {
                                     placeholder="" 
                                     value={formData.city}
                                     onChange={handleChange}
+                                    autoComplete="off"
                                     required 
                                 />
                             </div>
@@ -356,6 +462,7 @@ const RegisterPage = () => {
                                     placeholder="" 
                                     value={formData.barangay}
                                     onChange={handleChange}
+                                    autoComplete="off"
                                     required 
                                 />
                             </div>
@@ -363,13 +470,14 @@ const RegisterPage = () => {
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', width: '100%' }}>
                             <div className="form-group">
-                                <label>Building, Apartment, Floor, Unit (Optional)</label>
+                                <label>Street Name, Building, etc. (Optional)</label>
                                 <input 
                                     type="text" 
                                     name="building_details"
-                                    placeholder="" 
+                                    placeholder="e.g. Street name, Building Name, Floor" 
                                     value={formData.building_details}
                                     onChange={handleChange}
+                                    autoComplete="off"
                                 />
                             </div>
 
@@ -381,11 +489,21 @@ const RegisterPage = () => {
                                     placeholder="" 
                                     value={formData.zip}
                                     onChange={handleChange}
+                                    autoComplete="off"
                                 />
                             </div>
                         </div>
 
-                        <button type="submit" className="auth-btn-primary" disabled={loading} style={{ marginTop: '10px', alignSelf: 'center', width: '200px' }}>
+                        <div className="form-info-text">
+                            By signing up, you agree to our <a href="#" onClick={handleOpenTerms}>Terms of Service</a>
+                        </div>
+
+                        <button 
+                            type="submit" 
+                            className={`auth-btn-primary ${(!termsChecked || loading) ? 'disabled' : ''}`} 
+                            disabled={loading || !termsChecked} 
+                            style={{ marginTop: '10px', alignSelf: 'center', width: '200px' }}
+                        >
                             {loading ? 'Creating Account...' : 'Done'}
                         </button>
                     </form>
@@ -406,7 +524,6 @@ const RegisterPage = () => {
                                 className="modal-close-btn"
                                 onClick={() => {
                                     setShowTermsModal(false);
-                                    setTermsChecked(false);
                                 }}
                             >
                                 <X size={20} />
@@ -437,34 +554,26 @@ const RegisterPage = () => {
 
                             <h4>8. Governing Law</h4>
                             <p>These terms and conditions are governed by and construed in accordance with the laws of the Philippines, and you irrevocably submit to the exclusive jurisdiction of the courts in that location.</p>
+
+                            <div style={{ marginTop: '25px', borderTop: '1px solid rgba(255, 255, 255, 0.05)', paddingTop: '20px' }}>
+                                <label className="checkbox-label">
+                                    <input 
+                                        type="checkbox"
+                                        checked={termsChecked}
+                                        onChange={(e) => setTermsChecked(e.target.checked)}
+                                    />
+                                    <span>I have read and agree to the Terms and Conditions</span>
+                                </label>
+                            </div>
                         </div>
 
                         <div className="modal-footer">
-                            <label className="checkbox-label">
-                                <input 
-                                    type="checkbox"
-                                    checked={termsChecked}
-                                    onChange={(e) => setTermsChecked(e.target.checked)}
-                                />
-                                <span>I agree to the terms and conditions.</span>
-                            </label>
-
                             <div className="modal-buttons">
                                 <button 
-                                    className="modal-btn cancel-btn"
-                                    onClick={() => {
-                                        setShowTermsModal(false);
-                                        setTermsChecked(false);
-                                    }}
+                                    className="modal-btn agree-btn"
+                                    onClick={() => setShowTermsModal(false)}
                                 >
-                                    Cancel
-                                </button>
-                                <button 
-                                    className={`modal-btn agree-btn ${!termsChecked ? 'disabled' : ''}`}
-                                    onClick={handleAgreeTerms}
-                                    disabled={!termsChecked || loading}
-                                >
-                                    {loading ? 'Creating Account...' : 'Agree and Continue'}
+                                    Close
                                 </button>
                             </div>
                         </div>

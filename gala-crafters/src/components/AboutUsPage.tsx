@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import img1 from '../assets/img1.jpg'; 
+import img1 from '../assets/img1.jpg';
 import img2 from '../assets/img5.jpg';
 import img3 from '../assets/img3.jpg';
 
-const sliderImages = [img1, img2]; 
+const sliderImages = [img1, img3, img2];
 
 function AboutUsPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -17,7 +21,7 @@ function AboutUsPage() {
 
   return (
     <div className="events-page-wrapper">
-      
+
       {/* 1. EVENTS HERO SECTION */}
       <section className="events-hero-section">
         <div className="events-bg-slider">
@@ -29,88 +33,85 @@ function AboutUsPage() {
             ></div>
           ))}
           <div className="events-overlay"></div>
+
+          {/* SLIDER PAGINATION DOTS */}
+          <div className="slider-dots-container">
+            {sliderImages.map((_, index) => (
+              <div
+                key={index}
+                className={`slider-dot ${index === currentIndex ? 'active' : ''}`}
+                onClick={() => setCurrentIndex(index)}
+              ></div>
+            ))}
+          </div>
         </div>
 
         <div className="container events-content-wrapper">
           <div className="events-text-box">
             <span className="events-overline">ABOUT US</span>
-            <h2>Gala Crafters</h2>
+            <h2 className="events-main-title">
+              <span className="italic-text">Gala</span> <br />
+              <span className="gold-text">Crafters</span>
+            </h2>
             <p>
-              We understand the multifaceted nature of event planning, so aside from food catering you
-              can put your trust in us to style your event the way you envision it!
-            </p>
+              Gala Crafters was built for the host who wants to actually enjoy their own party. We saw that people often had to choose between great food and great design, so we decided to offer both. What started as a small catering project has grown into a premier event concierge, dedicated to making your milestone celebrations beautiful, delicious, and completely stress-free.            </p>
           </div>
         </div>
 
-        {/* THE WAVE DIVIDER */}
-        <div className="wave-bottom">
-          <svg viewBox="0 0 1440 120" preserveAspectRatio="none">
-            <path 
-              fill="#ffffff" 
-              d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,42.7C1120,32,1280,32,1360,32L1440,32L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z"
-            ></path>
-          </svg>
+      </section>
+
+      {/* 3. ENHANCED VISION SECTION */}
+      <section
+        className="enhanced-vm-section enhanced-vision"
+        style={{ '--bg-img': `url(${img1})` } as React.CSSProperties}
+      >
+        <div className="enhanced-vm-container">
+          <div className="enhanced-vm-card">
+            <span className="enhanced-vm-overline">OUR VISION</span>
+            <h2 className="enhanced-vm-title">
+              Crafting<br />
+              <span className="gold-italic">Unforgettable Events.</span>
+            </h2>
+            <p className="enhanced-vm-desc">
+              We work to be the trusted partner behind your life’s most celebrated moments, making every detail seamless so you can be fully present.            </p>
+            <div className="enhanced-vm-footer-link">
+              EXPLORE OUR SERVICES <span style={{ fontSize: '14px' }}>&#8594;</span>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* 2. LEGACY OF GRANDEUR SECTION */}
-      <section className="legacy-section container">
-        <div className="legacy-content">
-          
-          {/* TEXT SIDE */}
-          <div className="legacy-text-side">
-            <span className="legacy-overline">THE HERITAGE</span>
-            <h2>A Legacy of Grandeur</h2>
-            
-            <p>
-              Founded in the pursuit of perfection, Gala Crafters began as a boutique studio catering to European aristocracy. Today, our footprint is global, but our ethos remains intimate.
+      {/* 4. ENHANCED MISSION SECTION */}
+      <section
+        className="enhanced-vm-section enhanced-mission"
+        style={{ '--bg-img': `url(${img3})` } as React.CSSProperties}
+      >
+        <div className="enhanced-vm-container">
+          <div className="enhanced-vm-card">
+            <span className="enhanced-vm-overline">OUR MISSION</span>
+            <h2 className="enhanced-vm-title">
+              Dedicated to<br />
+              <span className="gold-italic">Excellence.</span>
+            </h2>
+            <p className="enhanced-vm-desc">
+              We believe every celebration deserves undivided attention. Our mission is to provide personalized service and high-quality catering that reflects your unique style and honors your guests.
             </p>
-            <p>
-              Every occasion is treated as a masterpiece. From historic estates in Tuscany to modern penthouses in New York, we weave the narrative of our clients into every floral arrangement, every lighting cue, and every curated guest experience.
-            </p>
-            
-            <div className="legacy-divider"></div>
-            
-            {/* STATS */}
-            <div className="legacy-stats">
-              <div className="stat-box">
-                <span className="stat-number">15+</span>
-                <span className="stat-label">YEARS OF EXCELLENCE</span>
-              </div>
-              <div className="stat-box">
-                <span className="stat-number">400+</span>
-                <span className="stat-label">GLOBAL GALAS</span>
-              </div>
+            <div className="enhanced-vm-footer-link">
+              <span style={{ fontSize: '14px' }}>&#8592;</span> WORK WITH US
             </div>
-            
           </div>
+        </div>
+      </section>
 
-          {/* ASYMMETRICAL IMAGE GALLERY SIDE */}
-          <div className="legacy-gallery-side">
-            
-            {/* COLUMN 1 */}
-            <div className="gallery-col col-1">
-              <div className="gallery-img-box img-top-left">
-                 <img src={img1} alt="Elegant Table Setting" />
-              </div>
-              <div className="gallery-img-box img-bottom-left">
-                 {/* Replace with a fourth variable if you have one, using img2 for now */}
-                 <img src={img2} alt="Evening Event Setup" />
-              </div>
-            </div>
-
-            {/* COLUMN 2 */}
-            <div className="gallery-col col-2">
-               <div className="gallery-img-box img-top-right">
-                  <img src={img3} alt="Gold Cake Design" />
-               </div>
-               <div className="gallery-img-box img-bottom-right">
-                  <img src={img2} alt="Champagne Glasses" />
-               </div>
-            </div>
-
+      {/* 5. FOUNDER QUOTE SECTION */}
+      <section className="founder-quote-section">
+        <div className="quote-container">
+          <div className="quote-icon">&#10078;</div>
+          <h2 className="quote-text">
+            "Elegance is not about being noticed, it’s about being remembered."          </h2>
+          <div className="quote-author">
+            &#8212; Giorgio Armani, Fashion Designer
           </div>
-          
         </div>
       </section>
 
