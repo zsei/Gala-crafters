@@ -3,7 +3,8 @@ Main FastAPI application for Gala Crafters CRM
 Entry point for the API server
 """
 
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -40,11 +41,26 @@ app = FastAPI(
 # Add CORS middleware for React frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000", "http://localhost:8080", "*"],
+    allow_origins=["http://localhost:5173", "http://localhost:3000", "http://localhost:8080"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Global Exception Handler to ensure CORS headers are present even on 500 errors
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    print(f"GLOBAL ERROR: {exc}")
+    import traceback
+    traceback.print_exc()
+    return JSONResponse(
+        status_code=500,
+        content={"error": True, "detail": str(exc), "message": "Internal Server Error"},
+        headers={
+            "Access-Control-Allow-Origin": "http://localhost:5173",
+            "Access-Control-Allow-Credentials": "true",
+        }
+    )
 
 # Pydantic Models for request validation
 class LoginRequest(BaseModel):
@@ -66,8 +82,8 @@ class RegistrationRequest(BaseModel):
     phone: str
     city: str
     barangay: str
-    building_details: str = None
-    zip: str = None
+    building_details: str | None = None
+    zip: str | None = None
 
 class ProfileUpdateRequest(BaseModel):
     first_name: str = None
@@ -80,7 +96,7 @@ class ProfileUpdateRequest(BaseModel):
     country: str = None
     postal_code: str = None
     barangay: str = None
-    building_details: str = None
+    building_details: str | None = None
 
 class BookingCreateRequest(BaseModel):
     package_id: int
@@ -98,6 +114,16 @@ class PromoCodeRequest(BaseModel):
     expiry_date: str = None # YYYY-MM-DD
     max_uses: int = None
     status: str = "Active"
+
+class AdminReplyRequest(BaseModel):
+    message_body: str
+    sender_name: str = "Admin"
+
+class ChatInquiryRequest(BaseModel):
+    message_body: str
+    name: str = None
+    email: str = None
+    subject: str = "Chat Inquiry"
 
 class ReviewRequest(BaseModel):
     booking_id: int
@@ -328,7 +354,68 @@ def get_admin_messages_endpoint(credentials = Depends(verify_token), db: Session
     """Get recent unread messages for admin"""
     return database_setup.get_recent_messages()
 
-# --- DISCOUNT / PROMO CODE ENDPOINTS ---
+@app.get("/api/admin/messages/{message_id}/thread")
+def get_message_thread(message_id: int, credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Get full conversation thread for a message"""
+    # Get initial inquiry
+    inquiry = db.query(models.Message).filter(models.Message.id == message_id).first()
+    if not inquiry:
+        raise HTTPException(status_code=404, detail="Message not found")
+    
+    # Get all replies
+    replies = db.query(models.AdminMessage).filter(
+        models.AdminMessage.conversation_id == str(message_id)
+    ).order_by(models.AdminMessage.message_date.asc()).all()
+    
+    # Format response
+    thread = [
+        {
+            "id": f"inquiry-{inquiry.id}",
+            "type": "client",
+            "sender_name": inquiry.name,
+            "sender_email": inquiry.email,
+            "message_body": inquiry.message_body,
+            "message_date": inquiry.created_at.isoformat() if inquiry.created_at else None,
+            "subject": inquiry.message_subject
+        }
+    ]
+    
+    for reply in replies:
+        thread.append({
+            "id": f"reply-{reply.id}",
+            "type": "admin",
+            "sender_name": reply.sender_name,
+            "sender_email": reply.sender_email,
+            "message_body": reply.message_body,
+            "message_date": reply.message_date.isoformat() if reply.message_date else None
+        })
+        
+    return thread
+
+@app.post("/api/admin/messages/{message_id}/reply")
+def post_admin_reply(message_id: int, request: AdminReplyRequest, credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Post a reply to an inquiry"""
+    admin_email = credentials.get("email")
+    
+    new_reply = models.AdminMessage(
+        conversation_id=str(message_id),
+        message_body=request.message_body,
+        sender_name=request.sender_name,
+        sender_email=admin_email,
+        message_date=datetime.utcnow()
+    )
+    
+    db.add(new_reply)
+    
+    # Update inquiry status to 'Read'
+    inquiry = db.query(models.Message).filter(models.Message.id == message_id).first()
+    if inquiry:
+        inquiry.status = "Read"
+        
+    db.commit()
+    db.refresh(new_reply)
+    
+    return {"success": True, "message": "Reply sent successfully", "reply_id": new_reply.id}
 
 @app.get("/api/admin/promo-codes")
 def get_promo_codes(credentials = Depends(verify_token), db: Session = Depends(get_db)):
@@ -426,6 +513,24 @@ def submit_review(request: ReviewRequest, credentials = Depends(verify_token), d
     db.commit()
     return {"success": True, "message": "Review submitted successfully"}
 
+@app.post("/api/chat/submit")
+def submit_chat_inquiry(request: ChatInquiryRequest, db: Session = Depends(get_db)):
+    """Submit a message from the chat assistant/contact form"""
+    new_message = models.Message(
+        name=request.name or "Guest User",
+        email=request.email or "guest@galacrafters.com",
+        message_subject=request.subject,
+        message_body=request.message_body,
+        status="Unread",
+        created_at=datetime.utcnow()
+    )
+    db.add(new_message)
+    db.commit()
+    db.refresh(new_message)
+    return {"success": True, "message": "Inquiry submitted successfully", "message_id": new_message.id}
+
+# --- DISCOUNT / PROMO CODE ENDPOINTS ---
+
 # --- REPORT ENDPOINTS ---
 
 @app.get("/api/admin/reports/sales")
@@ -453,4 +558,4 @@ async def http_exception_handler(request, exc):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

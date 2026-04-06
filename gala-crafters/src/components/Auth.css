@@ -97,7 +97,7 @@
 
 .auth-header p {
     font-family: 'DM Sans', sans-serif;
-    color: #888;
+    color: #ccc;
     font-size: 16px;
     margin-bottom: 30px;
     max-width: 320px;
@@ -130,7 +130,8 @@
     background: #0a0f1d;
     padding: 0 8px;
     font-size: 13px;
-    color: rgba(255, 255, 255, 0.6);
+    color: #ffffff !important;
+    font-weight: 500;
     font-family: 'DM Sans', sans-serif;
     z-index: 1;
 }
@@ -346,7 +347,7 @@
     cursor: pointer;
     font-size: 14px;
     user-select: none;
-    color: rgba(255, 255, 255, 0.6);
+    color: #ffffff !important;
     font-family: 'DM Sans', sans-serif;
     transition: all 0.3s ease;
 }
@@ -409,7 +410,7 @@
 .login-options .auth-link {
     margin: 0;
     font-size: 14px;
-    color: rgba(255, 255, 255, 0.6);
+    color: #ffffff !important;
     font-weight: 500;
     text-decoration: none;
     transition: all 0.3s ease;

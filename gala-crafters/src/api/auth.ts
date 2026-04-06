@@ -20,7 +20,15 @@ export const authService = {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.detail || 'Login failed');
+        let errorMessage = 'Login failed';
+        if (error.detail) {
+          if (Array.isArray(error.detail)) {
+            errorMessage = error.detail.map((err: any) => `${err.loc[err.loc.length - 1]}: ${err.msg}`).join(', ');
+          } else {
+            errorMessage = error.detail;
+          }
+        }
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
@@ -55,7 +63,15 @@ export const authService = {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.detail || 'Registration failed');
+        let errorMessage = 'Registration failed';
+        if (error.detail) {
+          if (Array.isArray(error.detail)) {
+            errorMessage = error.detail.map((err: any) => `${err.loc[err.loc.length - 1]}: ${err.msg}`).join(', ');
+          } else {
+            errorMessage = error.detail;
+          }
+        }
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
@@ -87,7 +103,15 @@ export const authService = {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.detail || 'Admin login failed');
+        let errorMessage = 'Admin login failed';
+        if (error.detail) {
+          if (Array.isArray(error.detail)) {
+            errorMessage = error.detail.map((err: any) => `${err.loc[err.loc.length - 1]}: ${err.msg}`).join(', ');
+          } else {
+            errorMessage = error.detail;
+          }
+        }
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
@@ -122,7 +146,15 @@ export const authService = {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.detail || 'Failed to request password reset');
+        let errorMessage = 'Failed to request password reset';
+        if (error.detail) {
+          if (Array.isArray(error.detail)) {
+            errorMessage = error.detail.map((err: any) => `${err.loc[err.loc.length - 1]}: ${err.msg}`).join(', ');
+          } else {
+            errorMessage = error.detail;
+          }
+        }
+        throw new Error(errorMessage);
       }
 
       return await response.json();
@@ -149,7 +181,15 @@ export const authService = {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.detail || 'Failed to reset password');
+        let errorMessage = 'Failed to reset password';
+        if (error.detail) {
+          if (Array.isArray(error.detail)) {
+            errorMessage = error.detail.map((err: any) => `${err.loc[err.loc.length - 1]}: ${err.msg}`).join(', ');
+          } else {
+            errorMessage = error.detail;
+          }
+        }
+        throw new Error(errorMessage);
       }
 
       return await response.json();
@@ -213,7 +253,15 @@ export const authService = {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.detail || 'Update failed');
+        let errorMessage = 'Update failed';
+        if (error.detail) {
+          if (Array.isArray(error.detail)) {
+            errorMessage = error.detail.map((err: any) => `${err.loc[err.loc.length - 1]}: ${err.msg}`).join(', ');
+          } else {
+            errorMessage = error.detail;
+          }
+        }
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
@@ -255,7 +303,15 @@ export const authService = {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.detail || 'Failed to fetch bookings');
+        let errorMessage = 'Failed to fetch bookings';
+        if (error.detail) {
+          if (Array.isArray(error.detail)) {
+            errorMessage = error.detail.map((err: any) => `${err.loc[err.loc.length - 1]}: ${err.msg}`).join(', ');
+          } else {
+            errorMessage = error.detail;
+          }
+        }
+        throw new Error(errorMessage);
       }
 
       return response.json();

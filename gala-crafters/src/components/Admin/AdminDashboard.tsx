@@ -5,6 +5,7 @@ import AdminOverview from './AdminOverview';
 import AdminChart from './AdminChart';
 import PendingApprovals from './PendingApprovals';
 import RecentBookingActivity from './RecentBookingActivity';
+import { API_BASE_URL, API_ENDPOINTS } from '../../api/config';
 import './Admin.css';
 
 

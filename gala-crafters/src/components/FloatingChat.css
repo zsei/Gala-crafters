@@ -141,9 +141,10 @@
 
 .chat-input-area {
   padding: 15px 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  background: #0f172a; /* Explicit dark background to match the window */
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
-  align-items: center; /* Changed from baseline/start to center */
+  align-items: center;
   gap: 12px;
 }
 
@@ -173,8 +174,8 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 10px;
   padding: 5px;
 }
@@ -213,7 +214,7 @@
   background: transparent;
   border: none;
   padding: 8px 10px;
-  color: #ffffff;
+  color: #ffffff !important; /* Force white text */
   outline: none;
   font-size: 14px;
   width: 100%;

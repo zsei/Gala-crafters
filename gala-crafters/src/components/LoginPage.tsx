@@ -143,7 +143,7 @@ const LoginPage = () => {
                                 <div style={{ position: 'relative' }}>
                                     <input
                                         type={showPassword ? "text" : "password"}
-                                        placeholder="••••••••••••"
+                                        placeholder=""
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         required
@@ -191,8 +191,7 @@ const LoginPage = () => {
                                         background: 'none',
                                         border: 'none',
                                         padding: 0,
-                                        cursor: 'pointer',
-                                        color: 'rgba(255, 255, 255, 0.6)'
+                                        cursor: 'pointer'
                                     }}
                                 >
                                     Forgot Password?

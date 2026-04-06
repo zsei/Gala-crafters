@@ -25,6 +25,7 @@ const RegisterPage = () => {
     const [termsChecked, setTermsChecked] = useState(false);
     const [hasReadTerms, setHasReadTerms] = useState(false);
     const [passwordStrength, setPasswordStrength] = useState(0); // This will now be 0-100 percentage
+    const [isSuccess, setIsSuccess] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -56,7 +57,7 @@ const RegisterPage = () => {
     const validatePassword = (password: string) => {
         const hasNumber = /\d/.test(password);
         const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
-        const isValidLength = password.length >= 8 && password.length <= 12;
+        const isValidLength = password.length >= 8;
         return hasNumber && hasSpecialChar && isValidLength;
     };
 
@@ -154,7 +155,7 @@ const RegisterPage = () => {
             return false;
         }
         if (!validatePassword(formData.password)) {
-            setError('Password must be 8-12 characters with at least 1 number and 1 special character');
+            setError('Password must be at least 8 characters with at least 1 number and 1 special character');
             return false;
         }
         if (formData.password !== formData.confirm_password) {
@@ -209,12 +210,17 @@ const RegisterPage = () => {
                 phone: '+63 9' + formData.phone,
             });
             
-            // Redirect to login page and prevent going back to a filled signup form
-            navigate('/login', { replace: true });
+            // Show success message instead of immediate redirect
+            setIsSuccess(true);
+            
+            // Optional: Auto-redirect after 5 seconds if they don't click
+            setTimeout(() => {
+                navigate('/login', { replace: true });
+            }, 5000);
         } catch (err: any) {
-            const errorMessage = err.message || 'Registration failed. Please try again.';
+            console.error('Registration error details:', err);
+            const errorMessage = typeof err.message === 'string' ? err.message : 'Registration failed. Please try again.';
             setError(errorMessage);
-            console.error('Registration error:', err);
         } finally {
             setLoading(false);
         }
@@ -253,7 +259,7 @@ const RegisterPage = () => {
                                 <input 
                                     type="text" 
                                     name="first_name"
-                                    placeholder="Enter first name" 
+                                    placeholder="" 
                                     value={formData.first_name}
                                     onChange={handleChange}
                                     autoComplete="off"
@@ -267,7 +273,7 @@ const RegisterPage = () => {
                                 <input 
                                     type="text" 
                                     name="last_name"
-                                    placeholder="Enter last name" 
+                                    placeholder="" 
                                     value={formData.last_name}
                                     onChange={handleChange}
                                     autoComplete="off"
@@ -283,7 +289,7 @@ const RegisterPage = () => {
                                 <input 
                                     type="email" 
                                     name="email"
-                                    placeholder="example@gmail.com" 
+                                    placeholder="" 
                                     value={formData.email}
                                     onChange={handleChange}
                                     autoComplete="off"
@@ -293,32 +299,25 @@ const RegisterPage = () => {
 
                             <div className="form-group">
                                 <label>Phone Number</label>
-                                <div className="phone-input-wrapper" style={{ 
-                                    display: 'flex', 
-                                    alignItems: 'center', 
-                                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                                    borderRadius: '8px',
-                                    padding: '0 15px'
-                                }}>
-                                    <span className="phone-prefix" style={{ color: '#c49a2c', fontWeight: 'bold', marginRight: '5px' }}>+63 9</span>
+                                <div style={{ position: 'relative' }}>
+                                    <span style={{ 
+                                        position: 'absolute', 
+                                        left: '18px', 
+                                        top: '50%', 
+                                        transform: 'translateY(-50%)', 
+                                        color: '#c49a2c', 
+                                        fontWeight: 'bold',
+                                        fontSize: '15px'
+                                    }}>+63 9 <span style={{ opacity: 0.3, margin: '0 5px', fontWeight: 'lighter' }}>|</span></span>
                                     <input 
                                         type="tel" 
                                         name="phone"
-                                        placeholder="XXXXXXXXX" 
+                                        placeholder="" 
                                         value={formData.phone}
                                         onChange={handleChange}
                                         autoComplete="off"
                                         required 
-                                        style={{ 
-                                            border: 'none', 
-                                            background: 'transparent', 
-                                            padding: '12px 0',
-                                            color: '#ffffff',
-                                            outline: 'none',
-                                            width: '100%',
-                                            boxSizing: 'border-box'
-                                        }}
+                                        style={{ paddingLeft: '65px' }}
                                     />
                                 </div>
                             </div>
@@ -331,7 +330,7 @@ const RegisterPage = () => {
                                     <input 
                                         type={showPassword ? "text" : "password"} 
                                         name="password"
-                                        placeholder="••••••••••••" 
+                                        placeholder="" 
                                         value={formData.password}
                                         onChange={handleChange}
                                         autoComplete="new-password"
@@ -355,6 +354,7 @@ const RegisterPage = () => {
                                             padding: 0
                                         }}
                                     >
+                                        {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
                                     </button>
                                 </div>
                                 {formData.password && (
@@ -410,7 +410,7 @@ const RegisterPage = () => {
                                     <input 
                                         type={showConfirmPassword ? "text" : "password"} 
                                         name="confirm_password"
-                                        placeholder="••••••••••••" 
+                                        placeholder="" 
                                         value={formData.confirm_password}
                                         onChange={handleChange}
                                         autoComplete="new-password"
@@ -474,7 +474,7 @@ const RegisterPage = () => {
                                 <input 
                                     type="text" 
                                     name="building_details"
-                                    placeholder="e.g. Street name, Building Name, Floor" 
+                                    placeholder="" 
                                     value={formData.building_details}
                                     onChange={handleChange}
                                     autoComplete="off"
@@ -498,14 +498,28 @@ const RegisterPage = () => {
                             By signing up, you agree to our <a href="#" onClick={handleOpenTerms}>Terms of Service</a>
                         </div>
 
-                        <button 
-                            type="submit" 
-                            className={`auth-btn-primary ${(!termsChecked || loading) ? 'disabled' : ''}`} 
-                            disabled={loading || !termsChecked} 
-                            style={{ marginTop: '10px', alignSelf: 'center', width: '200px' }}
-                        >
-                            {loading ? 'Creating Account...' : 'Done'}
-                        </button>
+                        {(() => {
+                            const isFormFilled = 
+                                formData.first_name.trim() !== '' &&
+                                formData.last_name.trim() !== '' &&
+                                formData.email.trim() !== '' &&
+                                formData.password.trim() !== '' &&
+                                formData.confirm_password.trim() !== '' &&
+                                formData.phone.trim() !== '' &&
+                                formData.city.trim() !== '' &&
+                                formData.barangay.trim() !== '';
+                            
+                            return (
+                                <button 
+                                    type="submit" 
+                                    className={`auth-btn-primary ${(!termsChecked || !isFormFilled || loading) ? 'disabled' : ''}`} 
+                                    disabled={loading || !termsChecked || !isFormFilled} 
+                                    style={{ marginTop: '10px', alignSelf: 'center', width: '200px' }}
+                                >
+                                    {loading ? 'Creating Account...' : 'Done'}
+                                </button>
+                            );
+                        })()}
                     </form>
 
                     <div className="auth-footer">
@@ -577,6 +591,56 @@ const RegisterPage = () => {
                                 </button>
                             </div>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {isSuccess && (
+                <div className="modal-overlay" style={{ background: 'rgba(10, 15, 29, 0.95)', backdropFilter: 'blur(10px)' }}>
+                    <div className="modal-content" style={{ 
+                        background: '#1a1f35', 
+                        padding: '60px 40px', 
+                        textAlign: 'center',
+                        maxWidth: '500px',
+                        border: '1px solid rgba(196, 154, 44, 0.2)',
+                        boxShadow: '0 20px 50px rgba(0, 0, 0, 0.5)'
+                    }}>
+                        <div style={{ 
+                            width: '80px', 
+                            height: '80px', 
+                            background: 'rgba(37, 99, 235, 0.1)', 
+                            borderRadius: '50%', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center',
+                            margin: '0 auto 30px',
+                            border: '2px solid #2563eb'
+                        }}>
+                            <Check size={40} color="#2563eb" />
+                        </div>
+                        <h2 style={{ 
+                            fontFamily: 'Playfair Display, serif', 
+                            fontSize: '32px', 
+                            color: '#fff', 
+                            marginBottom: '15px',
+                            fontStyle: 'italic'
+                        }}>Success!</h2>
+                        <p style={{ 
+                            fontFamily: 'DM Sans, sans-serif', 
+                            color: 'rgba(255, 255, 255, 0.7)', 
+                            fontSize: '16px', 
+                            lineHeight: '1.6',
+                            marginBottom: '40px'
+                        }}>
+                            Your account has been created successfully. <br/>You can now sign in to your new account.
+                        </p>
+                        <button 
+                            onClick={() => navigate('/login', { replace: true })}
+                            className="auth-btn-primary"
+                            style={{ margin: 0, width: '200px' }}
+                        >
+                            Log In Now
+                        </button>
                     </div>
                 </div>
             )}

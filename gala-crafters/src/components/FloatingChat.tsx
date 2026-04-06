@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react';
-import { MessageCircle, X, Send, User, Paperclip } from 'lucide-react';
+import { MessageCircle, X, Send, User, Paperclip, Check } from 'lucide-react';
 import './FloatingChat.css';
+import { API_BASE_URL } from '../api/config';
+import { authService } from '../api/auth';
 
 const FloatingChat = () => {
   const CHAT_STORAGE_KEY = 'gala_assistant_history';
@@ -38,8 +40,13 @@ const FloatingChat = () => {
     }
   };
 
-  const sendMessage = (text: string, imageUrl?: string) => {
-    // Add user message
+  const sendMessage = async (text: string, imageUrl?: string) => {
+    // Get user info if logged in
+    const user = authService.getStoredUser();
+    const userName = user ? `${user.first_name} ${user.last_name || ''}` : "Guest User";
+    const userEmail = user?.email || "guest@galacrafters.com";
+
+    // Add user message to UI immediately for better UX
     const newUserMsg = { 
       id: Date.now(), 
       text: text || (!imageUrl && selectedFile ? `Attached: ${selectedFile.name}` : ""), 
@@ -53,6 +60,25 @@ const FloatingChat = () => {
     // Clear state
     setMessage('');
     setSelectedFile(null);
+
+    // PERSIST TO DATABASE
+    try {
+      await fetch(`${API_BASE_URL}/api/chat/submit`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message_body: text || (selectedFile ? `[Attachment: ${selectedFile.name}]` : ""),
+          name: userName,
+          email: userEmail,
+          subject: "Inquiry via Gala Assistant"
+        })
+      });
+    } catch (err) {
+      console.error('Failed to sync message with server:', err);
+      // We don't block the UI if the server call fails, but we log it
+    }
 
     // Add mock response after a delay
     setTimeout(() => {

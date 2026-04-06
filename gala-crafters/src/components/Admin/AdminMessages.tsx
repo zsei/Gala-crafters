@@ -10,6 +10,19 @@ const AdminMessages = () => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedMessage, setSelectedMessage] = useState<any>(null);
+  const [conversation, setConversation] = useState<any[]>([]);
+  const [replyText, setReplyText] = useState('');
+  const [sending, setSending] = useState(false);
+
+  // Helper to get initials (e.g., "Angeline Chua" -> "AC")
+  const getInitials = (name: string) => {
+    if (!name) return '??';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return parts[0].charAt(0).toUpperCase();
+  };
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('galaAdminTheme');
@@ -17,29 +30,83 @@ const AdminMessages = () => {
       setIsDark(true);
     }
 
-    const fetchMessages = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.ADMIN.MESSAGES}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setMessages(data);
-          if (data.length > 0) {
-            setSelectedMessage(data[0]);
-          }
-        }
-      } catch (err) {
-        console.error('Error fetching messages:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchMessages();
   }, []);
+
+  useEffect(() => {
+    if (selectedMessage) {
+      fetchThread(selectedMessage.id);
+    }
+  }, [selectedMessage]);
+
+  const fetchMessages = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.ADMIN.MESSAGES}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setMessages(data);
+        if (data.length > 0 && !selectedMessage) {
+          setSelectedMessage(data[0]);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching messages:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchThread = async (messageId: number) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/api/admin/messages/${messageId}/thread`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setConversation(data);
+      }
+    } catch (err) {
+      console.error('Error fetching thread:', err);
+    }
+  };
+
+  const handleSendReply = async () => {
+    if (!replyText.trim() || !selectedMessage) return;
+
+    setSending(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/api/admin/messages/${selectedMessage.id}/reply`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          message_body: replyText,
+          sender_name: 'Admin'
+        })
+      });
+
+      if (response.ok) {
+        setReplyText('');
+        // Refresh thread
+        fetchThread(selectedMessage.id);
+      }
+    } catch (err) {
+      console.error('Error sending reply:', err);
+    } finally {
+      setSending(false);
+    }
+  };
 
   const toggleTheme = () => {
     const newTheme = !isDark;
@@ -85,8 +152,8 @@ const AdminMessages = () => {
                     className={`chat-list-item ${selectedMessage?.id === msg.id ? 'active' : ''}`}
                     onClick={() => setSelectedMessage(msg)}
                   >
-                    <div className="chat-avatar" style={{ backgroundColor: 'var(--admin-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
-                      {msg.name?.charAt(0)}
+                    <div className="chat-avatar" style={{ backgroundColor: '#0d9488', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
+                      {getInitials(msg.name)}
                     </div>
                     <div className="chat-preview">
                       <div className="chat-preview-header">
@@ -96,7 +163,16 @@ const AdminMessages = () => {
                         </span>
                       </div>
                       <div className="chat-preview-message">
-                        <p>{msg.message_subject || 'Enquiry'}</p>
+                        <p style={{ 
+                          whiteSpace: 'nowrap', 
+                          overflow: 'hidden', 
+                          textOverflow: 'ellipsis', 
+                          maxWidth: '180px',
+                          color: msg.status === 'Unread' ? 'var(--admin-text-main)' : 'var(--admin-text-sub)',
+                          fontWeight: msg.status === 'Unread' ? '600' : '400'
+                        }}>
+                          {msg.message_body || msg.message_subject || 'Enquiry'}
+                        </p>
                         {msg.status === 'Unread' && <span className="unread-dot"></span>}
                       </div>
                     </div>
@@ -112,55 +188,66 @@ const AdminMessages = () => {
               <>
                 <div className="chat-area-header">
                   <div className="chat-active-user">
-                    <div className="chat-avatar" style={{ backgroundColor: 'var(--admin-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
-                      {selectedMessage.name?.charAt(0)}
+                    <div className="chat-avatar" style={{ backgroundColor: '#0d9488', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
+                      {getInitials(selectedMessage.name)}
                     </div>
                     <div className="chat-active-info">
                       <h2>{selectedMessage.name}</h2>
-                      <span className="user-status font-medium text-success">
-                        <span className="status-dot bg-success" style={{ display: 'inline-block', marginRight: '6px' }}></span>
-                        {selectedMessage.status}
-                      </span>
                     </div>
                   </div>
                   <div className="chat-header-actions">
-                    <button className="chat-icon-btn"><Video size={20} /></button>
-                    <button className="chat-icon-btn"><Phone size={20} /></button>
-                    <button className="chat-icon-btn"><MoreVertical size={20} /></button>
                   </div>
                 </div>
 
                 <div className="chat-history">
-                  <div className="chat-date-divider">
-                    <span>{new Date(selectedMessage.created_at).toLocaleDateString()}</span>
-                  </div>
-                  
-                  <div className="chat-message-row client-message">
-                    <div className="chat-avatar-small" style={{ backgroundColor: 'var(--admin-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', borderRadius: '50%' }}>
-                      {selectedMessage.name?.charAt(0)}
-                    </div>
-                    <div className="chat-message-content">
-                      <div className="chat-bubble bg-card text-main">
-                        <p><strong>Subject: {selectedMessage.message_subject}</strong></p>
-                        <hr style={{ margin: '8px 0', opacity: 0.1 }} />
-                        <p>{selectedMessage.message_body}</p>
+                  {conversation.map((msg, idx) => (
+                    <React.Fragment key={msg.id}>
+                      {idx === 0 || new Date(conversation[idx-1].message_date).toLocaleDateString() !== new Date(msg.message_date).toLocaleDateString() ? (
+                        <div className="chat-date-divider">
+                          <span>{new Date(msg.message_date).toLocaleDateString()}</span>
+                        </div>
+                      ) : null}
+                      
+                      <div className={`chat-message-row ${msg.type === 'admin' ? 'admin-message' : 'client-message'}`}>
+                        {msg.type === 'client' && (
+                          <div className="chat-avatar-small" style={{ backgroundColor: '#0d9488', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', borderRadius: '50%', flexShrink: 0, fontSize: '10px' }}>
+                            {getInitials(msg.sender_name)}
+                          </div>
+                        )}
+                        <div className="chat-message-content">
+                          <div className={`chat-bubble ${msg.type === 'admin' ? 'bg-accent text-white' : 'bg-card text-main'}`}>
+                            <p style={{ whiteSpace: 'pre-wrap' }}>{msg.message_body}</p>
+                          </div>
+                          <div className="chat-meta">
+                            <span>{new Date(msg.message_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            {msg.type === 'admin' && <Check size={14} className="text-accent" />}
+                          </div>
+                        </div>
                       </div>
-                      <div className="chat-meta">
-                        <span>{new Date(selectedMessage.created_at).toLocaleTimeString()}</span>
-                      </div>
-                    </div>
-                  </div>
+                    </React.Fragment>
+                  ))}
                 </div>
 
                 <div className="chat-input-area">
                   <div className="chat-input-wrapper">
-                    <input type="text" placeholder="Reply to this inquiry..." />
+                    <input 
+                      type="text" 
+                      placeholder="Reply to this inquiry..." 
+                      value={replyText}
+                      onChange={(e) => setReplyText(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleSendReply()}
+                    />
                     <div className="chat-input-actions">
                       <button className="input-icon-btn"><span role="img" aria-label="emoji">😀</span></button>
                       <button className="input-icon-btn"><Paperclip size={18} /></button>
                     </div>
                   </div>
-                  <button className="send-btn bg-accent">
+                  <button 
+                    className="send-btn bg-accent" 
+                    onClick={handleSendReply}
+                    disabled={sending || !replyText.trim()}
+                    style={{ opacity: sending || !replyText.trim() ? 0.6 : 1 }}
+                  >
                     <Send size={18} color="#fff" />
                   </button>
                 </div>
@@ -173,56 +260,58 @@ const AdminMessages = () => {
           </section>
 
           {/* Right Panel: Side Info */}
-          <section className="chat-info-sidebar">
-            
-            {/* Contact Details */}
-            <div className="info-block">
-              <h3 className="info-title"><UserIcon size={14} /> ENQUIRY DETAILS</h3>
+          {selectedMessage && (
+            <section className="chat-info-sidebar">
               
-              <div className="info-item">
-                <Mail size={16} className="text-sub" />
-                <div className="info-content">
-                  <span className="info-label">EMAIL ADDRESS</span>
-                  <strong>{selectedMessage?.email || 'N/A'}</strong>
+              {/* Contact Details */}
+              <div className="info-block">
+                <h3 className="info-title"><UserIcon size={14} /> ENQUIRY DETAILS</h3>
+                
+                <div className="info-item">
+                  <Mail size={16} className="text-sub" />
+                  <div className="info-content">
+                    <span className="info-label">EMAIL ADDRESS</span>
+                    <strong>{selectedMessage.email || 'N/A'}</strong>
+                  </div>
+                </div>
+
+                <div className="info-item">
+                  <Smartphone size={16} className="text-sub" />
+                  <div className="info-content">
+                    <span className="info-label">PHONE NUMBER</span>
+                    <strong>{selectedMessage.phone || 'N/A'}</strong>
+                  </div>
+                </div>
+
+                <div className="info-item">
+                  <History size={16} className="text-sub" />
+                  <div className="info-content">
+                    <span className="info-label">RECEIVED ON</span>
+                    <strong>{new Date(selectedMessage.created_at).toLocaleDateString()}</strong>
+                  </div>
                 </div>
               </div>
 
-              <div className="info-item">
-                <Smartphone size={16} className="text-sub" />
-                <div className="info-content">
-                  <span className="info-label">PHONE NUMBER</span>
-                  <strong>{selectedMessage?.phone || 'N/A'}</strong>
+              {/* Active Booking */}
+              <div className="info-block">
+                <h3 className="info-title"><BookingIcon size={14} /> STATUS</h3>
+                <div className="active-booking-card">
+                  <div className="booking-card-header">
+                    <span className={`badge-${selectedMessage.status === 'Unread' ? 'pending' : 'success'}`}>
+                      {selectedMessage.status}
+                    </span>
+                  </div>
+                  <h4>{selectedMessage.message_subject || 'Enquiry'}</h4>
+                  <p className="text-sub">Initial outreach from web form.</p>
                 </div>
               </div>
 
-              <div className="info-item">
-                <History size={16} className="text-sub" />
-                <div className="info-content">
-                  <span className="info-label">RECEIVED ON</span>
-                  <strong>{selectedMessage ? new Date(selectedMessage.created_at).toLocaleDateString() : 'N/A'}</strong>
-                </div>
-              </div>
-            </div>
-
-            {/* Active Booking */}
-            <div className="info-block">
-              <h3 className="info-title"><BookingIcon size={14} /> STATUS</h3>
-              <div className="active-booking-card">
-                <div className="booking-card-header">
-                  <span className={`badge-${selectedMessage?.status === 'Unread' ? 'pending' : 'success'}`}>
-                    {selectedMessage?.status || 'N/A'}
-                  </span>
-                </div>
-                <h4>{selectedMessage?.message_subject || 'Enquiry'}</h4>
-                <p className="text-sub">Initial outreach from web form.</p>
-              </div>
-            </div>
-
-            <button className="view-history-btn">
-              <Clock size={16} /> Mark as Resolved
-            </button>
-            
-          </section>
+              <button className="view-history-btn">
+                <Clock size={16} /> Mark as Resolved
+              </button>
+              
+            </section>
+          )}
         </div>
       </main>
 

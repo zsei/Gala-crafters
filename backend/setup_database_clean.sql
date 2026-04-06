@@ -179,18 +179,7 @@ CREATE TABLE reviews (
     FOREIGN KEY (customer_id) REFERENCES users(id)
 );
 
--- Create Promo Codes table
-CREATE TABLE promo_codes (
-    id SERIAL PRIMARY KEY,
-    code VARCHAR(50) UNIQUE NOT NULL,
-    discount_percentage DECIMAL(5,2),
-    discount_amount DECIMAL(10,2),
-    expiry_date DATE,
-    max_uses INT,
-    current_uses INT DEFAULT 0,
-    status VARCHAR(50) DEFAULT 'Active',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+-- Promo codes table already created above
 
 -- ============================================================================
 -- INSERT SAMPLE DATA

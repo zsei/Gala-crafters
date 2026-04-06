@@ -16,8 +16,10 @@ import {
   LogOut
 } from 'lucide-react';
 import { authService } from '../../api/auth';
+import { API_BASE_URL, API_ENDPOINTS } from '../../api/config';
 
 const AdminSidebar = ({ isDark, toggleTheme, isCollapsed: propIsCollapsed, toggleSidebar: propToggleSidebar }) => {
+  const [unreadCount, setUnreadCount] = useState(0);
   const [localIsCollapsed, setLocalIsCollapsed] = useState(false);
   const [isBookingsOpen, setIsBookingsOpen] = useState(false);
   const [isPackagesOpen, setIsPackagesOpen] = useState(false);
@@ -70,6 +72,31 @@ const AdminSidebar = ({ isDark, toggleTheme, isCollapsed: propIsCollapsed, toggl
       setIsPackagesOpen(!isPackagesOpen);
     }
   };
+
+  // Fetch unread count for badge
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.ADMIN.MESSAGES}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setUnreadCount(data.length);
+        }
+      } catch (err) {
+        console.error('Error fetching unread messages for sidebar:', err);
+      }
+    };
+
+    fetchUnreadCount();
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <aside className={`admin-sidebar ${isCollapsed ? 'collapsed' : ''}`}>
@@ -165,7 +192,7 @@ const AdminSidebar = ({ isDark, toggleTheme, isCollapsed: propIsCollapsed, toggl
         >
           <MessageSquare className="admin-nav-icon" />
           {!isCollapsed && <span>Messages</span>}
-          {!isCollapsed && <span className="admin-badge">4</span>}
+          {!isCollapsed && unreadCount > 0 && <span className="admin-badge">{unreadCount}</span>}
         </NavLink>
 
         <NavLink 
