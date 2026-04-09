@@ -72,7 +72,8 @@ const FloatingChat = () => {
           message_body: text || (selectedFile ? `[Attachment: ${selectedFile.name}]` : ""),
           name: userName,
           email: userEmail,
-          subject: "Inquiry via Gala Assistant"
+          subject: "Inquiry via Gala Assistant",
+          user_id: user?.id
         })
       });
     } catch (err) {

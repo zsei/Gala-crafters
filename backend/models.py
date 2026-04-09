@@ -140,6 +140,7 @@ class Message(Base):
     phone = Column(String(20))
     message_subject = Column(String(255))
     message_body = Column(Text, nullable=False)
+    image_url = Column(String(500))
     status = Column(String(50), default="Unread")
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -157,6 +158,8 @@ class AdminMessage(Base):
     message_date = Column(DateTime, default=datetime.utcnow)
     is_read = Column(Boolean, default=False)
     conversation_id = Column(String(100), index=True)
+    sender_type = Column(String(20), default="admin") # "admin" or "user"
+    image_url = Column(String(500))
 
 
 class PendingApproval(Base):

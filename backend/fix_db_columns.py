@@ -1,54 +1,27 @@
-"""
-Minimal DB check - fast, no hanging
-"""
+import os
+from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
+
 load_dotenv()
 
-import os
-import psycopg2
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    DATABASE_URL = "postgresql://postgres:password@localhost/gala_crafters_db"
 
-# Parse the connection string manually
-db_url = os.getenv("DATABASE_URL", "postgresql://postgres:password@localhost/gala_crafters_db")
-# postgresql://user:pass@host/dbname
-parts = db_url.replace("postgresql://", "").split("@")
-user_pass = parts[0].split(":")
-host_db = parts[1].split("/")
+engine = create_engine(DATABASE_URL)
 
-user = user_pass[0]
-password = user_pass[1] if len(user_pass) > 1 else ""
-host = host_db[0]
-dbname = host_db[1]
+def migrate():
+    with engine.connect() as conn:
+        print("Migrating database...")
+        try:
+            conn.execute(text("ALTER TABLE admin_messages ADD COLUMN sender_type VARCHAR(20) DEFAULT 'admin'"))
+            conn.commit()
+            print("✓ Added sender_type column to admin_messages")
+        except Exception as e:
+            if "already exists" in str(e):
+                print("✓ Column sender_type already exists")
+            else:
+                print(f"Error: {e}")
 
-print(f"Connecting as user={user} host={host} db={dbname}")
-
-try:
-    conn = psycopg2.connect(
-        host=host, dbname=dbname, user=user, password=password, connect_timeout=5
-    )
-    cur = conn.cursor()
-    cur.execute("""
-        SELECT column_name FROM information_schema.columns
-        WHERE table_name = 'users' ORDER BY ordinal_position
-    """)
-    cols = [r[0] for r in cur.fetchall()]
-    print("Users table columns:", cols)
-    print()
-    print("reset_token EXISTS:", "reset_token" in cols)
-    print("reset_token_expires EXISTS:", "reset_token_expires" in cols)
-
-    if "reset_token" not in cols:
-        print()
-        print(">>> FIXING: Adding missing columns...")
-        cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token VARCHAR(255)")
-        cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token_expires TIMESTAMP")
-        conn.commit()
-        print(">>> Columns added successfully!")
-    
-    cur.close()
-    conn.close()
-    print()
-    print("DB check complete.")
-except Exception as e:
-    import traceback
-    print(f"ERROR: {e}")
-    traceback.print_exc()
+if __name__ == "__main__":
+    migrate()

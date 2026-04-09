@@ -3,9 +3,12 @@ Main FastAPI application for Gala Crafters CRM
 Entry point for the API server
 """
 
-from fastapi import FastAPI, Depends, HTTPException, status, Request
+from fastapi import FastAPI, Depends, HTTPException, status, Request, File, UploadFile
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+import os
+import shutil
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 import models
@@ -52,6 +55,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Mount static files for uploads
+UPLOAD_DIR = "uploads"
+if not os.path.exists(UPLOAD_DIR):
+    os.makedirs(UPLOAD_DIR)
+
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 # Global Exception Handler to ensure CORS headers are present even on 500 errors
 @app.exception_handler(Exception)
@@ -124,12 +134,15 @@ class PromoCodeRequest(BaseModel):
 class AdminReplyRequest(BaseModel):
     message_body: str
     sender_name: str = "Admin"
+    image_url: str = None
 
 class ChatInquiryRequest(BaseModel):
     message_body: str
     name: str = None
     email: str = None
     subject: str = "Chat Inquiry"
+    user_id: int = None
+    image_url: str = None
 
 class ReviewRequest(BaseModel):
     booking_id: int
@@ -492,6 +505,132 @@ def post_admin_reply(message_id: int, request: AdminReplyRequest, credentials = 
     
     return {"success": True, "message": "Reply sent successfully", "reply_id": new_reply.id}
 
+@app.get("/api/admin/conversations")
+def get_admin_conversations(db: Session = Depends(get_db)):
+    """Get all unique user chat conversations for the Messages tab"""
+    from sqlalchemy import func, text
+    
+    # We want unique conversations that start with 'user_'
+    conversations = db.query(
+        models.AdminMessage.conversation_id,
+        models.AdminMessage.sender_name,
+        models.AdminMessage.sender_email,
+        func.max(models.AdminMessage.message_date).label("last_message_date")
+    ).filter(models.AdminMessage.conversation_id.like("user_%"))\
+     .group_by(models.AdminMessage.conversation_id, models.AdminMessage.sender_name, models.AdminMessage.sender_email)\
+     .order_by(text("last_message_date DESC")).all()
+    
+    res = []
+    seen = set()
+    for conv_id, name, email, last_date in conversations:
+        if conv_id not in seen:
+            last_msg = db.query(models.AdminMessage).filter(models.AdminMessage.conversation_id == conv_id).order_by(models.AdminMessage.message_date.desc()).first()
+            
+            res.append({
+                "id": conv_id,
+                "name": name,
+                "email": email,
+                "last_message": last_msg.message_body if last_msg else "",
+                "last_active": last_date.isoformat() if last_date else None,
+                "status": "Online"
+            })
+            seen.add(conv_id)
+            
+    return res
+
+@app.get("/api/admin/conversations/{conversation_id}")
+def get_conversation_thread(conversation_id: str, db: Session = Depends(get_db)):
+    """Get full thread for a user conversation along with user context and bookings"""
+    messages = db.query(models.AdminMessage).filter(
+        models.AdminMessage.conversation_id == conversation_id
+    ).order_by(models.AdminMessage.message_date.asc()).all()
+    
+    user_data = None
+    bookings_data = []
+    
+    if conversation_id.startswith("user_"):
+        try:
+            user_id = int(conversation_id.split("_")[1])
+            user = db.query(models.User).filter(models.User.id == user_id).first()
+            if user:
+                user_data = {
+                    "first_name": user.first_name,
+                    "last_name": user.last_name,
+                    "email": user.email,
+                    "phone": user.phone,
+                    "date_of_birth": user.date_of_birth.isoformat() if user.date_of_birth else None,
+                    "city": user.city,
+                    "barangay": user.barangay,
+                    "postal_code": user.postal_code,
+                    "building_details": user.building_details,
+                    "created_at": user.created_at.isoformat() if user.created_at else None
+                }
+                
+                # Fetch bookings
+                bookings = db.query(models.Booking).filter(models.Booking.customer_id == user_id).order_by(models.Booking.created_at.desc()).all()
+                bookings_data = [{
+                    "id": b.id,
+                    "reference": b.booking_reference,
+                    "package": b.package.package_name if b.package else "Custom",
+                    "date": b.event_date.isoformat() if b.event_date else None,
+                    "status": b.status,
+                    "total": b.total_price
+                } for b in bookings]
+        except:
+            pass
+
+    return {
+        "messages": [{
+            "id": m.id,
+            "type": "client" if m.sender_type == "user" else "admin",
+            "text": m.message_body,
+            "image_url": m.image_url,
+            "date": m.message_date.isoformat() if m.message_date else None,
+            "sender_name": m.sender_name
+        } for m in messages],
+        "user_profile": user_data,
+        "booking_history": bookings_data
+    }
+
+@app.post("/api/upload")
+async def upload_file(file: UploadFile = File(...)):
+    """Upload an image and return its URL"""
+    # Simple filename cleanup
+    filename = file.filename.replace(" ", "_")
+    file_path = os.path.join(UPLOAD_DIR, filename)
+    
+    # De-duplicate if file exists
+    if os.path.exists(file_path):
+        import time
+        filename = f"{int(time.time())}_{filename}"
+        file_path = os.path.join(UPLOAD_DIR, filename)
+
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+        
+    return {"url": f"http://localhost:8000/uploads/{filename}"}
+
+@app.post("/api/admin/conversations/{conversation_id}/reply")
+def reply_to_conversation(conversation_id: str, request: AdminReplyRequest, credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Reply to a user chat conversation"""
+    admin_email = credentials.get("email")
+    
+    new_reply = models.AdminMessage(
+        conversation_id=conversation_id,
+        message_body=request.message_body,
+        sender_name=request.sender_name,
+        sender_email=admin_email,
+        sender_type="admin",
+        image_url=request.image_url,
+        message_date=datetime.utcnow()
+    )
+    
+    db.add(new_reply)
+    db.commit()
+    db.refresh(new_reply)
+    
+    return {"success": True, "message": "Reply sent", "id": new_reply.id}
+
 @app.put("/api/admin/messages/{message_id}/read")
 def mark_message_read(message_id: int, credentials = Depends(verify_token), db: Session = Depends(get_db)):
     """Mark an inquiry as read/reviewed"""
@@ -602,6 +741,24 @@ def submit_review(request: ReviewRequest, credentials = Depends(verify_token), d
 @app.post("/api/chat/submit")
 def submit_chat_inquiry(request: ChatInquiryRequest, db: Session = Depends(get_db)):
     """Submit a message from the chat assistant/contact form"""
+    if request.user_id:
+        # Registered user: Save to admin_messages (Messages tab)
+        new_message = models.AdminMessage(
+            conversation_id=f"user_{request.user_id}",
+            message_body=request.message_body,
+            sender_name=request.name or "Registered User",
+            sender_email=request.email or "user@galacrafters.com",
+            sender_id=request.user_id,
+            sender_type="user",
+            image_url=request.image_url,
+            message_date=datetime.utcnow()
+        )
+        db.add(new_message)
+        db.commit()
+        db.refresh(new_message)
+        return {"success": True, "message": "Message sent to messages", "message_id": new_message.id, "type": "chat"}
+
+    # Guest user: Save to messages (Inquiry tab)
     new_message = models.Message(
         name=request.name or "Guest User",
         email=request.email or "guest@galacrafters.com",
@@ -613,7 +770,7 @@ def submit_chat_inquiry(request: ChatInquiryRequest, db: Session = Depends(get_d
     db.add(new_message)
     db.commit()
     db.refresh(new_message)
-    return {"success": True, "message": "Inquiry submitted successfully", "message_id": new_message.id}
+    return {"success": True, "message": "Inquiry submitted successfully", "message_id": new_message.id, "type": "inquiry"}
 
 # --- DISCOUNT / PROMO CODE ENDPOINTS ---
 
