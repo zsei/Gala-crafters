@@ -5,7 +5,6 @@ import './Admin.css';
 import { API_BASE_URL, API_ENDPOINTS } from '../../api/config';
 
 const AdminUsers = () => {
-  const [isDark, setIsDark] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState('staff');
   const [isCollapsed, setIsCollapsed] = React.useState(false);
   const [users, setUsers] = React.useState([]);
@@ -13,11 +12,6 @@ const AdminUsers = () => {
   const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    const savedTheme = localStorage.getItem('galaAdminTheme');
-    if (savedTheme === 'dark') {
-      setIsDark(true);
-    }
-
     const fetchUsers = async () => {
       setLoading(true);
       try {
@@ -52,12 +46,6 @@ const AdminUsers = () => {
     fetchUsers();
   }, [activeTab]);
 
-  const toggleTheme = () => {
-    const newTheme = !isDark;
-    setIsDark(newTheme);
-    localStorage.setItem('galaAdminTheme', newTheme ? 'dark' : 'light');
-  };
-
   const toggleSidebar = () => setIsCollapsed(prev => !prev);
 
   // Stats logic based on fetched users (placeholder but derived)
@@ -69,10 +57,8 @@ const AdminUsers = () => {
   ];
 
   return (
-    <div className={`admin-layout ${isDark ? 'admin-dark-theme' : ''}`}>
+    <div className="admin-layout">
       <AdminSidebar 
-        isDark={isDark} 
-        toggleTheme={toggleTheme}
         isCollapsed={isCollapsed}
         toggleSidebar={toggleSidebar}
       />

@@ -1,9 +1,41 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Filter, MoreHorizontal } from 'lucide-react';
-
-const bookings = [];
+import { API_BASE_URL, API_ENDPOINTS } from '../../api/config';
 
 const RecentBookingActivity = () => {
+  const [bookings, setBookings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRecentBookings = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.ADMIN.BOOKINGS}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          // Sort by date or id to get most recent, already sorted by event_date ASC actually. 
+          // Let's just reverse and take top 5.
+          setBookings(data.reverse().slice(0, 5));
+        }
+      } catch (error) {
+        console.error('Error fetching recent bookings:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRecentBookings();
+  }, []);
+
+  const getStatusColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case 'confirmed': return 'success';
+      case 'processing': return 'warning';
+      case 'cancelled': return 'danger';
+      default: return 'info';
+    }
+  };
   return (
     <div className="admin-card table-card">
       <div className="table-header-toolbar">
@@ -33,20 +65,22 @@ const RecentBookingActivity = () => {
             </tr>
           </thead>
           <tbody>
-            {bookings.map((row, index) => (
+            {loading ? <tr><td colSpan={7} style={{ textAlign: 'center', padding: '20px' }}>Loading...</td></tr> :
+             bookings.length === 0 ? <tr><td colSpan={7} style={{ textAlign: 'center', padding: '20px' }}>No bookings found</td></tr> :
+             bookings.map((row, index) => (
               <tr key={index}>
-                <td className="font-medium">{row.id}</td>
+                <td className="font-medium">{row.booking_reference}</td>
                 <td>
                   <div className="customer-cell">
-                    <span className={`customer-avatar bg-${row.statusColor}`}>{row.initials}</span>
-                    {row.name}
+                    <span className={`customer-avatar bg-${getStatusColor(row.status)}`}>{row.customer_name?.charAt(0)}</span>
+                    {row.customer_name}
                   </div>
                 </td>
-                <td>{row.type}</td>
-                <td className="text-sub">{row.date}</td>
-                <td className="font-semibold">{row.amount}</td>
+                <td>{row.package_name}</td>
+                <td className="text-sub">{new Date(row.event_date).toLocaleDateString()}</td>
+                <td className="font-semibold">${row.total_price?.toLocaleString()}</td>
                 <td>
-                  <span className={`status-badge ${row.statusColor}`}>
+                  <span className={`status-badge ${getStatusColor(row.status)}`}>
                     {row.status}
                   </span>
                 </td>

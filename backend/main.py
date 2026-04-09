@@ -41,7 +41,13 @@ app = FastAPI(
 # Add CORS middleware for React frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000", "http://localhost:8080"],
+    allow_origins=[
+        "http://localhost:5173", 
+        "http://localhost:3174", 
+        "http://localhost:5174", 
+        "http://localhost:3000", 
+        "http://localhost:8080"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -129,6 +135,26 @@ class ReviewRequest(BaseModel):
     booking_id: int
     rating: int # 1-5
     comment: str = None
+
+class PackageCreateRequest(BaseModel):
+    package_name: str
+    event_type: str
+    description: str = None
+    base_price: float
+    max_guests: int = None
+    features: list[str] = []
+    image_url: str = None
+    status: str = "Active"
+
+class PackageUpdateRequest(BaseModel):
+    package_name: str = None
+    event_type: str = None
+    description: str = None
+    base_price: float = None
+    max_guests: int = None
+    features: list[str] = None
+    image_url: str = None
+    status: str = None
 
 def get_db():
     """Database session dependency"""
@@ -342,6 +368,55 @@ def get_admin_packages_endpoint(credentials = Depends(verify_token), db: Session
     """Get all available packages for admin"""
     return database_setup.get_available_packages()
 
+@app.post("/api/admin/packages")
+def create_package(package: PackageCreateRequest, credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Create a new event package"""
+    new_package = models.EventPackage(
+        package_name=package.package_name,
+        event_type=package.event_type,
+        description=package.description,
+        base_price=package.base_price,
+        max_guests=package.max_guests,
+        features=package.features,
+        status=package.status
+    )
+    db.add(new_package)
+    db.commit()
+    db.refresh(new_package)
+    return new_package
+
+@app.put("/api/admin/packages/{package_id}")
+def update_package(package_id: int, package: PackageUpdateRequest, credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Update an existing package"""
+    db_package = db.query(models.EventPackage).filter(models.EventPackage.id == package_id).first()
+    if not db_package:
+        raise HTTPException(status_code=404, detail="Package not found")
+        
+    update_data = package.dict(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_package, key, value)
+        
+    db.commit()
+    db.refresh(db_package)
+    return db_package
+
+@app.delete("/api/admin/packages/{package_id}")
+def delete_package(package_id: int, credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Soft delete (archive) an existing package"""
+    db_package = db.query(models.EventPackage).filter(models.EventPackage.id == package_id).first()
+    if not db_package:
+        raise HTTPException(status_code=404, detail="Package not found")
+        
+    db_package.status = "Archived"
+    db.commit()
+    db.refresh(db_package)
+    return {"message": "Package archived successfully", "package": db_package}
+
+@app.get("/api/admin/pending-approvals")
+def get_admin_pending_approvals_endpoint(credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Get all pending approvals"""
+    return database_setup.get_pending_approvals()
+
 @app.get("/api/admin/metrics")
 def get_admin_metrics_endpoint(credentials = Depends(verify_token), db: Session = Depends(get_db)):
     """Get admin dashboard metrics"""
@@ -416,6 +491,17 @@ def post_admin_reply(message_id: int, request: AdminReplyRequest, credentials = 
     db.refresh(new_reply)
     
     return {"success": True, "message": "Reply sent successfully", "reply_id": new_reply.id}
+
+@app.put("/api/admin/messages/{message_id}/read")
+def mark_message_read(message_id: int, credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Mark an inquiry as read/reviewed"""
+    inquiry = db.query(models.Message).filter(models.Message.id == message_id).first()
+    if not inquiry:
+        raise HTTPException(status_code=404, detail="Message not found")
+    
+    inquiry.status = "Read"
+    db.commit()
+    return {"success": True, "message": "Inquiry marked as read"}
 
 @app.get("/api/admin/promo-codes")
 def get_promo_codes(credentials = Depends(verify_token), db: Session = Depends(get_db)):

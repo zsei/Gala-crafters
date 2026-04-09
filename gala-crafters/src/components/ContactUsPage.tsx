@@ -1,9 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import bgImage from '../assets/img3.jpg';
+import { API_BASE_URL } from '../api/config';
 
 function ContactUsPage() {
   const [isEventOpen, setIsEventOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -24,6 +31,44 @@ function ContactUsPage() {
     { value: 'corporate_event', label: 'Corporate Event' },
     { value: 'other', label: 'Other' },
   ];
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setStatus(null);
+
+    const payload = {
+      name: fullName,
+      email: email,
+      message_body: `[Event: ${selectedEvent || 'Not Specified'}] [Phone: +63 9${phone}] ${message}`,
+      subject: selectedEvent ? `${selectedEvent.charAt(0).toUpperCase() + selectedEvent.slice(1)} Inquiry` : "General Inquiry"
+    };
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/chat/submit`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        setStatus({ type: 'success', text: 'Thank you! Your inquiry has been sent successfully.' });
+        setFullName('');
+        setEmail('');
+        setPhone('');
+        setSelectedEvent('');
+        setMessage('');
+      } else {
+        throw new Error('Failed to send inquiry');
+      }
+    } catch (err: any) {
+      setStatus({ type: 'error', text: 'Something went wrong. Please try again later.' });
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div className="contact-page-wrapper contact-hero-dark" style={{ padding: 0, margin: 0, minHeight: '100vh' }}>
       <section
@@ -66,7 +111,21 @@ function ContactUsPage() {
           {/* RIGHT COLUMN: FORM BOX */}
           <div className="contact-right-col" style={{ flex: 1, maxWidth: '500px', width: '100%' }}>
             <div className="contact-form-card">
-              <form className="contact-inquiry-form" onSubmit={(e) => e.preventDefault()}>
+              {status && (
+                <div style={{
+                  padding: '15px',
+                  marginBottom: '20px',
+                  borderRadius: '8px',
+                  backgroundColor: status.type === 'success' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                  color: status.type === 'success' ? '#10b981' : '#ef4444',
+                  fontSize: '14px',
+                  textAlign: 'center',
+                  fontFamily: "'DM Sans', sans-serif"
+                }}>
+                  {status.text}
+                </div>
+              )}
+              <form className="contact-inquiry-form" onSubmit={handleSubmit}>
 
                 <div className="contact-form-group">
                   <label>FULL NAME:</label>
@@ -74,6 +133,8 @@ function ContactUsPage() {
                     type="text"
                     placeholder="e.g. Julianne Sterling"
                     required
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
                     onInput={(e) => {
                       const target = e.target as HTMLInputElement;
                       target.value = target.value.replace(/[^A-Za-z. ]/g, '');
@@ -83,7 +144,13 @@ function ContactUsPage() {
 
                 <div className="contact-form-group">
                   <label>EMAIL:</label>
-                  <input type="email" placeholder="hello@example.com" required />
+                  <input 
+                    type="email" 
+                    placeholder="hello@example.com" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required 
+                  />
                 </div>
 
                 <div className="contact-form-group">
@@ -93,9 +160,10 @@ function ContactUsPage() {
                     <input
                       type="tel"
                       placeholder="123456789"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
                       onInput={(e) => {
                         const target = e.target as HTMLInputElement;
-                        // Only allow digits and limit to 9 characters 
                         target.value = target.value.replace(/[^0-9]/g, '').slice(0, 9);
                       }}
                     />
@@ -137,10 +205,19 @@ function ContactUsPage() {
                     placeholder="Tell us about your vision..."
                     required
                     maxLength={100}
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
                   ></textarea>
                 </div>
 
-                <button type="submit" className="form-submit-btn">Send Inquiry</button>
+                <button 
+                  type="submit" 
+                  className="form-submit-btn" 
+                  disabled={loading}
+                  style={{ opacity: loading ? 0.7 : 1 }}
+                >
+                  {loading ? 'Sending...' : 'Send Inquiry'}
+                </button>
               </form>
             </div>
           </div>

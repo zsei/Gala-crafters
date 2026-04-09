@@ -19,15 +19,12 @@ interface Review {
 }
 
 const AdminReviews = () => {
-    const [isDark, setIsDark] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [reviews, setReviews] = useState<Review[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        const savedTheme = localStorage.getItem('galaAdminTheme');
-        if (savedTheme === 'dark') setIsDark(true);
         fetchReviews();
     }, []);
 
@@ -47,11 +44,7 @@ const AdminReviews = () => {
         }
     };
 
-    const toggleTheme = () => {
-        const newTheme = !isDark;
-        setIsDark(newTheme);
-        localStorage.setItem('galaAdminTheme', newTheme ? 'dark' : 'light');
-    };
+
 
     const toggleSidebar = () => setIsCollapsed(prev => !prev);
 
@@ -81,10 +74,8 @@ const AdminReviews = () => {
     };
 
     return (
-        <div className={`admin-layout ${isDark ? 'admin-dark-theme' : ''}`}>
+        <div className="admin-layout">
             <AdminSidebar 
-                isDark={isDark} 
-                toggleTheme={toggleTheme}
                 isCollapsed={isCollapsed}
                 toggleSidebar={toggleSidebar}
             />

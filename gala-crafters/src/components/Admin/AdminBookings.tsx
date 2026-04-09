@@ -9,18 +9,13 @@ import { API_BASE_URL, API_ENDPOINTS } from '../../api/config';
 
 const AdminBookings = () => {
   // Inherit the theme logic
-  const [isDark, setIsDark] = React.useState(false);
   const [isCollapsed, setIsCollapsed] = React.useState(false);
   const [bookings, setBookings] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
+  const [metrics, setMetrics] = React.useState<any>({});
 
   React.useEffect(() => {
-    const savedTheme = localStorage.getItem('galaAdminTheme');
-    if (savedTheme === 'dark') {
-      setIsDark(true);
-    }
-
     const fetchBookings = async () => {
       try {
         const token = localStorage.getItem('token');
@@ -44,14 +39,26 @@ const AdminBookings = () => {
       }
     };
 
+    const fetchMetrics = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.ADMIN.METRICS}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setMetrics(data);
+        }
+      } catch (err) {
+        console.error('Error fetching metrics:', err);
+      }
+    };
+
     fetchBookings();
+    fetchMetrics();
   }, []);
 
-  const toggleTheme = () => {
-    const newTheme = !isDark;
-    setIsDark(newTheme);
-    localStorage.setItem('galaAdminTheme', newTheme ? 'dark' : 'light');
-  };
+
 
   const toggleSidebar = () => setIsCollapsed(prev => !prev);
 
@@ -66,10 +73,8 @@ const AdminBookings = () => {
   };
 
   return (
-    <div className={`admin-layout ${isDark ? 'admin-dark-theme' : ''}`}>
+    <div className="admin-layout">
       <AdminSidebar 
-        isDark={isDark} 
-        toggleTheme={toggleTheme}
         isCollapsed={isCollapsed}
         toggleSidebar={toggleSidebar}
       />
@@ -217,8 +222,8 @@ const AdminBookings = () => {
                  <DollarSign size={20} />
                </div>
                <div className="summary-info">
-                 <span>REVENUE (MTD)</span>
-                 <h3>$142,800</h3>
+                 <span>TOTAL REVENUE</span>
+                 <h3>${(metrics.total_revenue || 0).toLocaleString()}</h3>
                </div>
              </div>
            </div>
@@ -229,8 +234,8 @@ const AdminBookings = () => {
                  <ClipboardList size={20} />
                </div>
                <div className="summary-info">
-                 <span>PENDING PROPOSALS</span>
-                 <h3>12</h3>
+                 <span>PENDING APPROVALS</span>
+                 <h3>{metrics.pending_approvals || 0}</h3>
                </div>
              </div>
            </div>
@@ -242,7 +247,7 @@ const AdminBookings = () => {
                </div>
                <div className="summary-info">
                  <span>AVERAGE BOOKING</span>
-                 <h3>$18,650</h3>
+                 <h3>${metrics.active_bookings && metrics.active_bookings > 0 ? Math.round((metrics.total_revenue || 0) / metrics.active_bookings).toLocaleString() : 0}</h3>
                </div>
              </div>
            </div>

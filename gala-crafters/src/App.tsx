@@ -35,6 +35,7 @@ import AdminPackages from './components/Admin/AdminPackages';
 import AdminDiscounts from './components/Admin/AdminDiscounts';
 import AdminReviews from './components/Admin/AdminReviews';
 import AdminReports from './components/Admin/AdminReports';
+import AdminInquiries from './components/Admin/AdminInquiries';
 
 import Hero from './components/Hero';
 import Services from './components/Services';
@@ -104,13 +105,14 @@ const AppLayout = () => {
         {/* Admin Routes */}
         <Route path="/admin/login" element={<AdminLoginPage />} />
         <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />
-        <Route path="/admin/bookings" element={<ProtectedRoute requiredRole="admin"><AdminBookings /></ProtectedRoute>} />
-        <Route path="/admin/packages" element={<ProtectedRoute requiredRole="admin"><AdminPackages /></ProtectedRoute>} />
-        <Route path="/admin/users" element={<ProtectedRoute requiredRole="admin"><AdminUsers /></ProtectedRoute>} />
-        <Route path="/admin/messages" element={<ProtectedRoute requiredRole="admin"><AdminMessages /></ProtectedRoute>} />
-        <Route path="/admin/discounts" element={<ProtectedRoute requiredRole="admin"><AdminDiscounts /></ProtectedRoute>} />
-        <Route path="/admin/reviews" element={<ProtectedRoute requiredRole="admin"><AdminReviews /></ProtectedRoute>} />
-        <Route path="/admin/reports" element={<ProtectedRoute requiredRole="admin"><AdminReports /></ProtectedRoute>} />
+        <Route path="/admin/bookings" element={<ProtectedRoute requiredRole="admin" allowedRoles={['superadmin', 'staff_bookings']}><AdminBookings /></ProtectedRoute>} />
+        <Route path="/admin/packages" element={<ProtectedRoute requiredRole="admin" allowedRoles={['superadmin', 'staff_packages']}><AdminPackages /></ProtectedRoute>} />
+        <Route path="/admin/users" element={<ProtectedRoute requiredRole="admin" allowedRoles={['superadmin']}><AdminUsers /></ProtectedRoute>} />
+        <Route path="/admin/messages" element={<ProtectedRoute requiredRole="admin" allowedRoles={['superadmin', 'staff_bookings']}><AdminMessages /></ProtectedRoute>} />
+        <Route path="/admin/inquiries" element={<ProtectedRoute requiredRole="admin" allowedRoles={['superadmin', 'staff_bookings']}><AdminInquiries /></ProtectedRoute>} />
+        <Route path="/admin/discounts" element={<ProtectedRoute requiredRole="admin" allowedRoles={['superadmin', 'staff_packages']}><AdminDiscounts /></ProtectedRoute>} />
+        <Route path="/admin/reviews" element={<ProtectedRoute requiredRole="admin" allowedRoles={['superadmin']}><AdminReviews /></ProtectedRoute>} />
+        <Route path="/admin/reports" element={<ProtectedRoute requiredRole="admin" allowedRoles={['superadmin']}><AdminReports /></ProtectedRoute>} />
       </Routes>
 
       {!isAdmin && !isAuth && <Footer />}

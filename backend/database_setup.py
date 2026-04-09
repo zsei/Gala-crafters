@@ -45,7 +45,8 @@ def get_active_bookings():
         b.venue_proposed,
         b.guest_count,
         b.total_price,
-        b.status
+        b.status,
+        ep.image_url
     FROM bookings b
     INNER JOIN users u ON b.customer_id = u.id
     INNER JOIN event_packages ep ON b.package_id = ep.id
@@ -96,7 +97,6 @@ def get_recent_messages(limit: int = 10):
         status,
         created_at
     FROM messages
-    WHERE status = 'Unread'
     ORDER BY created_at DESC
     LIMIT {limit}
     """
@@ -143,9 +143,12 @@ def get_available_packages():
         event_type,
         description,
         base_price,
-        max_guests
+        max_guests,
+        features,
+        image_url,
+        status
     FROM event_packages
-    WHERE status = 'Active'
+    WHERE status != 'Deleted'
     ORDER BY base_price ASC
     """
     return execute_raw_query(query)

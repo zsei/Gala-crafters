@@ -25,15 +25,12 @@ interface SalesData {
 }
 
 const AdminReports = () => {
-    const [isDark, setIsDark] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [salesData, setSalesData] = useState<SalesData | null>(null);
     const [loading, setLoading] = useState(true);
     const [viewMode, setViewMode] = useState<'monthly' | 'yearly'>('monthly');
 
     useEffect(() => {
-        const savedTheme = localStorage.getItem('galaAdminTheme');
-        if (savedTheme === 'dark') setIsDark(true);
         fetchReports();
     }, []);
 
@@ -53,11 +50,7 @@ const AdminReports = () => {
         }
     };
 
-    const toggleTheme = () => {
-        const newTheme = !isDark;
-        setIsDark(newTheme);
-        localStorage.setItem('galaAdminTheme', newTheme ? 'dark' : 'light');
-    };
+
 
     const toggleSidebar = () => setIsCollapsed(prev => !prev);
 
@@ -72,10 +65,8 @@ const AdminReports = () => {
     const currentData = viewMode === 'monthly' ? salesData?.monthly : salesData?.yearly;
 
     return (
-        <div className={`admin-layout ${isDark ? 'admin-dark-theme' : ''}`}>
+        <div className="admin-layout">
             <AdminSidebar 
-                isDark={isDark} 
-                toggleTheme={toggleTheme}
                 isCollapsed={isCollapsed}
                 toggleSidebar={toggleSidebar}
             />

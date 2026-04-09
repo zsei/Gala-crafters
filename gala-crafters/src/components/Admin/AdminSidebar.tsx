@@ -6,8 +6,6 @@ import {
   Package, 
   Users, 
   MessageSquare,
-  Moon,
-  Sun,
   ChevronDown,
   HelpCircle,
   Tag,
@@ -18,12 +16,20 @@ import {
 import { authService } from '../../api/auth';
 import { API_BASE_URL, API_ENDPOINTS } from '../../api/config';
 
-const AdminSidebar = ({ isDark, toggleTheme, isCollapsed: propIsCollapsed, toggleSidebar: propToggleSidebar }) => {
+const AdminSidebar = ({ isCollapsed: propIsCollapsed, toggleSidebar: propToggleSidebar }) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [localIsCollapsed, setLocalIsCollapsed] = useState(false);
   const [isBookingsOpen, setIsBookingsOpen] = useState(false);
   const [isPackagesOpen, setIsPackagesOpen] = useState(false);
   const location = useLocation();
+  
+  // RBAC Role Extraction
+  const storedAdmin = localStorage.getItem('admin');
+  const adminRole = storedAdmin ? JSON.parse(storedAdmin).role : 'superadmin';
+
+  const isSuperAdmin = adminRole === 'superadmin';
+  const isBookingsStaff = adminRole === 'staff_bookings';
+  const isPackagesStaff = adminRole === 'staff_packages';
   
   const isCollapsed = propIsCollapsed !== undefined ? propIsCollapsed : localIsCollapsed;
   const toggleSidebar = propToggleSidebar || (() => setLocalIsCollapsed(!localIsCollapsed));
@@ -120,123 +126,136 @@ const AdminSidebar = ({ isDark, toggleTheme, isCollapsed: propIsCollapsed, toggl
           {!isCollapsed && <span>Dashboard</span>}
         </NavLink>
         
-        <div className="admin-nav-group">
-          <div 
-            className={`admin-nav-item ${location.pathname.startsWith('/admin/bookings') ? 'active' : ''}`}
-            onClick={toggleBookings}
-            title={isCollapsed ? "Bookings" : ""}
+        
+        {(isSuperAdmin || isBookingsStaff) && (
+          <div className="admin-nav-group">
+            <div 
+              className={`admin-nav-item ${location.pathname.startsWith('/admin/bookings') ? 'active' : ''}`}
+              onClick={toggleBookings}
+              title={isCollapsed ? "Bookings" : ""}
+            >
+              <Calendar className="admin-nav-icon" />
+              {!isCollapsed && (
+                <>
+                  <span>Bookings</span>
+                  <ChevronDown 
+                    size={16} 
+                    className={`admin-nav-chevron ${isBookingsOpen ? 'open' : ''}`} 
+                  />
+                </>
+              )}
+            </div>
+            
+            <div className={`admin-subnav ${isBookingsOpen && !isCollapsed ? 'open' : ''}`}>
+              <NavLink to="/admin/bookings?status=pending" className="admin-subnav-item">Pending Requests</NavLink>
+              <NavLink to="/admin/bookings?status=confirmed" className="admin-subnav-item">Confirmed Bookings</NavLink>
+              <NavLink to="/admin/bookings?status=ongoing" className="admin-subnav-item">On-going Events</NavLink>
+              <NavLink to="/admin/bookings?status=completed" className="admin-subnav-item">Completed Event</NavLink>
+              <NavLink to="/admin/bookings?status=cancelled" className="admin-subnav-item">Cancelled/Postponed</NavLink>
+            </div>
+          </div>
+        )}
+
+        {(isSuperAdmin || isPackagesStaff) && (
+          <div className="admin-nav-group">
+            <div 
+              className={`admin-nav-item ${location.pathname.startsWith('/admin/packages') ? 'active' : ''}`}
+              onClick={togglePackages}
+              title={isCollapsed ? "Packages" : ""}
+            >
+              <Package className="admin-nav-icon" />
+              {!isCollapsed && (
+                <>
+                  <span>Packages</span>
+                  <ChevronDown 
+                    size={16} 
+                    className={`admin-nav-chevron ${isPackagesOpen ? 'open' : ''}`} 
+                  />
+                </>
+              )}
+            </div>
+            
+            <div className={`admin-subnav ${isPackagesOpen && !isCollapsed ? 'open' : ''}`}>
+              <NavLink to="/admin/packages" className="admin-subnav-item">All Packages</NavLink>
+              <NavLink to="/admin/packages?type=wedding" className="admin-subnav-item">Wedding Package</NavLink>
+              <NavLink to="/admin/packages?type=birthday" className="admin-subnav-item">Birthday Package</NavLink>
+              <NavLink to="/admin/packages?type=children" className="admin-subnav-item">Children's Party</NavLink>
+              <NavLink to="/admin/packages?type=debut" className="admin-subnav-item">Debut Package</NavLink>
+              <NavLink to="/admin/packages?type=corporate" className="admin-subnav-item">Corporate Event</NavLink>
+              <NavLink to="/admin/packages?type=special" className="admin-subnav-item">Special Occasion</NavLink>
+            </div>
+          </div>
+        )}
+
+        {isSuperAdmin && (
+          <NavLink 
+            to="/admin/users" 
+            className={({ isActive }) => `admin-nav-item ${isActive ? 'active' : ''}`}
+            title={isCollapsed ? "Users" : ""}
           >
-            <Calendar className="admin-nav-icon" />
-            {!isCollapsed && (
-              <>
-                <span>Bookings</span>
-                <ChevronDown 
-                  size={16} 
-                  className={`admin-nav-chevron ${isBookingsOpen ? 'open' : ''}`} 
-                />
-              </>
-            )}
-          </div>
-          
-          <div className={`admin-subnav ${isBookingsOpen && !isCollapsed ? 'open' : ''}`}>
-            <NavLink to="/admin/bookings?status=pending" className="admin-subnav-item">Pending Requests</NavLink>
-            <NavLink to="/admin/bookings?status=confirmed" className="admin-subnav-item">Confirmed Bookings</NavLink>
-            <NavLink to="/admin/bookings?status=ongoing" className="admin-subnav-item">On-going Events</NavLink>
-            <NavLink to="/admin/bookings?status=completed" className="admin-subnav-item">Completed Event</NavLink>
-            <NavLink to="/admin/bookings?status=cancelled" className="admin-subnav-item">Cancelled/Postponed</NavLink>
-          </div>
-        </div>
+            <Users className="admin-nav-icon" />
+            {!isCollapsed && <span>Users</span>}
+          </NavLink>
+        )}
 
-        <div className="admin-nav-group">
-          <div 
-            className={`admin-nav-item ${location.pathname.startsWith('/admin/packages') ? 'active' : ''}`}
-            onClick={togglePackages}
-            title={isCollapsed ? "Packages" : ""}
+        {(isSuperAdmin || isBookingsStaff) && (
+          <>
+            <NavLink 
+              to="/admin/messages" 
+              className={({ isActive }) => `admin-nav-item ${isActive ? 'active' : ''}`}
+              title={isCollapsed ? "Messages" : ""}
+            >
+              <MessageSquare className="admin-nav-icon" />
+              {!isCollapsed && <span>Messages</span>}
+            </NavLink>
+
+            <NavLink 
+              to="/admin/inquiries" 
+              className={({ isActive }) => `admin-nav-item ${isActive ? 'active' : ''}`}
+              title={isCollapsed ? "Inquiries" : ""}
+            >
+              <HelpCircle className="admin-nav-icon" />
+              {!isCollapsed && <span>Inquiries</span>}
+              {!isCollapsed && unreadCount > 0 && <span className="admin-badge">{unreadCount}</span>}
+            </NavLink>
+          </>
+        )}
+
+        {(isSuperAdmin || isPackagesStaff) && (
+          <NavLink 
+            to="/admin/discounts" 
+            className={({ isActive }) => `admin-nav-item ${isActive ? 'active' : ''}`}
+            title={isCollapsed ? "Discounts" : ""}
           >
-            <Package className="admin-nav-icon" />
-            {!isCollapsed && (
-              <>
-                <span>Packages</span>
-                <ChevronDown 
-                  size={16} 
-                  className={`admin-nav-chevron ${isPackagesOpen ? 'open' : ''}`} 
-                />
-              </>
-            )}
-          </div>
-          
-          <div className={`admin-subnav ${isPackagesOpen && !isCollapsed ? 'open' : ''}`}>
-            <NavLink to="/admin/packages" className="admin-subnav-item">All Packages</NavLink>
-            <NavLink to="/admin/packages?type=wedding" className="admin-subnav-item">Wedding Package</NavLink>
-            <NavLink to="/admin/packages?type=birthday" className="admin-subnav-item">Birthday Package</NavLink>
-            <NavLink to="/admin/packages?type=children" className="admin-subnav-item">Children's Party</NavLink>
-            <NavLink to="/admin/packages?type=debut" className="admin-subnav-item">Debut Package</NavLink>
-            <NavLink to="/admin/packages?type=corporate" className="admin-subnav-item">Corporate Event</NavLink>
-            <NavLink to="/admin/packages?type=special" className="admin-subnav-item">Special Occasion</NavLink>
-          </div>
-        </div>
+            <Tag className="admin-nav-icon" />
+            {!isCollapsed && <span>Discounts</span>}
+          </NavLink>
+        )}
 
-        <NavLink 
-          to="/admin/users" 
-          className={({ isActive }) => `admin-nav-item ${isActive ? 'active' : ''}`}
-          title={isCollapsed ? "Users" : ""}
-        >
-          <Users className="admin-nav-icon" />
-          {!isCollapsed && <span>Users</span>}
-        </NavLink>
+        {isSuperAdmin && (
+          <>
+            <NavLink 
+              to="/admin/reviews" 
+              className={({ isActive }) => `admin-nav-item ${isActive ? 'active' : ''}`}
+              title={isCollapsed ? "Reviews" : ""}
+            >
+              <Star className="admin-nav-icon" />
+              {!isCollapsed && <span>Reviews</span>}
+            </NavLink>
 
-        <NavLink 
-          to="/admin/messages" 
-          className={({ isActive }) => `admin-nav-item ${isActive ? 'active' : ''}`}
-          title={isCollapsed ? "Messages" : ""}
-        >
-          <MessageSquare className="admin-nav-icon" />
-          {!isCollapsed && <span>Messages</span>}
-          {!isCollapsed && unreadCount > 0 && <span className="admin-badge">{unreadCount}</span>}
-        </NavLink>
-
-        <NavLink 
-          to="/admin/inquiry" 
-          className={({ isActive }) => `admin-nav-item ${isActive ? 'active' : ''}`}
-          title={isCollapsed ? "Inquiry" : ""}
-        >
-          <HelpCircle className="admin-nav-icon" />
-          {!isCollapsed && <span>Inquiry</span>}
-        </NavLink>
-
-        <NavLink 
-          to="/admin/discounts" 
-          className={({ isActive }) => `admin-nav-item ${isActive ? 'active' : ''}`}
-          title={isCollapsed ? "Discounts" : ""}
-        >
-          <Tag className="admin-nav-icon" />
-          {!isCollapsed && <span>Discounts</span>}
-        </NavLink>
-
-        <NavLink 
-          to="/admin/reviews" 
-          className={({ isActive }) => `admin-nav-item ${isActive ? 'active' : ''}`}
-          title={isCollapsed ? "Reviews" : ""}
-        >
-          <Star className="admin-nav-icon" />
-          {!isCollapsed && <span>Reviews</span>}
-        </NavLink>
-
-        <NavLink 
-          to="/admin/reports" 
-          className={({ isActive }) => `admin-nav-item ${isActive ? 'active' : ''}`}
-          title={isCollapsed ? "Reports" : ""}
-        >
-          <FileText className="admin-nav-icon" />
-          {!isCollapsed && <span>Reports</span>}
-        </NavLink>
+            <NavLink 
+              to="/admin/reports" 
+              className={({ isActive }) => `admin-nav-item ${isActive ? 'active' : ''}`}
+              title={isCollapsed ? "Reports" : ""}
+            >
+              <FileText className="admin-nav-icon" />
+              {!isCollapsed && <span>Reports</span>}
+            </NavLink>
+          </>
+        )}
       </nav>
 
       <div className="admin-sidebar-footer">
-        <button onClick={toggleTheme} className="admin-theme-toggle" title={isCollapsed ? "Toggle Theme" : ""}>
-          {isDark ? <Sun size={20} /> : <Moon size={20} />}
-          {!isCollapsed && <span>{isDark ? 'Light Mode' : 'Dark Mode'}</span>}
-        </button>
         <button 
           onClick={() => {
             authService.logout();

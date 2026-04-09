@@ -63,6 +63,7 @@ class EventPackage(Base):
     base_price = Column(Float, nullable=False)
     max_guests = Column(Integer)
     features = Column(ARRAY(String), default=[])
+    image_url = Column(String(500))
     status = Column(String(50), default="Active")
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

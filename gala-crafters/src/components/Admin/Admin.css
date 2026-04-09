@@ -1,5 +1,5 @@
 /* c:\Users\AngelineNoLigo\crm gala crafters\gala-crafters\src\components\Admin\Admin.css */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
 
 /* Theme Variables */
 :root {
@@ -25,27 +25,7 @@
   --admin-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
 }
 
-.admin-dark-theme {
-  --admin-bg: #0f172a;
-  --admin-sidebar-bg: #1e293b;
-  --admin-card-bg: #1e293b;
-  --admin-text-main: #f8fafc;
-  --admin-text-sub: #94a3b8;
-  --admin-border: #334155;
-  --admin-accent: #c49a2c;
-  --admin-accent-hover: #e0b441;
-  --admin-hover: rgba(196, 154, 44, 0.15);
-  --admin-sidebar-hover: #334155;
-  --admin-success-bg: rgba(22, 101, 52, 0.3);
-  --admin-success-text: #4ade80;
-  --admin-warning-bg: rgba(146, 64, 14, 0.3);
-  --admin-warning-text: #fcd34d;
-  --admin-danger-bg: rgba(153, 27, 27, 0.3);
-  --admin-danger-text: #f87171;
-  --admin-info-bg: rgba(30, 64, 175, 0.3);
-  --admin-info-text: #60a5fa;
-  --admin-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-}
+
 
 /* Layout */
 .admin-layout {
@@ -53,7 +33,7 @@
   min-height: 100vh;
   background-color: var(--admin-bg);
   color: var(--admin-text-main);
-  font-family: 'Inter', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -100,6 +80,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  font-family: 'Playfair Display', serif;
   font-weight: 800;
   font-size: 18px;
   color: var(--admin-text-main);
@@ -260,6 +241,7 @@ body.sidebar-collapsed .admin-main {
 }
 
 .admin-header-text h1 {
+  font-family: 'Playfair Display', serif;
   font-size: 24px;
   font-weight: 700;
   margin-bottom: 6px;
@@ -322,7 +304,8 @@ body.sidebar-collapsed .admin-main {
 }
 
 .card-title {
-  font-size: 14px;
+  font-family: 'Playfair Display', serif;
+  font-size: 16px;
   color: var(--admin-text-main);
   font-weight: 600;
   margin-bottom: 20px;
@@ -1703,7 +1686,7 @@ body.sidebar-collapsed .admin-main {
   align-items: center;
   justify-content: center;
   background-color: var(--admin-bg);
-  font-family: 'Inter', sans-serif;
+  font-family: 'DM Sans', sans-serif;
 }
 
 .admin-login-container {
@@ -1731,7 +1714,8 @@ body.sidebar-collapsed .admin-main {
 }
 
 .admin-login-header h1 {
-  font-size: 24px;
+  font-family: 'Playfair Display', serif;
+  font-size: 28px;
   font-weight: 800;
   color: var(--admin-text-main);
   margin-bottom: 8px;

@@ -1,40 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Bell, User } from 'lucide-react';
 import AdminSidebar from './AdminSidebar';
 import AdminOverview from './AdminOverview';
 import AdminChart from './AdminChart';
 import PendingApprovals from './PendingApprovals';
 import RecentBookingActivity from './RecentBookingActivity';
-import { API_BASE_URL, API_ENDPOINTS } from '../../api/config';
 import './Admin.css';
 
-
 const AdminDashboard = () => {
-  // Theme state
-  const [isDark, setIsDark] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
-
-  // Load theme from localStorage on initial render
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('galaAdminTheme');
-    if (savedTheme === 'dark') {
-      setIsDark(true);
-    }
-  }, []);
-
-  const toggleTheme = () => {
-    const newTheme = !isDark;
-    setIsDark(newTheme);
-    localStorage.setItem('galaAdminTheme', newTheme ? 'dark' : 'light');
-  };
 
   const toggleSidebar = () => setIsCollapsed(prev => !prev);
 
   return (
-    <div className={`admin-layout ${isDark ? 'admin-dark-theme' : ''}`}>
-      <AdminSidebar 
-        isDark={isDark} 
-        toggleTheme={toggleTheme}
+    <div className="admin-layout">
+      <AdminSidebar
         isCollapsed={isCollapsed}
         toggleSidebar={toggleSidebar}
       />
@@ -64,7 +44,6 @@ const AdminDashboard = () => {
         </div>
 
         <RecentBookingActivity />
-
       </main>
     </div>
   );

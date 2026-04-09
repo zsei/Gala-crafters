@@ -1,9 +1,44 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-
-const data = [];
+import { API_BASE_URL } from '../../api/config';
 
 const AdminChart = () => {
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchChartData = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE_URL}/api/admin/reports/sales`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          // Map backend 'monthly' data to recharts format { name, value }
+          if (result.monthly) {
+            const mappedData = result.monthly.map((row: any) => {
+              // Parse 'YYYY-MM' to short month name (e.g., 'Jan')
+              const dateObj = new Date(row.month + '-01');
+              const shortMonth = dateObj.toLocaleString('default', { month: 'short' });
+              return {
+                name: shortMonth,
+                value: row.total_sales
+              };
+            });
+            // Reverse so oldest is on left, newest on right
+            setData(mappedData.reverse().slice(-6)); // Show last 6 months
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching chart data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchChartData();
+  }, []);
   return (
     <div className="admin-card admin-chart-card">
       <div className="card-title">
@@ -11,7 +46,8 @@ const AdminChart = () => {
         <button className="admin-filter-btn">Last 6 Months</button>
       </div>
       
-      <div className="chart-container" style={{ width: '100%', height: 300 }}>
+      <div className="chart-container" style={{ width: '100%', height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {loading ? <span className="text-sub">Loading statistical data...</span> : data.length === 0 ? <span className="text-sub">No sales data found</span> : (
         <ResponsiveContainer>
           <BarChart data={data} margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
             {/* The background bar to mimic the "filled" effect */}
@@ -36,6 +72,7 @@ const AdminChart = () => {
             />
           </BarChart>
         </ResponsiveContainer>
+        )}
       </div>
     </div>
   );

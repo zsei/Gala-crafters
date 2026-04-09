@@ -40,7 +40,7 @@ const AdminLoginPage = () => {
     };
 
     return (
-        <div className="admin-login-layout admin-dark-theme">
+        <div className="admin-login-layout">
             <div className="admin-login-container">
                 <div className="admin-login-card">
                     <div className="admin-login-header">

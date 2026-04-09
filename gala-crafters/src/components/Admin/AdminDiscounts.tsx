@@ -17,7 +17,6 @@ interface PromoCode {
 }
 
 const AdminDiscounts = () => {
-    const [isDark, setIsDark] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
     const [loading, setLoading] = useState(true);
@@ -34,8 +33,6 @@ const AdminDiscounts = () => {
     });
 
     useEffect(() => {
-        const savedTheme = localStorage.getItem('galaAdminTheme');
-        if (savedTheme === 'dark') setIsDark(true);
         fetchPromoCodes();
     }, []);
 
@@ -55,11 +52,7 @@ const AdminDiscounts = () => {
         }
     };
 
-    const toggleTheme = () => {
-        const newTheme = !isDark;
-        setIsDark(newTheme);
-        localStorage.setItem('galaAdminTheme', newTheme ? 'dark' : 'light');
-    };
+
 
     const toggleSidebar = () => setIsCollapsed(prev => !prev);
 
@@ -178,10 +171,8 @@ const AdminDiscounts = () => {
     };
 
     return (
-        <div className={`admin-layout ${isDark ? 'admin-dark-theme' : ''}`}>
+        <div className="admin-layout">
             <AdminSidebar 
-                isDark={isDark} 
-                toggleTheme={toggleTheme}
                 isCollapsed={isCollapsed}
                 toggleSidebar={toggleSidebar}
             />
@@ -292,7 +283,7 @@ const AdminDiscounts = () => {
                             </button>
                         </div>
                         <form onSubmit={handleSubmit} className="admin-modal-body">
-                            <div className="form-group">
+                            <div className="admin-form-group">
                                 <label>Promo Code Name</label>
                                 <div className="input-with-icon">
                                     <Tag size={16} />
@@ -308,7 +299,7 @@ const AdminDiscounts = () => {
                             </div>
 
                             <div className="form-row">
-                                <div className="form-group">
+                                <div className="admin-form-group">
                                     <label>Discount Percentage (%)</label>
                                     <div className="input-with-icon">
                                         <Percent size={16} />
@@ -323,7 +314,7 @@ const AdminDiscounts = () => {
                                     </div>
                                 </div>
                                 <span className="form-or">OR</span>
-                                <div className="form-group">
+                                <div className="admin-form-group">
                                     <label>Discount Amount ($)</label>
                                     <div className="input-with-icon">
                                         <Hash size={16} />
@@ -340,7 +331,7 @@ const AdminDiscounts = () => {
                             </div>
 
                             <div className="form-row">
-                                <div className="form-group">
+                                <div className="admin-form-group">
                                     <label>Expiry Date</label>
                                     <div className="input-with-icon">
                                         <CalendarIcon size={16} />
@@ -352,7 +343,7 @@ const AdminDiscounts = () => {
                                         />
                                     </div>
                                 </div>
-                                <div className="form-group">
+                                <div className="admin-form-group">
                                     <label>Usage Limit (Max Uses)</label>
                                     <div className="input-with-icon">
                                         <Hash size={16} />
@@ -367,7 +358,7 @@ const AdminDiscounts = () => {
                                 </div>
                             </div>
 
-                            <div className="form-group">
+                            <div className="admin-form-group">
                                 <label>Initial Status</label>
                                 <select name="status" value={formData.status} onChange={handleInputChange} className="admin-select">
                                     <option value="Active">Active</option>

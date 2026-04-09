@@ -1,8 +1,48 @@
-import React from 'react';
-import { Edit2, X, Tag } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Edit2, X, Tag, CalendarClock } from 'lucide-react';
+import { API_BASE_URL } from '../../api/config';
 
 const PendingApprovals = () => {
-  const approvals = [];
+  const [approvals, setApprovals] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchApprovals = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_BASE_URL}/api/admin/pending-approvals`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setApprovals(data);
+        }
+      } catch (error) {
+        console.error('Error fetching pending approvals:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchApprovals();
+  }, []);
+
+  const getIcon = (type: string) => {
+    switch (type?.toLowerCase()) {
+      case 'cancellation': return <X size={18} color="#fff" />;
+      case 'discount': return <Tag size={18} color="#fff" />;
+      case 'reschedule': return <CalendarClock size={18} color="#fff" />;
+      default: return <Edit2 size={18} color="#fff" />;
+    }
+  };
+
+  const getBadgeType = (type: string) => {
+    switch (type?.toLowerCase()) {
+      case 'cancellation': return 'danger';
+      case 'discount': return 'success';
+      case 'reschedule': return 'warning';
+      default: return 'info';
+    }
+  };
 
   return (
     <div className="admin-card pending-card">
@@ -12,14 +52,16 @@ const PendingApprovals = () => {
       </div>
 
       <div className="approvals-list">
-        {approvals.map(approval => (
+        {loading ? <div style={{ padding: '20px', textAlign: 'center', color: 'var(--admin-text-sub)' }}>Loading...</div> : 
+         approvals.length === 0 ? <div style={{ padding: '20px', textAlign: 'center', color: 'var(--admin-text-sub)' }}>No pending approvals</div> :
+         approvals.map(approval => (
           <div key={approval.id} className="approval-item">
-            <div className={`approval-icon-bg bg-${approval.type}`}>
-               {approval.icon}
+            <div className={`approval-icon-bg bg-${getBadgeType(approval.approval_type)}`}>
+               {getIcon(approval.approval_type)}
             </div>
             <div className="approval-details">
-              <h4>{approval.title}</h4>
-              <p>{approval.subtitle}</p>
+              <h4>{approval.approval_type} Request</h4>
+              <p>{approval.customer_name} • {approval.description}</p>
             </div>
             <div className="approval-actions">
                <button className="approval-action-btn accept">
@@ -30,7 +72,7 @@ const PendingApprovals = () => {
                </button>
             </div>
           </div>
-        ))}
+         ))}
       </div>
     </div>
   );
