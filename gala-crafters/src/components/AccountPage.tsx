@@ -117,8 +117,10 @@ const AccountPage = () => {
     if (validateForm()) {
       try {
         setLoading(true);
+        const emailChanged = formData.email.toLowerCase() !== user.email.toLowerCase();
+        
         // Prepare data for backend (mapping camelCase to snake_case)
-        const updateData = {
+        const updateData: any = {
           first_name: formData.firstName,
           last_name: formData.lastName,
           email: formData.email,
@@ -126,6 +128,10 @@ const AccountPage = () => {
           phone: '+63 9' + formData.phone.replace(/\D/g, '').replace(/^639/, '').slice(0, 9),
           date_of_birth: formData.dateOfBirth
         };
+
+        if (emailChanged) {
+          updateData.is_email_verified = false;
+        }
 
         const result = await authService.updateProfile(updateData);
         
@@ -148,7 +154,7 @@ const AccountPage = () => {
     city: '',
     barangay: '',
     postal_code: '',
-    building: ''
+    building_details: ''
   });
 
   const handleAddressChange = (field: string, value: string) => {
@@ -164,7 +170,7 @@ const AccountPage = () => {
         city: user.city || '',
         barangay: user.barangay || '',
         postal_code: user.postal_code || '',
-        building: user.building || ''
+        building_details: user.building_details || ''
       });
     }
   }, [user]);
@@ -305,7 +311,7 @@ const AccountPage = () => {
                   </div>
                   <div className="info-item" style={{ gridColumn: 'span 3' }}>
                     <div className="info-label">Building, Apartment, Floor, Unit (Optional)</div>
-                    <div className="info-value">{user.building || 'Not set'}</div>
+                    <div className="info-value">{user.building_details || 'Not set'}</div>
                   </div>
                 </div>
               </div>
@@ -449,8 +455,8 @@ const AccountPage = () => {
                   <label>Building, Apartment, Floor, Unit (Optional)</label>
                   <input 
                     type="text" 
-                    value={addressData.building}
-                    onChange={(e) => handleAddressChange('building', e.target.value)}
+                    value={addressData.building_details}
+                    onChange={(e) => handleAddressChange('building_details', e.target.value)}
                     placeholder="e.g. Building Name, Room No., Floor"
                   />
                 </div>

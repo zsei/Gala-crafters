@@ -6,10 +6,11 @@ import img3 from '../assets/pink.jpg';
 import img4 from '../assets/img11.jpg';
 
 const originalMenus = [
-    { id: 1, title: 'Signature Plated', img: img1 },
-    { id: 2, title: 'International Menu', img: img2 },
-    { id: 3, title: 'Traditional Filipino', img: img3 },
-    { id: 4, title: 'Chefs Special', img: img4 },
+    { id: 1, title: 'Chefs Special', img: img1 },
+    { id: 2, title: 'Signature Plated', img: img2 },
+    { id: 3, title: 'International Menu', img: img3 },
+    { id: 4, title: 'Traditional Filipino', img: img4 },
+    { id: 5, title: 'Kids Menu', img: img1 },
 ];
 
 // Duplicate the menus to create the infinite scroll illusion
@@ -68,13 +69,10 @@ const MenuSlider = () => {
                 {/* LEFT TEXT CONTENT */}
                 <div className="menu-slider-info">
                     <span className="menu-slider-overline">Our Menus</span>
-                    <h2>Gala Crafters's Signature Plated Catering Menus</h2>
+                    <h2>Gala Crafters's Exquisite Menu Collection</h2>
                     <div className="gold-line" style={{ margin: '20px 0' }}></div>
                     <p>
-                        Whether savoring Filipino classics, international delights, or
-                        bespoke creations crafted to your specifications, each menu for
-                        our wedding catering services promises a delectable journey that
-                        elevates every dining experience.
+                        Choose from our Chefs Special, Signature Plated, International Menu, Traditional Filipino, or Kids Menu—each crafted with exceptional care to deliver an unforgettable culinary experience for your celebration.
                     </p>
                     <div className="menu-slider-controls">
                         <button onClick={scrollLeftBtn} aria-label="Scroll left">&larr;</button>

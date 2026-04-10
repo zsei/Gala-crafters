@@ -9,10 +9,11 @@ from sqlalchemy.orm import Session
 from database import SessionLocal, engine
 from models import User, AdminUser
 import models
-from datetime import datetime, timedelta
+import datetime as gala_dt
 import jwt
 import uuid
 from email_service import send_reset_email
+from sms_service import send_verification_sms, verify_phone_code, update_phone_verification_status
 
 # Create tables
 models.Base.metadata.create_all(bind=engine)
@@ -83,7 +84,9 @@ def login(email: str, password: str, db: Session = Depends(get_db)):
             "barangay": user.barangay,
             "postal_code": user.postal_code,
             "status": user.status,
-            "user_role": user.user_role
+            "user_role": user.user_role,
+            "is_email_verified": user.is_email_verified,
+            "is_phone_verified": user.is_phone_verified
         }
     }
 
@@ -200,7 +203,7 @@ def forgot_password(email: str, db: Session = Depends(get_db)):
     if user:
         # Generate token and expiry
         token = str(uuid.uuid4())
-        expiry = datetime.utcnow() + timedelta(hours=1)
+        expiry = gala_dt.datetime.utcnow() + gala_dt.timedelta(hours=1)
         
         user.reset_token = token
         user.reset_token_expires = expiry
@@ -227,7 +230,7 @@ def reset_password(token: str, new_password: str, db: Session = Depends(get_db))
             detail="Invalid or expired reset token"
         )
         
-    if user.reset_token_expires < datetime.utcnow():
+    if user.reset_token_expires < gala_dt.datetime.utcnow():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Reset token has expired"
@@ -244,13 +247,13 @@ def reset_password(token: str, new_password: str, db: Session = Depends(get_db))
     return {"success": True, "message": "Password has been successfully changed."}
 
 
-def create_access_token(data: dict, expires_delta: timedelta = None):
+def create_access_token(data: dict, expires_delta: gala_dt.timedelta = None):
     """Generate JWT access token"""
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = gala_dt.datetime.utcnow() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(hours=24)
+        expire = gala_dt.datetime.utcnow() + gala_dt.timedelta(hours=24)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
@@ -269,6 +272,81 @@ def verify_token(credentials = Depends(security)):
         raise HTTPException(status_code=401, detail="Invalid token")
 
 
+def logout(token_data: dict = Depends(verify_token), db: Session = Depends(get_db)):
+    """
+    User logout endpoint
+    Records the logout timestamp in the database
+    """
+    user_id = token_data.get("sub")
+    user = db.query(User).filter(User.id == int(user_id)).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Record logout timestamp
+    user.last_logout_at = gala_dt.datetime.utcnow()
+    db.commit()
+    
+    return {
+        "success": True,
+        "message": "Logged out successfully",
+        "logout_time": user.last_logout_at
+    }
+
+
+def send_phone_verification_code(phone_number: str, token_data: dict = Depends(verify_token), db: Session = Depends(get_db)):
+    """
+    Send phone verification code via SMS
+    """
+    user_id = token_data.get("sub")
+    user = db.query(User).filter(User.id == int(user_id)).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Validate phone number
+    if not phone_number or len(phone_number) < 10:
+        raise HTTPException(status_code=400, detail="Invalid phone number")
+    
+    # Send SMS
+    result = send_verification_sms(phone_number)
+    
+    if not result['success']:
+        raise HTTPException(status_code=500, detail=result['message'])
+    
+    return {
+        "success": True,
+        "message": result['message'],
+        "phone": phone_number
+    }
+
+
+def verify_phone_number(phone_number: str, code: str, token_data: dict = Depends(verify_token), db: Session = Depends(get_db)):
+    """
+    Verify phone number with the provided code
+    """
+    user_id = token_data.get("sub")
+    user = db.query(User).filter(User.id == int(user_id)).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Verify the code
+    result = verify_phone_code(phone_number, code)
+    
+    if not result['success']:
+        raise HTTPException(status_code=400, detail=result['message'])
+    
+    # Update database
+    update_phone_verification_status(user, db, is_verified=True)
+    
+    return {
+        "success": True,
+        "message": result['message'],
+        "phone": phone_number,
+        "is_phone_verified": True
+    }
+
 
 # ============================================================================
 # USER MANAGEMENT ENDPOINTS
@@ -276,7 +354,8 @@ def verify_token(credentials = Depends(security)):
 
 def get_user_profile(token_data: dict = Depends(verify_token), db: Session = Depends(get_db)):
     """Get current user profile"""
-    user = db.query(User).filter(User.email == token_data.get("email")).first()
+    user_id = token_data.get("sub")
+    user = db.query(User).filter(User.id == int(user_id)).first()
     
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -296,6 +375,8 @@ def get_user_profile(token_data: dict = Depends(verify_token), db: Session = Dep
         "postal_code": user.postal_code,
         "status": user.status,
         "user_role": user.user_role,
+        "is_email_verified": user.is_email_verified,
+        "is_phone_verified": user.is_phone_verified,
         "created_at": user.created_at
     }
 
@@ -306,21 +387,37 @@ def update_user_profile(
     db: Session = Depends(get_db)
 ):
     """Update user profile"""
-    user = db.query(User).filter(User.email == token_data.get("email")).first()
+    user_id = token_data.get("sub")
+    user = db.query(User).filter(User.id == int(user_id)).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Email uniqueness check and verification reset
+    if "email" in update_data and update_data["email"].lower() != user.email.lower():
+        existing_email = db.query(User).filter(User.email == update_data["email"]).first()
+        if existing_email:
+            raise HTTPException(status_code=400, detail="Email address is already in use by another account")
+        
+        # Automatically reset verification status when email is changed
+        user.is_email_verified = False
+        # Remove is_email_verified from update_data if it's there to prevent frontend from overriding this reset
+        if "is_email_verified" in update_data:
+            del update_data["is_email_verified"]
     
     # Update allowed fields
     allowed_fields = [
         "first_name", "last_name", "phone", "city", "country", "postal_code", 
-        "date_of_birth", "barangay", "building_details", "middle_name", "email"
+        "date_of_birth", "barangay", "building_details", "middle_name", "email",
+        "is_email_verified"
     ]
     for field in allowed_fields:
         if field in update_data:
             if field == "date_of_birth" and update_data[field]:
                 try:
                     # Convert string to date object
-                    from datetime import datetime
                     if isinstance(update_data[field], str):
-                        setattr(user, field, datetime.strptime(update_data[field], "%Y-%m-%d").date())
+                        setattr(user, field, gala_dt.datetime.strptime(update_data[field], "%Y-%m-%d").date())
                     else:
                         setattr(user, field, update_data[field])
                 except ValueError:
@@ -329,13 +426,19 @@ def update_user_profile(
             else:
                 setattr(user, field, update_data[field])
     
-    user.updated_at = datetime.utcnow()
+    user.updated_at = gala_dt.datetime.utcnow()
     db.commit()
     db.refresh(user)
+    
+    # Re-generate token if email or role changed to keep session in sync
+    new_token = create_access_token(
+        data={"sub": str(user.id), "email": user.email, "role": user.user_role}
+    )
     
     return {
         "success": True, 
         "message": "Profile updated successfully",
+        "token": new_token,
         "user": {
             "id": user.id,
             "first_name": user.first_name,
@@ -350,7 +453,8 @@ def update_user_profile(
             "barangay": user.barangay,
             "postal_code": user.postal_code,
             "status": user.status,
-            "user_role": user.user_role
+            "user_role": user.user_role,
+            "is_email_verified": user.is_email_verified
         }
     }
 
@@ -431,3 +535,47 @@ def get_admin_profile(token_data: dict = Depends(verify_token), db: Session = De
         "phone": admin.phone,
         "created_at": admin.created_at
     }
+
+
+def update_booking_statuses_by_date(db: Session):
+    """
+    Update booking statuses based on event date (Philippine Time - UTC+8).
+    If event_date is TODAY and status is 'Confirmed', change it to 'On-going Event'
+    If event_date is in the past and status is 'On-going Event' or 'Confirmed', change it to 'Completed Event'
+    """
+    try:
+        # Use Philippine Time (UTC+8)
+        ph_time = gala_dt.datetime.utcnow() + gala_dt.timedelta(hours=8)
+        today = ph_time.date()
+        
+        # 1. Update Confirmed events for TODAY to "On-going Event"
+        today_bookings = db.query(models.Booking).filter(
+            models.Booking.status == "Confirmed",
+            models.Booking.event_date == today
+        ).all()
+        
+        for booking in today_bookings:
+            booking.status = "On-going Event"
+        
+        # 2. Update past "On-going Event" or "Confirmed" to "Completed Event"
+        past_bookings = db.query(models.Booking).filter(
+            models.Booking.status.in_(["On-going Event", "Confirmed"]),
+            models.Booking.event_date < today
+        ).all()
+        
+        for booking in past_bookings:
+            booking.status = "Completed Event"
+        
+        total_updated = len(today_bookings) + len(past_bookings)
+        if total_updated > 0:
+            db.commit()
+            if len(today_bookings) > 0:
+                print(f"✓ Automatically transitioned {len(today_bookings)} bookings for {today} to 'On-going Event'")
+            if len(past_bookings) > 0:
+                print(f"✓ Automatically moved {len(past_bookings)} past bookings to 'Completed Event'")
+        
+        return total_updated
+    except Exception as e:
+        print(f"Error updating booking statuses: {e}")
+        db.rollback()
+        return 0

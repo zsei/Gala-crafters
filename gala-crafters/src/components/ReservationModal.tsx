@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, ArrowLeft, CheckCircle, Calendar, Users, ShieldCheck, FileText, ChevronDown } from 'lucide-react';
 import { authService } from '../api/auth';
+import { API_BASE_URL, API_ENDPOINTS } from '../api/config';
 import './ReservationModal.css';
 
 interface ReservationModalProps {
@@ -96,31 +97,64 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ isOpen, onClose, on
     formData.colorPalette.trim() !== '' &&
     formData.venueAddress.trim() !== '';
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isFormValid) return;
     
     setIsSubmitting(true);
-    // Simulate API call
-    setTimeout(() => {
-      // Mock Persistence: Save booking to localStorage for SettingsPage visibility
-      const newBooking = {
-        id: `BK-${Math.random().toString(36).substr(2, 7).toUpperCase()}`,
-        packageTitle: data?.packageTitle || 'Custom Package',
-        totalPrice: data?.totalPrice || 0,
-        selectedDate: data?.selectedDate || 'Not Set',
-        guestCount: data?.guestCount || 0,
-        status: 'Pending Review',
-        timestamp: new Date().toISOString(),
-        formData: { ...formData } // Save the full form details
-      };
-      
-      const existingBookings = JSON.parse(localStorage.getItem('gala_crafters_bookings') || '[]');
-      localStorage.setItem('gala_crafters_bookings', JSON.stringify([newBooking, ...existingBookings]));
+    
+    try {
+      // 1. Get auth token
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert("Please log in to continue with the booking.");
+        setIsSubmitting(false);
+        return;
+      }
 
+      // 2. Call backend to create PayMongo Checkout Session
+      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.PAYMENTS.CREATE_CHECKOUT}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          package_title: data?.packageTitle || 'Custom Package',
+          total_price: data?.totalPrice || 0,
+          selected_date: data?.selectedDate || 'Not Set',
+          guest_count: data?.guestCount || 0,
+          // Include customization data for the backend to create the actual booking record
+          event_type: data?.packageTitle?.includes('Wedding') ? 'Wedding' : 
+                      data?.packageTitle?.includes('Debut') ? 'Debut' : 
+                      data?.packageTitle?.includes('Corporate') ? 'Corporate' : 'Special Occasion',
+          venue_proposed: formData.venueAddress,
+          notes: formData.notes,
+          event_theme: formData.eventTheme,
+          color_palette: formData.colorPalette,
+          event_location: formData.eventLocation,
+          specific_venue_address: formData.venueAddress,
+          special_requests: formData.notes
+        })
+      });
+
+      const resData = await response.json();
+
+      if (response.ok && resData.checkout_url) {
+        // 3. Optional: Clear any local "draft" bookings if they exist
+        // We no longer need to save to localStorage because the backend now creates a real record
+        
+        // 4. Redirect to PayMongo Simulation
+        window.location.href = resData.checkout_url;
+      } else {
+        alert(resData.detail || "Failed to create payment session.");
+        setIsSubmitting(false);
+      }
+    } catch (err) {
+      console.error("Payment error:", err);
+      alert("An error occurred while connecting to the payment server.");
       setIsSubmitting(false);
-      setIsSuccess(true);
-    }, 2000);
+    }
   };
 
   if (!isOpen) return null;
@@ -350,10 +384,6 @@ const ReservationModal: React.FC<ReservationModalProps> = ({ isOpen, onClose, on
                 </div>
 
                 <div className="sum-trust">
-                    <div className="trust-item free">
-                        <CheckCircle size={16} />
-                        <span>Free to book - Payment later</span>
-                    </div>
                     <div className="trust-item secure">
                         <ShieldCheck size={16} />
                         <span>100% Safe & Secured</span>

@@ -204,7 +204,23 @@ export const authService = {
   /**
    * Logout
    */
-  logout: () => {
+  logout: async () => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        // Call backend logout endpoint to record logout time
+        await fetch(`${API_BASE_URL}/api/auth/logout`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }).catch(err => console.error('Logout notification failed:', err));
+      } catch (err: any) {
+        console.error('Error during logout:', err);
+      }
+    }
+    
+    // Clear local storage regardless of backend response
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('admin');
@@ -266,7 +282,10 @@ export const authService = {
 
       const data = await response.json();
       
-      // Update stored user data if successful
+      // Update stored user and token data if successful
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+      }
       if (data.user) {
         localStorage.setItem('user', JSON.stringify(data.user));
       } else {
@@ -331,6 +350,25 @@ export const authService = {
   },
 
   /**
+   * Get all reviews for current user
+   */
+  getUserReviews: async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('No token found');
+
+      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.USERS.REVIEWS}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!response.ok) throw new Error('Failed to fetch reviews');
+      return response.json();
+    } catch (error: any) {
+      throw new Error(error.message || 'Failed to fetch reviews');
+    }
+  },
+
+  /**
    * Get stored user data
    */
   getStoredUser: () => {
@@ -344,6 +382,61 @@ export const authService = {
   getStoredAdmin: () => {
     const admin = localStorage.getItem('admin');
     return admin ? JSON.parse(admin) : null;
+  },
+
+  /**
+   * Send phone verification code via SMS
+   */
+  sendPhoneVerificationCode: async (phoneNumber: string) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No token found');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/auth/send-phone-verification`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ phone_number: phoneNumber })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to send verification code');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Verify phone number with code
+   */
+  verifyPhoneNumber: async (phoneNumber: string, code: string) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No token found');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/auth/verify-phone`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ 
+        phone_number: phoneNumber,
+        code: code
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to verify phone');
+    }
+
+    return response.json();
   }
 };
 

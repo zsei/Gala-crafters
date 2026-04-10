@@ -34,36 +34,46 @@ def execute_raw_query(query: str):
 
 
 def get_active_bookings():
-    """Get all active bookings with customer details"""
+    """Get all active bookings with customer details from users table"""
     query = """
     SELECT 
         b.booking_reference,
-        CONCAT(u.first_name, ' ', u.last_name) AS customer_name,
+        u.first_name,
+        u.last_name,
         u.email,
+        u.phone as phone_number,
         ep.package_name,
         b.event_date,
         b.venue_proposed,
         b.guest_count,
         b.total_price,
         b.status,
+        b.event_theme,
+        b.color_palette,
+        b.event_location,
+        b.specific_venue_address,
+        b.special_requests,
+        b.notes,
+        b.created_at as booked_date,
         ep.image_url
     FROM bookings b
-    INNER JOIN users u ON b.customer_id = u.id
     INNER JOIN event_packages ep ON b.package_id = ep.id
-    WHERE b.status IN ('Confirmed', 'Processing', 'Pending')
+    LEFT JOIN users u ON b.customer_id = u.id
+    WHERE b.status IN ('Confirmed', 'Pending', 'On-going Event', 'Completed Event', 'Cancelled')
     ORDER BY b.event_date ASC
     """
     return execute_raw_query(query)
+
 
 
 def get_dashboard_metrics():
     """Get key dashboard metrics"""
     query = """
     SELECT 
-        (SELECT COUNT(*) FROM bookings WHERE status IN ('Confirmed', 'Processing')) AS active_bookings,
-        (SELECT COUNT(*) FROM pending_approvals WHERE status = 'Pending') AS pending_approvals,
+        (SELECT COUNT(*) FROM bookings WHERE status IN ('Confirmed', 'On-going Event')) AS active_bookings,
+        (SELECT COUNT(*) FROM bookings WHERE status = 'Pending') AS pending_approvals,
         (SELECT COUNT(*) FROM users WHERE user_role = 'Customer') AS total_customers,
-        (SELECT COALESCE(SUM(total_price), 0) FROM bookings WHERE status IN ('Confirmed', 'Processing')) AS total_revenue
+        (SELECT COALESCE(SUM(total_price), 0) FROM bookings WHERE status IN ('Confirmed', 'On-going Event', 'Completed Event')) AS total_revenue
     """
     return execute_raw_query(query)
 
@@ -129,7 +139,7 @@ def get_monthly_revenue():
         COUNT(b.id) AS total_bookings,
         AVG(b.total_price) AS average_booking_value
     FROM bookings b
-    WHERE b.status IN ('Confirmed', 'Processing', 'Completed')
+    WHERE b.status IN ('Confirmed', 'On-going Event', 'Completed Event')
     GROUP BY DATE_TRUNC('month', b.event_date)
     ORDER BY month DESC
     """

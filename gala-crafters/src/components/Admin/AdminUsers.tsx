@@ -11,6 +11,13 @@ const AdminUsers = () => {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [itemsPerPage] = React.useState(10);
+
+  // Search state
+  const [searchTerm, setSearchTerm] = React.useState('');
+
   React.useEffect(() => {
     const fetchUsers = async () => {
       setLoading(true);
@@ -48,6 +55,39 @@ const AdminUsers = () => {
 
   const toggleSidebar = () => setIsCollapsed(prev => !prev);
 
+  // Filter Logic
+  const filteredUsers = users.filter(user => {
+    const searchLower = searchTerm.toLowerCase();
+    return !searchTerm || 
+      (user.first_name || '').toLowerCase().includes(searchLower) ||
+      (user.last_name || '').toLowerCase().includes(searchLower) ||
+      (user.email || '').toLowerCase().includes(searchLower) ||
+      (user.phone || '').toLowerCase().includes(searchLower);
+  });
+
+  // Pagination Logic
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentUsers = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
+
+  const handlePageChange = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) setCurrentPage(prev => prev - 1);
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) setCurrentPage(prev => prev + 1);
+  };
+
+  // Reset page when tab or search changes
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, searchTerm]);
+
   // Stats logic based on fetched users (placeholder but derived)
   const derivedStats = [
     { label: 'TOTAL ACCOUNTS', value: users.length, borderLeft: true },
@@ -69,7 +109,12 @@ const AdminUsers = () => {
         <div className="users-top-bar">
           <div className="search-input-wrapper users-search">
             <Search size={16} className="search-icon" />
-            <input type="text" placeholder="Search accounts, transactions, or logs..." />
+            <input 
+              type="text" 
+              placeholder="Search accounts, transactions, or logs..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
           <div className="users-top-actions">
             <button className="admin-icon-btn users-bell-btn">
@@ -160,8 +205,8 @@ const AdminUsers = () => {
                    <td colSpan={5} style={{ textAlign: 'center', padding: '40px' }}>No users found.</td>
                 </tr>
               ) : (
-                users.map((user: any) => (
-                  <tr key={user.id}>
+                currentUsers.map((user: any, index: number) => (
+                  <tr key={user.id || index}>
                     <td>
                       <div className="user-detail-cell">
                         <div className="user-avatar" style={{ backgroundColor: 'var(--admin-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
@@ -199,16 +244,40 @@ const AdminUsers = () => {
             </tbody>
           </table>
 
-          <div className="table-footer-alt">
-             <span className="text-sub" style={{ fontSize: '13px' }}>Showing 1-4 of 28 staff members</span>
-             <div className="pagination-compact">
-               <button className="page-nav-btn" disabled>Previous</button>
-               <button className="page-num active">1</button>
-               <button className="page-num">2</button>
-               <button className="page-num">3</button>
-               <button className="page-nav-btn">Next</button>
-             </div>
-          </div>
+          {filteredUsers.length > 0 && (
+            <div className="table-footer-alt">
+               <span className="text-sub" style={{ fontSize: '13px' }}>
+                 Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredUsers.length)} of {filteredUsers.length} {activeTab === 'staff' ? 'staff members' : 'clients'}
+               </span>
+               <div className="pagination-compact">
+                 <button 
+                   className={`page-nav-btn ${currentPage === 1 ? 'disabled' : ''}`}
+                   onClick={handlePrevPage}
+                   disabled={currentPage === 1}
+                 >
+                   Previous
+                 </button>
+                 
+                 {[...Array(totalPages)].map((_, i) => (
+                   <button 
+                     key={i + 1}
+                     className={`page-num ${currentPage === i + 1 ? 'active' : ''}`}
+                     onClick={() => handlePageChange(i + 1)}
+                   >
+                     {i + 1}
+                   </button>
+                 ))}
+                 
+                 <button 
+                   className={`page-nav-btn ${currentPage === totalPages ? 'disabled' : ''}`}
+                   onClick={handleNextPage}
+                   disabled={currentPage === totalPages}
+                 >
+                   Next
+                 </button>
+               </div>
+            </div>
+          )}
 
         </div>
 

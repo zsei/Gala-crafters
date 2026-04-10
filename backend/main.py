@@ -10,15 +10,22 @@ from fastapi.staticfiles import StaticFiles
 import os
 import shutil
 from pydantic import BaseModel
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 import models
+import os
+import base64
+import requests
 from database import engine, SessionLocal
+import datetime as gala_dt
 from auth_endpoints import (
     login, 
     admin_login,
     register,
     forgot_password,
     reset_password,
+    logout,
+    send_phone_verification_code,
+    verify_phone_number,
     get_user_profile, 
     update_user_profile,
     get_user_by_id,
@@ -27,6 +34,7 @@ from auth_endpoints import (
     get_admin_profile,
     get_admin_profile,
     verify_token,
+    update_booking_statuses_by_date,
 )
 import database_setup
 
@@ -145,9 +153,23 @@ class ChatInquiryRequest(BaseModel):
     image_url: str = None
 
 class ReviewRequest(BaseModel):
-    booking_id: int
+    booking_id: int | str  # Accept either integer ID or string booking_reference
     rating: int # 1-5
     comment: str = None
+
+class PaymentRequest(BaseModel):
+    package_title: str
+    total_price: float
+    selected_date: str
+    guest_count: int
+    event_type: str = None
+    venue_proposed: str = None
+    notes: str = None
+    event_theme: str = None
+    color_palette: str = None
+    event_location: str = None
+    specific_venue_address: str = None
+    special_requests: str = None
 
 class PackageCreateRequest(BaseModel):
     package_name: str
@@ -256,6 +278,32 @@ def execute_password_reset(request: ResetPasswordRequest, db: Session = Depends(
     """
     return reset_password(request.token, request.password, db)
 
+@app.post("/api/auth/logout")
+def logout_endpoint(credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """
+    User logout endpoint - records logout timestamp in database
+    """
+    return logout(credentials, db)
+
+@app.post("/api/auth/send-phone-verification")
+def send_phone_verification_endpoint(request_data: dict, credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """
+    Send phone verification code via SMS
+    Expects: {"phone_number": "+63 9XXXXXXXXX"}
+    """
+    phone_number = request_data.get("phone_number")
+    return send_phone_verification_code(phone_number, credentials, db)
+
+@app.post("/api/auth/verify-phone")
+def verify_phone_endpoint(request_data: dict, credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """
+    Verify phone number with code
+    Expects: {"phone_number": "+63 9XXXXXXXXX", "code": "123456"}
+    """
+    phone_number = request_data.get("phone_number")
+    code = request_data.get("code")
+    return verify_phone_number(phone_number, code, credentials, db)
+
 # ============================================================================
 # USER PROFILE ROUTES
 # ============================================================================
@@ -278,7 +326,13 @@ def get_user_bookings(credentials = Depends(verify_token), db: Session = Depends
         raise HTTPException(status_code=401, detail="Invalid user credentials")
     user_id = int(user_id_val)
 
-    bookings = db.query(models.Booking).filter(models.Booking.customer_id == user_id).order_by(models.Booking.created_at.desc()).all()
+    # Ensure statuses are updated
+    update_booking_statuses_by_date(db)
+
+    bookings = db.query(models.Booking).options(
+        joinedload(models.Booking.package),
+        joinedload(models.Booking.reviews)
+    ).filter(models.Booking.customer_id == user_id).order_by(models.Booking.created_at.desc()).all()
     
     # Return formatted bookings
     return [{
@@ -289,27 +343,62 @@ def get_user_bookings(credentials = Depends(verify_token), db: Session = Depends
         "event_time": b.event_time,
         "venue_proposed": b.venue_proposed,
         "guest_count": b.guest_count,
-        "total_price": b.total_price,
+        "total_price": b.total_price if (b.total_price and b.total_price > 0) else (b.package.base_price if b.package else 0),
+        "package_name": b.package.package_name if b.package else f"{b.event_type} Package",
         "status": b.status,
+        "has_review": len(b.reviews) > 0,
         "created_at": b.created_at.isoformat() if b.created_at else None
     } for b in bookings]
 
-@app.get("/api/users/{user_id}")
-def get_user(user_id: int, db: Session = Depends(get_db)):
-    """Get specific user by ID"""
-    return get_user_by_id(user_id, db)
+@app.get("/api/users/reviews")
+def get_user_reviews(token_data: dict = Depends(verify_token), db: Session = Depends(get_db)):
+    """Get all reviews submitted by the current user"""
+    user_id = int(token_data.get("sub"))
+    reviews = db.query(models.Review).options(joinedload(models.Review.booking).joinedload(models.Booking.package)).filter(models.Review.customer_id == user_id).all()
+    
+    result = []
+    for r in reviews:
+        review_data = {
+            "id": r.id,
+            "booking_id": r.booking_id,
+            "rating": r.rating,
+            "comment": r.comment,
+            "created_at": r.created_at.isoformat() if r.created_at else None,
+            "booking": None
+        }
+        
+        if r.booking:
+            try:
+                review_data["booking"] = {
+                    "booking_reference": r.booking.booking_reference,
+                    "event_type": r.booking.event_type,
+                    "event_date": r.booking.event_date.isoformat() if (r.booking.event_date and hasattr(r.booking.event_date, 'isoformat')) else str(r.booking.event_date),
+                    "total_price": float(r.booking.total_price) if r.booking.total_price else 0,
+                    "package_name": r.booking.package.package_name if r.booking.package else "Custom Package"
+                }
+            except Exception as e:
+                print(f"Error formatting booking for review {r.id}: {e}")
+                
+        result.append(review_data)
+        
+    return result
 
 @app.get("/api/users")
 def list_users(db: Session = Depends(get_db)):
     """List all customer users"""
     return list_all_users(db)
 
+@app.get("/api/users/{user_id}")
+def get_user(user_id: int, db: Session = Depends(get_db)):
+    """Get specific user by ID"""
+    return get_user_by_id(user_id, db)
+
 # ============================================================================
 # BOOKING ROUTES
 # ============================================================================
 
 import uuid
-from datetime import datetime
+# Standardized global datetime import used
 
 @app.post("/api/bookings")
 def create_booking(request: BookingCreateRequest, credentials = Depends(verify_token), db: Session = Depends(get_db)):
@@ -322,9 +411,14 @@ def create_booking(request: BookingCreateRequest, credentials = Depends(verify_t
     # Generate a unique booking reference
     booking_ref = f"GC-{uuid.uuid4().hex[:8].upper()}"
     
+    # Fetch the package to get the base price
+    package = db.query(models.EventPackage).filter(models.EventPackage.id == request.package_id).first()
+    if not package:
+        raise HTTPException(status_code=404, detail="Package not found")
+        
     try:
         # Convert date string to date object
-        event_date_obj = datetime.strptime(request.event_date, "%Y-%m-%d").date()
+        event_date_obj = gala_dt.datetime.strptime(request.event_date, "%Y-%m-%d").date()
         
         new_booking = models.Booking(
             booking_reference=booking_ref,
@@ -337,7 +431,7 @@ def create_booking(request: BookingCreateRequest, credentials = Depends(verify_t
             guest_count=request.guest_count,
             notes=request.notes,
             status="Pending",
-            total_price=0.0 # Will be calculated or set by admin later
+            total_price=package.base_price # Inherit base price from package
         )
         
         db.add(new_booking)
@@ -374,7 +468,85 @@ def get_admin_users_endpoint(db: Session = Depends(get_db)):
 @app.get("/api/admin/bookings")
 def get_admin_bookings_endpoint(credentials = Depends(verify_token), db: Session = Depends(get_db)):
     """Get all active bookings for admin"""
+    # Update all expired bookings that should be marked as "On-going Event"
+    update_booking_statuses_by_date(db)
+    
     return database_setup.get_active_bookings()
+
+@app.post("/api/admin/bookings/{booking_reference}/confirm")
+def confirm_booking(booking_reference: str, credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Confirm a booking"""
+    try:
+        booking = db.query(models.Booking).filter(
+            models.Booking.booking_reference == booking_reference
+        ).first()
+        
+        if not booking:
+            raise HTTPException(status_code=404, detail="Booking not found")
+        
+        booking.status = "Confirmed"
+        db.commit()
+        
+        return {
+            "success": True,
+            "message": "Booking confirmed successfully",
+            "booking_reference": booking_reference,
+            "status": "Confirmed"
+        }
+    except Exception as e:
+        db.rollback()
+        print(f"Error confirming booking: {e}")
+        raise HTTPException(status_code=500, detail=f"Error confirming booking: {str(e)}")
+
+@app.post("/api/admin/bookings/{booking_reference}/cancel")
+def cancel_booking(booking_reference: str, credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Cancel a booking"""
+    try:
+        booking = db.query(models.Booking).filter(
+            models.Booking.booking_reference == booking_reference
+        ).first()
+        
+        if not booking:
+            raise HTTPException(status_code=404, detail="Booking not found")
+        
+        booking.status = "Cancelled"
+        db.commit()
+        
+        return {
+            "success": True,
+            "message": "Booking cancelled successfully",
+            "booking_reference": booking_reference,
+            "status": "Cancelled"
+        }
+    except Exception as e:
+        db.rollback()
+        print(f"Error cancelling booking: {e}")
+        raise HTTPException(status_code=500, detail=f"Error cancelling booking: {str(e)}")
+
+@app.post("/api/admin/bookings/{booking_reference}/complete")
+def complete_booking(booking_reference: str, credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Mark a booking as complete"""
+    try:
+        booking = db.query(models.Booking).filter(
+            models.Booking.booking_reference == booking_reference
+        ).first()
+        
+        if not booking:
+            raise HTTPException(status_code=404, detail="Booking not found")
+        
+        booking.status = "Completed Event"
+        db.commit()
+        
+        return {
+            "success": True,
+            "message": "Booking marked as complete successfully",
+            "booking_reference": booking_reference,
+            "status": "Completed Event"
+        }
+    except Exception as e:
+        db.rollback()
+        print(f"Error completing booking: {e}")
+        raise HTTPException(status_code=500, detail=f"Error completing booking: {str(e)}")
 
 @app.get("/api/admin/packages")
 def get_admin_packages_endpoint(credentials = Depends(verify_token), db: Session = Depends(get_db)):
@@ -433,6 +605,9 @@ def get_admin_pending_approvals_endpoint(credentials = Depends(verify_token), db
 @app.get("/api/admin/metrics")
 def get_admin_metrics_endpoint(credentials = Depends(verify_token), db: Session = Depends(get_db)):
     """Get admin dashboard metrics"""
+    # Ensure statuses are updated before getting metrics
+    update_booking_statuses_by_date(db)
+    
     # get_dashboard_metrics returns a list with one dict
     metrics = database_setup.get_dashboard_metrics()
     return metrics[0] if metrics else {}
@@ -489,8 +664,7 @@ def post_admin_reply(message_id: int, request: AdminReplyRequest, credentials = 
         conversation_id=str(message_id),
         message_body=request.message_body,
         sender_name=request.sender_name,
-        sender_email=admin_email,
-        message_date=datetime.utcnow()
+        message_date=gala_dt.datetime.utcnow()
     )
     
     db.add(new_reply)
@@ -622,7 +796,7 @@ def reply_to_conversation(conversation_id: str, request: AdminReplyRequest, cred
         sender_email=admin_email,
         sender_type="admin",
         image_url=request.image_url,
-        message_date=datetime.utcnow()
+        message_date=gala_dt.datetime.utcnow()
     )
     
     db.add(new_reply)
@@ -650,12 +824,12 @@ def get_promo_codes(credentials = Depends(verify_token), db: Session = Depends(g
 @app.post("/api/admin/promo-codes")
 def create_promo_code(request: PromoCodeRequest, credentials = Depends(verify_token), db: Session = Depends(get_db)):
     """Create a new promo code"""
-    from datetime import datetime
+# Shadowed local import removed
     
     expires = None
     if request.expiry_date:
         try:
-            expires = datetime.strptime(request.expiry_date, "%Y-%m-%d").date()
+            expires = gala_dt.datetime.strptime(request.expiry_date, "%Y-%m-%d").date()
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
 
@@ -679,7 +853,7 @@ def create_promo_code(request: PromoCodeRequest, credentials = Depends(verify_to
 @app.put("/api/admin/promo-codes/{code_id}")
 def update_promo_code(code_id: int, request: PromoCodeRequest, credentials = Depends(verify_token), db: Session = Depends(get_db)):
     """Update an existing promo code"""
-    from datetime import datetime
+# Shadowed local import removed
     
     promo = db.query(models.PromoCode).filter(models.PromoCode.id == code_id).first()
     if not promo:
@@ -693,7 +867,7 @@ def update_promo_code(code_id: int, request: PromoCodeRequest, credentials = Dep
     
     if request.expiry_date:
         try:
-            promo.expiry_date = datetime.strptime(request.expiry_date, "%Y-%m-%d").date()
+            promo.expiry_date = gala_dt.datetime.strptime(request.expiry_date, "%Y-%m-%d").date()
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
     
@@ -713,6 +887,35 @@ def delete_promo_code(code_id: int, credentials = Depends(verify_token), db: Ses
 
 # --- REVIEW ENDPOINTS ---
 
+@app.get("/api/reviews/package/{package_id}")
+def get_package_reviews(package_id: int, db: Session = Depends(get_db)):
+    """Get all reviews for a specific package (public endpoint)"""
+    try:
+        # Join Review through Booking to filter by package_id
+        reviews = db.query(models.Review).join(
+            models.Booking, models.Review.booking_id == models.Booking.id
+        ).filter(
+            models.Booking.package_id == package_id,
+            models.Review.status == "Visible"
+        ).all()
+        
+        if not reviews:
+            return []
+        
+        return [
+            {
+                "id": r.id,
+                "rating": r.rating,
+                "comment": r.comment,
+                "created_at": r.created_at,
+                "customer_name": r.customer.first_name if r.customer else "Customer"
+            }
+            for r in reviews
+        ]
+    except Exception as e:
+        print(f"Error fetching package reviews: {e}")
+        return []
+
 @app.get("/api/admin/reviews")
 def get_admin_reviews(credentials = Depends(verify_token), db: Session = Depends(get_db)):
     """Get all reviews for admin"""
@@ -723,13 +926,20 @@ def submit_review(request: ReviewRequest, credentials = Depends(verify_token), d
     """Submit a review (Customer only)"""
     user_id = int(credentials.get("sub"))
     
-    # Check if booking exists and belongs to user
-    booking = db.query(models.Booking).filter(models.Booking.id == request.booking_id, models.Booking.customer_id == user_id).first()
+    # Flexible query: check by ID or booking_reference
+    booking_query = db.query(models.Booking).filter(models.Booking.customer_id == user_id)
+    
+    if isinstance(request.booking_id, int):
+        booking = booking_query.filter(models.Booking.id == request.booking_id).first()
+    else:
+        # Check by booking_reference
+        booking = booking_query.filter(models.Booking.booking_reference == request.booking_id).first()
+        
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found or not authorized")
     
     new_review = models.Review(
-        booking_id=request.booking_id,
+        booking_id=booking.id, # Always use the actual integer ID for the model
         customer_id=user_id,
         rating=request.rating,
         comment=request.comment
@@ -741,36 +951,22 @@ def submit_review(request: ReviewRequest, credentials = Depends(verify_token), d
 @app.post("/api/chat/submit")
 def submit_chat_inquiry(request: ChatInquiryRequest, db: Session = Depends(get_db)):
     """Submit a message from the chat assistant/contact form"""
-    if request.user_id:
-        # Registered user: Save to admin_messages (Messages tab)
-        new_message = models.AdminMessage(
-            conversation_id=f"user_{request.user_id}",
-            message_body=request.message_body,
-            sender_name=request.name or "Registered User",
-            sender_email=request.email or "user@galacrafters.com",
-            sender_id=request.user_id,
-            sender_type="user",
-            image_url=request.image_url,
-            message_date=datetime.utcnow()
-        )
-        db.add(new_message)
-        db.commit()
-        db.refresh(new_message)
-        return {"success": True, "message": "Message sent to messages", "message_id": new_message.id, "type": "chat"}
-
-    # Guest user: Save to messages (Inquiry tab)
+    # Save all messages to the Message table (Inquiry tab)
     new_message = models.Message(
         name=request.name or "Guest User",
         email=request.email or "guest@galacrafters.com",
-        message_subject=request.subject,
+        message_subject=request.subject or "Message",
         message_body=request.message_body,
         status="Unread",
-        created_at=datetime.utcnow()
+        created_at=gala_dt.datetime.utcnow()
     )
     db.add(new_message)
     db.commit()
     db.refresh(new_message)
-    return {"success": True, "message": "Inquiry submitted successfully", "message_id": new_message.id, "type": "inquiry"}
+    
+    # Determine message type based on whether user_id was provided
+    message_type = "chat" if request.user_id else "inquiry"
+    return {"success": True, "message": "Message submitted successfully", "message_id": new_message.id, "type": message_type}
 
 # --- DISCOUNT / PROMO CODE ENDPOINTS ---
 
@@ -780,6 +976,166 @@ def submit_chat_inquiry(request: ChatInquiryRequest, db: Session = Depends(get_d
 def get_reports(credentials = Depends(verify_token), db: Session = Depends(get_db)):
     """Get sales reports for admin"""
     return database_setup.get_sales_report()
+
+# ============================================================================
+# PAYMENT ROUTES
+# ============================================================================
+
+@app.post("/api/payments/create-checkout")
+def create_paymongo_checkout(request: PaymentRequest, credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """
+    Create a PayMongo Checkout Session for event reservation.
+    Also creates a temporary booking record in the database.
+    """
+    user_id = int(credentials.get("sub"))
+    
+    # 1. Create the booking record in the database first
+    import uuid
+    booking_ref = f"GC-{uuid.uuid4().hex[:8].upper()}"
+    
+    # Try to find the correct package ID by name
+    package_id = 1 # Default fallback
+    package_title = request.package_title.strip()
+    
+    # Clean up title for matching (e.g., "The Playful Set" or "Intimate Wedding Package")
+    # We'll try an exact match first, then a fuzzy match
+    matched_pkg = db.query(models.EventPackage).filter(
+        models.EventPackage.package_name.ilike(package_title)
+    ).first()
+    
+    if not matched_pkg:
+        matched_pkg = db.query(models.EventPackage).filter(
+            models.EventPackage.package_name.ilike(f"%{package_title}%")
+        ).first()
+    
+    if matched_pkg:
+        package_id = matched_pkg.id
+    else:
+        # If still not found, try to match by event type as a last resort
+        type_pkg = db.query(models.EventPackage).filter(
+            models.EventPackage.event_type.ilike(request.event_type)
+        ).first()
+        if type_pkg:
+            package_id = type_pkg.id
+    
+    try:
+        # Convert date string to date object
+        # The frontend sends it in a format like "December 25, 2024" or similar from formatDate
+        # Let's try a few common formats or fallback to today
+        event_date_obj = gala_dt.datetime.now().date()
+        try:
+            # Try parsing "December 25, 2024"
+            event_date_obj = gala_dt.datetime.strptime(request.selected_date, "%B %d, %Y").date()
+        except:
+            try:
+                # Try parsing "MM/DD/YYYY"
+                event_date_obj = gala_dt.datetime.strptime(request.selected_date, "%m/%d/%Y").date()
+            except:
+                print(f"DEBUG: Could not parse date '{request.selected_date}', using today.")
+
+        new_booking = models.Booking(
+            booking_reference=booking_ref,
+            customer_id=user_id,
+            package_id=package_id,
+            event_date=event_date_obj,
+            event_type=request.event_type or "Event",
+            venue_proposed=request.venue_proposed or "To be determined",
+            guest_count=request.guest_count,
+            total_price=request.total_price,
+            status="Pending",
+            notes=request.notes,
+            event_theme=request.event_theme,
+            color_palette=request.color_palette,
+            event_location=request.event_location,
+            specific_venue_address=request.specific_venue_address,
+            special_requests=request.special_requests
+        )
+        
+        db.add(new_booking)
+        db.commit()
+        db.refresh(new_booking)
+        
+        # 1.5 Create a corresponding record in pending_approvals table
+        # This ensures the admin dashboard "Pending Approvals" metric is updated
+        user = db.query(models.User).filter(models.User.id == user_id).first()
+        customer_name = f"{user.first_name} {user.last_name}" if user else "Customer"
+        
+        new_approval = models.PendingApproval(
+            approval_type="New Booking",
+            related_booking_id=new_booking.id,
+            customer_name=customer_name,
+            description=f"New reservation for {request.package_title} on {request.selected_date}",
+            status="Pending"
+        )
+        db.add(new_approval)
+        db.commit()
+        
+    except Exception as e:
+        db.rollback()
+        print(f"DATABASE BOOKING ERROR: {str(e)}")
+        # Continue with payment even if DB fails, though ideally both should work
+
+    # 2. Proceed with PayMongo session creation
+    secret_key = os.getenv("PAYMONGO_SECRET_KEY")
+    if not secret_key:
+        raise HTTPException(status_code=500, detail="PayMongo Secret Key not configured")
+
+    # PayMongo uses Basic Auth with Secret Key as username, no password
+    auth_str = f"{secret_key}:"
+    encoded_auth = base64.b64encode(auth_str.encode()).decode()
+    
+    url = "https://api.paymongo.com/v1/checkout_sessions"
+    
+    # Payload for Checkout Session
+    # Note: PayMongo amounts are in cents
+    payload = {
+        "data": {
+            "attributes": {
+                "send_email_receipt": True,
+                "show_description": True,
+                "show_line_items": True,
+                "line_items": [
+                    {
+                        "currency": "PHP",
+                        "amount": int(request.total_price * 100),
+                        "description": f"Event Reservation: {request.package_title}",
+                        "name": request.package_title,
+                        "quantity": 1
+                    }
+                ],
+                "payment_method_types": ["card", "gcash", "paymaya"],
+                "description": f"Gala Crafters - {request.package_title} Booking for {request.selected_date}",
+                "success_url": "http://localhost:5173/settings?tab=transactions&payment_success=true",
+                "cancel_url": "http://localhost:5173/services"
+            }
+        }
+    }
+    
+    print(f"DEBUG: Creating PayMongo session. Success URL: {payload['data']['attributes']['success_url']}")
+    
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "Authorization": f"Basic {encoded_auth}"
+    }
+
+    try:
+        response = requests.post(url, json=payload, headers=headers)
+        res_data = response.json()
+        
+        if response.status_code != 200:
+            error_detail = res_data.get("errors", [{"detail": "PayMongo API error"}])[0].get("detail")
+            print(f"PAYMONGO ERROR: {res_data}")
+            raise HTTPException(status_code=response.status_code, detail=error_detail)
+            
+        checkout_url = res_data["data"]["attributes"]["checkout_url"]
+        return {"checkout_url": checkout_url}
+        
+    except Exception as e:
+        print(f"PAYMENT CREATION ERROR: {str(e)}")
+        if isinstance(e, HTTPException):
+            raise e
+        raise HTTPException(status_code=500, detail=f"Failed to create payment session: {str(e)}")
 
 # ============================================================================
 # ERROR HANDLERS

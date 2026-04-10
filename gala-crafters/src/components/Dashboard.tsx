@@ -45,48 +45,62 @@ export default function Dashboard() {
             border: 'none',
             borderRadius: '4px',
             cursor: 'pointer',
-            fontSize: '14px'
+            fontSize: '14px',
+            transition: 'all 0.3s'
           }}
+          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#a38023')}
+          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#c49a2c')}
         >
           Logout
         </button>
       </div>
 
       <div style={{ 
-        backgroundColor: '#f5f5f5', 
-        padding: '20px', 
-        borderRadius: '8px',
-        marginBottom: '20px'
+        backgroundColor: 'white', 
+        padding: '30px', 
+        borderRadius: '12px',
+        marginBottom: '30px',
+        boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
+        border: '1px solid #eee'
       }}>
-        <h2 style={{ marginBottom: '15px' }}>Your Profile</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+        <h2 style={{ marginBottom: '20px', borderBottom: '2px solid #f9f9f9', paddingBottom: '10px' }}>Your Profile</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px' }}>
           <div>
-            <strong>Email:</strong>
-            <p>{user?.email}</p>
+            <strong style={{ color: '#666', fontSize: '12px', textTransform: 'uppercase' }}>Email Address</strong>
+            <p style={{ margin: '5px 0 0 0', fontSize: '16px' }}>{user?.email}</p>
           </div>
           <div>
-            <strong>Name:</strong>
-            <p>{user?.first_name} {user?.last_name}</p>
+            <strong style={{ color: '#666', fontSize: '12px', textTransform: 'uppercase' }}>Full Name</strong>
+            <p style={{ margin: '5px 0 0 0', fontSize: '16px' }}>{user?.first_name} {user?.last_name}</p>
           </div>
           <div>
-            <strong>Status:</strong>
-            <p>{user?.status}</p>
+            <strong style={{ color: '#666', fontSize: '12px', textTransform: 'uppercase' }}>Account Status</strong>
+            <p style={{ margin: '5px 0 0 0', fontSize: '16px' }}>
+              <span style={{ 
+                padding: '4px 10px', 
+                backgroundColor: '#e6f4ea', 
+                color: '#1e7e34', 
+                borderRadius: '20px', 
+                fontSize: '12px',
+                fontWeight: 'bold'
+              }}>{user?.status}</span>
+            </p>
           </div>
           <div>
-            <strong>Role:</strong>
-            <p>{user?.role}</p>
+            <strong style={{ color: '#666', fontSize: '12px', textTransform: 'uppercase' }}>User Role</strong>
+            <p style={{ margin: '5px 0 0 0', fontSize: '16px' }}>{user?.role}</p>
           </div>
         </div>
       </div>
 
       <div style={{ 
-        backgroundColor: '#e8f4f8', 
-        padding: '15px', 
+        backgroundColor: '#f8fbff', 
+        padding: '20px', 
         borderRadius: '8px',
-        borderLeft: '4px solid #0288d1'
+        borderLeft: '5px solid #0288d1'
       }}>
         <p><strong>✅ Backend Connection Works!</strong></p>
-        <p>You successfully logged in using the FastAPI backend. Your token is securely stored in localStorage.</p>
+        <p style={{ margin: '5px 0 0 0' }}>You successfully logged in using the FastAPI backend. Your session is active.</p>
       </div>
     </div>
   );

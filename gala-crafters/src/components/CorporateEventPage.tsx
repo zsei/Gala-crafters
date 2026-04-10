@@ -218,7 +218,7 @@ function CorporateEventPage() {
         services={corporateServices}
       />
 
-      <ClientTestimonials />
+      <ClientTestimonials packageId={9} />
 
       <LocationsSection />
 

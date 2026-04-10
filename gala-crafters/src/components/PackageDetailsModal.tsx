@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, Share2, Heart, CheckCircle, Utensils, Sparkles, Layout, Users, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, Calendar, Share2, Heart, CheckCircle, Utensils, Sparkles, Layout, Users, ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import './PackageDetailsModal.css';
+import { API_BASE_URL } from '../api/config';
 
 // Existing assets
 import img1 from '../assets/img1.jpg';
@@ -202,9 +203,46 @@ const PackageDetailsModal: React.FC<PackageDetailsModalProps> = ({ isOpen, onClo
   const [promoCode, setPromoCode] = useState('');
   const [isPromoApplied, setIsPromoApplied] = useState(false);
   const [guestCount, setGuestCount] = useState(50);
-  const [selectedDate, setSelectedDate] = useState(new Date(2024, 11, 25));
+  const [selectedDate, setSelectedDate] = useState(new Date(2026, 3, 11));
   const [showCalendar, setShowCalendar] = useState(false);
-  const [viewDate, setViewDate] = useState(new Date(2024, 11, 25));
+  const [viewDate, setViewDate] = useState(new Date(2026, 3, 11));
+  
+  // Review states
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [averageRating, setAverageRating] = useState(0);
+  const [reviewCount, setReviewCount] = useState(0);
+  const [loadingReviews, setLoadingReviews] = useState(true);
+
+  // Gallery states
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const galleryImages = [img1, img2, img3, heroBg];
+
+  const handlePrevImage = () => {
+    setCurrentImageIndex((prev) => (prev === 0 ? galleryImages.length - 1 : prev - 1));
+  };
+
+  const handleNextImage = () => {
+    setCurrentImageIndex((prev) => (prev === galleryImages.length - 1 ? 0 : prev + 1));
+  };
+
+  // Map package types to package IDs
+  const packageIdMap: any = {
+    intimate: 1,
+    utopian: 2,
+    elite: 3,
+    debutIntimate: 4,
+    debutClassy: 5,
+    debutVogue: 6,
+    corporateSetA: 7,
+    corporateSetB: 8,
+    corporateSetC: 9,
+    kiddiePlayful: 10,
+    kiddieAdventure: 11,
+    kiddieCarnival: 12,
+    specialIntimate: 13,
+    specialGrand: 14,
+    specialLegacy: 15
+  };
 
   const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   const daysInMonth = (y: number, m: number) => new Date(y, m + 1, 0).getDate();
@@ -225,8 +263,42 @@ const PackageDetailsModal: React.FC<PackageDetailsModalProps> = ({ isOpen, onClo
     };
   }, [isOpen]);
 
+  // Fetch reviews from backend
+  useEffect(() => {
+    const fetchPackageReviews = async () => {
+      try {
+        setLoadingReviews(true);
+        const packageId = packageIdMap[packageType] || 1;
+        const response = await fetch(`${API_BASE_URL}/api/reviews/package/${packageId}`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          const reviewsArray = Array.isArray(data) ? data : (data?.reviews || []);
+          setReviews(reviewsArray);
+          setReviewCount(reviewsArray.length);
+          
+          // Calculate average rating
+          if (reviewsArray.length > 0) {
+            const avgRating = reviewsArray.reduce((sum: number, review: any) => sum + (review.rating || 0), 0) / reviewsArray.length;
+            setAverageRating(Math.round(avgRating * 10) / 10);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching reviews:', err);
+        setReviewCount(0);
+        setAverageRating(0);
+      } finally {
+        setLoadingReviews(false);
+      }
+    };
+
+    if (isOpen) {
+      fetchPackageReviews();
+    }
+  }, [isOpen, packageType]);
+
   const formatDate = (date: Date) => {
-    return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
+    return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   };
 
   if (!isOpen) return null;
@@ -253,23 +325,102 @@ const PackageDetailsModal: React.FC<PackageDetailsModalProps> = ({ isOpen, onClo
           <div className="modal-left-col">
             <h1 className="modal-package-title">{data.title}</h1>
             
-            <div className="modal-gallery">
-              <div className="modal-gallery-main">
-                <img src={img1} alt="Main" />
+            <div className="modal-gallery" style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px' }}>
+              <button 
+                className="gallery-nav-btn" 
+                onClick={handlePrevImage}
+                style={{
+                  background: 'rgba(196, 154, 44, 0.2)',
+                  border: '2px solid #c49a2c',
+                  borderRadius: '50%',
+                  width: '40px',
+                  height: '40px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: '#c49a2c',
+                  fontSize: '20px',
+                  transition: 'all 0.3s ease',
+                  zIndex: 10
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#c49a2c';
+                  e.currentTarget.style.color = '#0a0f1d';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(196, 154, 44, 0.2)';
+                  e.currentTarget.style.color = '#c49a2c';
+                }}
+              >
+                &#8249;
+              </button>
+
+              <div className="modal-gallery-main" style={{ width: '100%', overflow: 'hidden', borderRadius: '12px' }}>
+                <img 
+                  src={galleryImages[currentImageIndex]} 
+                  alt={`Gallery ${currentImageIndex + 1}`}
+                  style={{ width: '100%', height: 'auto', display: 'block' }}
+                />
               </div>
-              <div className="modal-gallery-side">
-                <img src={img2} alt="Side 1" />
-                <div className="modal-gallery-sub-row">
-                  <img src={img3} alt="Side 2" />
-                  <img src={heroBg} alt="Side 3" />
-                </div>
+
+              <button 
+                className="gallery-nav-btn" 
+                onClick={handleNextImage}
+                style={{
+                  background: 'rgba(196, 154, 44, 0.2)',
+                  border: '2px solid #c49a2c',
+                  borderRadius: '50%',
+                  width: '40px',
+                  height: '40px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: '#c49a2c',
+                  fontSize: '20px',
+                  transition: 'all 0.3s ease',
+                  zIndex: 10
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#c49a2c';
+                  e.currentTarget.style.color = '#0a0f1d';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(196, 154, 44, 0.2)';
+                  e.currentTarget.style.color = '#c49a2c';
+                }}
+              >
+                &#8250;
+              </button>
+              
+              <div style={{ textAlign: 'center', position: 'absolute', bottom: '-30px', left: '50%', transform: 'translateX(-50%)', color: 'rgba(255, 255, 255, 0.6)', fontSize: '12px', marginTop: '10px' }}>
+                {currentImageIndex + 1} / {galleryImages.length}
               </div>
             </div>
 
-            <div className="modal-actions-row">
+            <div className="modal-actions-row" style={{ marginTop: '40px' }}>
               <div className="modal-tags">
                 <span className="modal-premium-tag">PREMIUM CHOICE</span>
-                <div className="modal-stars">☆☆☆☆☆ <span className="modal-review-count">(48 Verified Reviews)</span></div>
+                <div className="modal-stars">
+                  {loadingReviews ? (
+                    <span className="modal-review-count">Loading reviews...</span>
+                  ) : (
+                    <>
+                      <div style={{ display: 'flex', gap: '2px' }}>
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            size={14}
+                            color={star <= averageRating ? "#c49a2c" : "rgba(196, 154, 44, 0.3)"}
+                            fill={star <= averageRating ? "#c49a2c" : "none"}
+                          />
+                        ))}
+                      </div>
+                      <span className="modal-review-count">({reviewCount} Verified {reviewCount === 1 ? 'Review' : 'Reviews'})</span>
+                    </>
+                  )}
+                </div>
               </div>
               <div className="modal-icon-btns">
                 <button className="modal-icon-btn"><Share2 size={18} /></button>

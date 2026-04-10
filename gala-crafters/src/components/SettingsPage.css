@@ -699,8 +699,9 @@ input:checked + .slider:before {
 
 .transaction-meta {
   display: flex;
-  gap: 20px;
-  font-size: 13px;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 14px;
   color: rgba(255, 255, 255, 0.5);
 }
 
@@ -720,26 +721,46 @@ input:checked + .slider:before {
 }
 
 .transaction-status {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
-  padding: 6px 12px;
-  border-radius: 6px;
+  padding: 8px 16px;
+  border-radius: 20px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
 }
 
+.transaction-status.status-pending,
 .transaction-status.status-pending-review {
-  background: rgba(196, 154, 44, 0.1);
-  color: #c49a2c;
-  border-color: rgba(196, 154, 44, 0.2);
+  background: #c49a2c;
+  color: #ffffff;
+  border-color: #c49a2c;
 }
 
 .transaction-status.status-confirmed {
-  background: rgba(46, 204, 113, 0.1);
-  color: #2ecc71;
-  border-color: rgba(46, 204, 113, 0.2);
+  background: #c49a2c;
+  color: #ffffff;
+  border-color: #c49a2c;
+}
+
+.transaction-status.status-on-going-event {
+  background: #c49a2c;
+  color: #ffffff;
+  border-color: #c49a2c;
+}
+
+.transaction-status.status-completed,
+.transaction-status.status-completed-event {
+  background: #a67c1e;
+  color: #ffffff;
+  border-color: #a67c1e;
+}
+
+.transaction-status.status-cancelled {
+  background: #a67c1e;
+  color: #ffffff;
+  border-color: #a67c1e;
 }
 
 .details-btn {
@@ -759,6 +780,137 @@ input:checked + .slider:before {
 .details-btn:hover {
   background: rgba(196, 154, 44, 0.1);
   border-color: #c49a2c;
+}
+
+.rate-btn {
+  background: rgba(196, 154, 44, 0.15);
+  border: 1px solid #c49a2c;
+  color: #c49a2c;
+  padding: 6px 15px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rate-btn:hover {
+  background: #c49a2c;
+  color: #000;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(196, 154, 44, 0.3);
+}
+
+.rate-btn svg {
+  transition: all 0.2s;
+}
+
+.rate-btn:hover svg {
+  fill: #000 !important;
+  color: #000 !important;
+}
+
+.rate-btn.rated-mode {
+  background: rgba(196, 154, 44, 0.05);
+  border: 1px solid rgba(196, 154, 44, 0.3);
+  color: rgba(196, 154, 44, 0.6);
+  cursor: default;
+  transform: none;
+  box-shadow: none;
+}
+
+.rate-btn.rated-mode:hover {
+  background: rgba(196, 154, 44, 0.05);
+  color: rgba(196, 154, 44, 0.6);
+}
+
+.rate-btn.rated-mode svg {
+  fill: rgba(196, 154, 44, 0.6) !important;
+}
+
+/* Review Card Styles */
+.review-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+  padding: 25px;
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
+}
+
+.review-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(196, 154, 44, 0.2);
+  transform: translateY(-3px);
+}
+
+.review-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+}
+
+.review-booking-info h3 {
+  color: #c49a2c;
+  font-size: 18px;
+  margin: 0 0 5px 0;
+  font-family: 'Playfair Display', serif;
+}
+
+.review-ref {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.review-rating-stars {
+  display: flex;
+  gap: 4px;
+}
+
+.review-comment {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+  line-height: 1.6;
+  font-style: italic;
+  margin-bottom: 20px;
+  padding-left: 15px;
+  border-left: 2px solid rgba(196, 154, 44, 0.3);
+}
+
+.review-order-details {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  padding: 15px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+}
+
+.order-detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-label {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.detail-value {
+  font-size: 13px;
+  color: #ffffff;
+  font-weight: 600;
 }
 
 /* Transaction Details Modal Specifics */
@@ -958,4 +1110,101 @@ input:checked + .slider:before {
     padding-top: 15px;
     margin-top: 5px;
   }
+}
+
+/* Toast Notifications - Luxury Palette Alignment */
+.toast-notification {
+  position: fixed;
+  top: 30px;
+  right: 30px;
+  min-width: 380px;
+  background: rgba(15, 23, 42, 0.98);
+  backdrop-filter: blur(15px);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  padding: 18px 24px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  animation: toastSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+  border: 1px solid rgba(196, 154, 44, 0.3);
+}
+
+@keyframes toastSlideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.toast-accent {
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 4px;
+  border-radius: 0 4px 4px 0;
+}
+
+.toast-accent.success { background: #c49a2c; } /* Success uses Gala Gold */
+.toast-accent.error { background: #ff4d4f; }
+
+.toast-icon-wrapper {
+  margin-right: 18px;
+}
+
+.toast-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toast-icon.success { 
+  background: rgba(196, 154, 44, 0.1); 
+  color: #c49a2c; 
+  border: 1px solid rgba(196, 154, 44, 0.2);
+}
+
+.toast-icon.error { 
+  background: rgba(255, 77, 79, 0.1); 
+  color: #ff4d4f; 
+  border: 1px solid rgba(255, 77, 79, 0.2);
+}
+
+.toast-content {
+  flex: 1;
+}
+
+.toast-title {
+  margin: 0;
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 700;
+  font-family: 'Playfair Display', serif;
+  letter-spacing: 0.5px;
+}
+
+.toast-message {
+  margin: 2px 0 0 0;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
+  font-weight: 400;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.toast-close {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  padding: 6px;
+  margin-left: 15px;
+  transition: all 0.2s;
+}
+
+.toast-close:hover { 
+  color: #ffffff;
+  transform: scale(1.1);
 }

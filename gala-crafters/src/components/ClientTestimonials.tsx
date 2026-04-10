@@ -1,12 +1,13 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Star, Quote, ChevronLeft, ChevronRight } from 'lucide-react';
 import './ClientTestimonials.css';
+import { API_BASE_URL } from '../api/config';
 
 import av1 from '../assets/img1.jpg';
 import av2 from '../assets/img2a.jpg';
 import av3 from '../assets/debut1.jpg';
 
-const TESTIMONIALS = [
+const FALLBACK_TESTIMONIALS = [
   {
     id: 1,
     name: 'Dennis and Jen',
@@ -33,11 +34,61 @@ const TESTIMONIALS = [
   }
 ];
 
-interface ClientTestimonialsProps {
-  variant?: 'dark' | 'light';
+interface Review {
+  id: number;
+  rating: number;
+  comment: string;
+  customer_name: string;
+  created_at: string;
 }
 
-const ClientTestimonials: React.FC<ClientTestimonialsProps> = ({ variant = 'dark' }) => {
+interface ClientTestimonialsProps {
+  variant?: 'dark' | 'light';
+  packageId?: number;
+}
+
+const ClientTestimonials: React.FC<ClientTestimonialsProps> = ({ variant = 'dark', packageId }) => {
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (packageId) {
+      fetchPackageReviews(packageId);
+    }
+  }, [packageId]);
+
+  const fetchPackageReviews = async (pkgId: number) => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_BASE_URL}/api/reviews/package/${pkgId}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.length > 0) {
+          setReviews(data);
+          return;
+        }
+      }
+      setReviews([]);
+    } catch (error) {
+      console.error('Error fetching reviews:', error);
+      setReviews([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Use fetched reviews if available, otherwise use fallback testimonials
+  const testimonials = reviews.length > 0 
+    ? reviews.map((review, index) => ({
+        id: review.id,
+        name: review.customer_name,
+        location: 'Verified Customer',
+        avatar: [av1, av2, av3][index % 3],
+        text: review.comment,
+        rating: review.rating
+      }))
+    : FALLBACK_TESTIMONIALS;
+
   return (
     <section className={`client-testimonials-section theme-${variant}`}>
       <div className="container testimonials-container">
@@ -50,7 +101,7 @@ const ClientTestimonials: React.FC<ClientTestimonialsProps> = ({ variant = 'dark
         </div>
 
         <div className="testimonials-grid">
-          {TESTIMONIALS.map((item) => (
+          {testimonials.map((item) => (
             <div key={item.id} className="testimonial-card">
               <div className="card-header">
                 <div className="author-meta">

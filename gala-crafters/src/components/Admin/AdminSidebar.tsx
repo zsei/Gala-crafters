@@ -147,6 +147,7 @@ const AdminSidebar = ({ isCollapsed: propIsCollapsed, toggleSidebar: propToggleS
             </div>
             
             <div className={`admin-subnav ${isBookingsOpen && !isCollapsed ? 'open' : ''}`}>
+              <NavLink to="/admin/bookings?status=all" className="admin-subnav-item">All Bookings</NavLink>
               <NavLink to="/admin/bookings?status=pending" className="admin-subnav-item">Pending Requests</NavLink>
               <NavLink to="/admin/bookings?status=confirmed" className="admin-subnav-item">Confirmed Bookings</NavLink>
               <NavLink to="/admin/bookings?status=ongoing" className="admin-subnav-item">On-going Events</NavLink>

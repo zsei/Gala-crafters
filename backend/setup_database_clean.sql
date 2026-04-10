@@ -216,11 +216,11 @@ VALUES
 -- Insert Services
 INSERT INTO services (service_name, description, category, base_price, status)
 VALUES
-    ('Premium Catering', 'Full-service catering with custom menu', 'Food & Beverage', 50.00, 'Active'),
-    ('Live Band Performance', 'Professional live band for 4 hours', 'Entertainment', 2000.00, 'Active'),
-    ('Professional Photography', 'Full-day photography coverage', 'Photography', 1500.00, 'Active'),
-    ('Videography', 'Professional video with editing', 'Photography', 2000.00, 'Active'),
-    ('Floral Arrangements', 'Custom floral designs and decor', 'Decoration', 1200.00, 'Active'),
+    ('Chefs Special', 'Full-service catering with custom menu', 'Food & Beverage', 50.00, 'Active'),
+    ('Signature Plated', 'Professional plated service', 'Entertainment', 2000.00, 'Active'),
+    ('International Menu', 'Full-day photography coverage', 'Photography', 1500.00, 'Active'),
+    ('Traditional Filipino', 'Professional video with editing', 'Photography', 2000.00, 'Active'),
+    ('Kids Menu', 'Custom floral designs and decor', 'Decoration', 1200.00, 'Active'),
     ('DJ Services', 'DJ with sound system for 6 hours', 'Entertainment', 800.00, 'Active'),
     ('Event Coordination', 'Day-of event coordination', 'Planning', 500.00, 'Active'),
     ('Lighting Design', 'Custom ambient and accent lighting', 'Decoration', 1000.00, 'Active');

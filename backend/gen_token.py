@@ -1,5 +1,5 @@
 import jwt
-import datetime
+import datetime as gala_dt
 
 SECRET_KEY = "your-secret-key-change-in-production"
 ALGORITHM = "HS256"
@@ -9,7 +9,7 @@ def create_customer_token():
         "sub": "1", # Natasha Khaleira's ID
         "email": "natasha.khaleira@email.com",
         "role": "Customer",
-        "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+        "exp": gala_dt.datetime.utcnow() + gala_dt.timedelta(hours=1)
     }
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 

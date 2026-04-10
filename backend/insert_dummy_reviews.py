@@ -1,6 +1,6 @@
 from database import SessionLocal
 import models
-from datetime import datetime, timedelta
+import datetime as gala_dt
 
 def insert_dummy_reviews():
     db = SessionLocal()
@@ -24,21 +24,21 @@ def insert_dummy_reviews():
                 customer_id=customer.id,
                 rating=5,
                 comment="Absolutely magical! The Gala Crafters team made my completely exceeded our expectations. The venue setup was breathtaking.",
-                created_at=datetime.utcnow() - timedelta(days=2)
+                created_at=gala_dt.datetime.utcnow() - gala_dt.timedelta(days=0*2)
             ),
             models.Review(
                 booking_id=booking.id,
                 customer_id=customer.id,
                 rating=4,
                 comment="Very professional and attentive staff. The catering could have been a bit warmer, but overall a fantastic experience.",
-                created_at=datetime.utcnow() - timedelta(days=5)
+                created_at=gala_dt.datetime.utcnow() - gala_dt.timedelta(days=5)
             ),
              models.Review(
                 booking_id=booking.id,
                 customer_id=customer.id,
                 rating=5,
                 comment="Our corporate gala was a massive success thanks to Gala Crafters. Flawless execution from start to finish.",
-                created_at=datetime.utcnow() - timedelta(days=12)
+                created_at=gala_dt.datetime.utcnow() - gala_dt.timedelta(days=12)
             )
         ]
 

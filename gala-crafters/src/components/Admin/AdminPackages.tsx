@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Package, Plus, Search, Edit2, Trash2, Filter, ChevronRight, LayoutGrid, List, X } from 'lucide-react';
+import { Package, Plus, Search, Edit2, Trash2, Filter, ChevronRight, LayoutGrid, List, X, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
 import AdminSidebar from './AdminSidebar';
 import './Admin.css';
 import { API_BASE_URL, API_ENDPOINTS } from '../../api/config';
@@ -53,6 +53,23 @@ const AdminPackages = () => {
         status: 'Active'
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Confirmation Modal state
+    const [confirmModal, setConfirmModal] = React.useState<{
+        show: boolean;
+        title: string;
+        message: string;
+        confirmText: string;
+        type: 'danger' | 'warning' | 'primary' | 'success';
+        onConfirm: () => void;
+    }>({
+        show: false,
+        title: '',
+        message: '',
+        confirmText: 'Confirm',
+        type: 'primary',
+        onConfirm: () => {}
+    });
 
     // Sync category filter if URL changes via Sidebar
     useEffect(() => {
@@ -171,25 +188,31 @@ const AdminPackages = () => {
         }
     };
 
-    // Soft Delete Package
-    const handleDelete = async (id: number) => {
-        if (!window.confirm("Are you sure you want to completely archive this package? It will no longer be available for customers.")) {
-            return;
-        }
-        try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.ADMIN.PACKAGES}/${id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+    const handleDelete = (id: number) => {
+        setConfirmModal({
+            show: true,
+            title: 'Archive Package',
+            message: "Are you sure you want to completely archive this package? It will no longer be available for customers.",
+            confirmText: 'Archive Package',
+            type: 'danger',
+            onConfirm: async () => {
+                setConfirmModal(prev => ({ ...prev, show: false }));
+                try {
+                    const token = localStorage.getItem('token');
+                    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.ADMIN.PACKAGES}/${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
 
-            if (!response.ok) throw new Error('Failed to delete package');
-            await fetchPackages();
-        } catch (err: any) {
-            alert("Error deleting package: " + err.message);
-        }
+                    if (!response.ok) throw new Error('Failed to delete package');
+                    await fetchPackages();
+                } catch (err: any) {
+                    alert("Error deleting package: " + err.message);
+                }
+            }
+        });
     };
 
     // Filter Logic
@@ -491,6 +514,114 @@ const AdminPackages = () => {
                 </div>
             )}
 
+            {/* Modern Confirmation Modal */}
+            {confirmModal.show && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(15, 23, 42, 0.4)',
+                    backdropFilter: 'blur(8px)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 4000,
+                    padding: '20px',
+                    animation: 'fadeIn 0.2s ease-out'
+                }}>
+                    <div style={{
+                        backgroundColor: 'var(--admin-card-bg)',
+                        borderRadius: '16px',
+                        padding: '32px',
+                        maxWidth: '440px',
+                        width: '100%',
+                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                        textAlign: 'center',
+                        border: '1px solid var(--admin-border)',
+                        animation: 'scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)'
+                    }}>
+                        <div style={{ 
+                            width: '64px', 
+                            height: '64px', 
+                            borderRadius: '50%', 
+                            backgroundColor: confirmModal.type === 'danger' ? 'rgba(239, 68, 68, 0.1)' : 
+                                             confirmModal.type === 'primary' ? 'rgba(196, 154, 44, 0.1)' : 
+                                             'rgba(59, 130, 246, 0.1)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            margin: '0 auto 24px',
+                            color: confirmModal.type === 'danger' ? '#ef4444' : 
+                                   confirmModal.type === 'primary' ? 'var(--admin-accent)' : 
+                                   '#3b82f6'
+                        }}>
+                            {confirmModal.type === 'danger' ? <XCircle size={32} /> : 
+                             confirmModal.type === 'success' ? <CheckCircle size={32} /> : 
+                             <AlertCircle size={32} />}
+                        </div>
+                        
+                        <h2 style={{ 
+                            fontSize: '22px', 
+                            fontWeight: '700', 
+                            color: 'var(--admin-text-main)', 
+                            marginBottom: '12px',
+                            fontFamily: "'Playfair Display', serif"
+                        }}>{confirmModal.title}</h2>
+                        
+                        <p style={{ 
+                            fontSize: '15px', 
+                            color: 'var(--admin-text-sub)', 
+                            lineHeight: '1.6',
+                            marginBottom: '32px'
+                        }}>{confirmModal.message}</p>
+                        
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                            <button
+                                onClick={() => setConfirmModal(prev => ({ ...prev, show: false }))}
+                                style={{
+                                    flex: 1,
+                                    padding: '12px 20px',
+                                    borderRadius: '10px',
+                                    border: '1px solid var(--admin-border)',
+                                    backgroundColor: 'transparent',
+                                    color: 'var(--admin-text-main)',
+                                    fontSize: '14px',
+                                    fontWeight: '600',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s'
+                                }}
+                                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--admin-bg)')}
+                                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmModal.onConfirm}
+                                style={{
+                                    flex: 1,
+                                    padding: '12px 20px',
+                                    borderRadius: '10px',
+                                    border: 'none',
+                                    backgroundColor: confirmModal.type === 'danger' ? '#ef4444' : 'var(--admin-accent)',
+                                    color: '#fff',
+                                    fontSize: '14px',
+                                    fontWeight: '600',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s',
+                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                                }}
+                                onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.9')}
+                                onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+                            >
+                                {confirmModal.confirmText}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <style>{`
                 .packages-grid {
                     display: grid;
@@ -664,6 +795,14 @@ const AdminPackages = () => {
                     box-shadow: 0 0 0 3px rgba(196, 154, 44, 0.1);
                 }
 
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                @keyframes scaleIn {
+                    from { transform: scale(0.9); opacity: 0; }
+                    to { transform: scale(1); opacity: 1; }
+                }
             `}</style>
         </div>
     );

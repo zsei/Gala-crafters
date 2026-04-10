@@ -710,7 +710,7 @@ body.sidebar-collapsed .admin-main {
 
 .bookings-table-card {
   padding: 0;
-  overflow: hidden;
+  overflow: visible;
   margin-bottom: 24px;
 }
 
@@ -843,6 +843,17 @@ body.sidebar-collapsed .admin-main {
   background-color: var(--admin-accent);
   color: #fff;
   border-color: var(--admin-accent);
+}
+
+.page-num:hover:not(.active), .page-nav-btn:hover:not(.disabled) {
+  background-color: var(--admin-hover);
+  color: var(--admin-text-main);
+}
+
+.page-num.disabled, .page-nav-btn.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 /* Bottom Stats Row */

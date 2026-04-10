@@ -52,7 +52,7 @@ const AdminOverview = () => {
     },
     {
       title: "Total Revenue",
-      value: `$${(metricsData.total_revenue || 0).toLocaleString()}`,
+      value: `₱${(metricsData.total_revenue || 0).toLocaleString()}`,
       icon: <DollarSign size={20} color="#c49a2c" />,
       change: "+18.3%",
       positive: true

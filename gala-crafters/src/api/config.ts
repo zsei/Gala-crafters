@@ -13,7 +13,8 @@ export const API_ENDPOINTS = {
     PROFILE: '/api/users/profile',
     UPDATE: '/api/users/profile',
     LIST: '/api/users',
-    GET: (id: number) => `/api/users/${id}`
+    GET: (id: number) => `/api/users/${id}`,
+    REVIEWS: '/api/users/reviews'
   },
   ADMIN: {
     PROFILE: '/api/admin/profile',
@@ -26,6 +27,9 @@ export const API_ENDPOINTS = {
   BOOKINGS: {
     CREATE: '/api/bookings',
     USER_HISTORY: '/api/users/bookings',
+  },
+  PAYMENTS: {
+    CREATE_CHECKOUT: '/api/payments/create-checkout',
   },
   HEALTH: '/api/health'
 };

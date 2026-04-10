@@ -170,13 +170,137 @@ body {
 
 .nav-notification-badge {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 5px;
+  right: 5px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  background-color: #ff3b30;
+  color: white;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #0a0f1d;
+}
+
+/* NOTIFICATION DROPDOWN */
+.nav-notification-container {
+  position: relative;
+}
+
+.notification-dropdown {
+  position: absolute;
+  top: 120%;
+  right: 0;
+  width: 320px;
+  background: #0a0f1d;
+  border: 1px solid rgba(196, 154, 44, 0.3);
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  z-index: 1001;
+  animation: fadeInDown 0.2s ease forwards;
+}
+
+.notification-header {
+  padding: 15px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notification-header h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+}
+
+.notification-header button {
+  background: transparent;
+  border: none;
+  color: #c49a2c;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.notification-header button:hover {
+  background: rgba(196, 154, 44, 0.1);
+}
+
+.notification-list {
+  max-height: 350px;
+  overflow-y: auto;
+}
+
+.notification-item {
+  padding: 15px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.notification-item:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.notification-item.unread {
+  background: rgba(196, 154, 44, 0.03);
+}
+
+.notification-content p {
+  margin: 0 0 5px 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.4;
+}
+
+.notification-time {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.unread-dot {
   width: 8px;
   height: 8px;
   background-color: #c49a2c;
   border-radius: 50%;
-  border: 1.5px solid #0a0f1d;
+  flex-shrink: 0;
+  margin-top: 5px;
+}
+
+.empty-notifications {
+  padding: 40px 20px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 14px;
+}
+
+.notification-footer {
+  padding: 12px 20px;
+  text-align: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.notification-footer a {
+  color: #c49a2c;
+  font-size: 12px;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.notification-footer a:hover {
+  text-decoration: underline;
 }
 
 

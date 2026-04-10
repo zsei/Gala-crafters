@@ -43,7 +43,13 @@ const TransactionHistory = () => {
         
         if (response.ok) {
           const data = await response.json();
-          setBookings(data);
+          // Map backend format to ensure consistency
+          const mappedData = data.map((b: any) => ({
+            ...b,
+            packageTitle: b.package_title || b.event_type + " Package",
+            status: b.status || 'Pending'
+          }));
+          setBookings(mappedData);
         } else {
           setError("Failed to load your transaction history.");
         }
@@ -59,12 +65,19 @@ const TransactionHistory = () => {
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'pending': return '#ffaa00';
-      case 'confirmed': return '#00cc66';
-      case 'processing': return '#3399ff';
-      case 'cancelled': return '#ff4d4d';
-      case 'completed': return '#c49a2c';
-      default: return '#ffffff';
+      case 'pending':
+      case 'confirmed':
+        return '#c49a2c'; // Brand Gold
+      case 'on-going event':
+      case 'ongoing event':
+        return '#c49a2c'; // Brand Gold
+      case 'completed':
+      case 'completed event':
+        return '#a67c1e'; // Dark Gold
+      case 'cancelled':
+        return '#a67c1e'; // Dark Gold
+      default:
+        return '#ffffff';
     }
   };
 
@@ -151,6 +164,14 @@ const TransactionHistory = () => {
           </div>
         )}
       </div>
+      
+      {/* Animation Style */}
+      <style>{`
+        @keyframes slideIn {
+          from { transform: translateY(-30px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+      `}</style>
     </div>
   );
 };

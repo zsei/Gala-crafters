@@ -5,7 +5,6 @@ import './Admin.css';
 import { API_BASE_URL } from '../../api/config';
 
 const AdminMessages = () => {
-  const [isDark, setIsDark] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [conversations, setConversations] = useState<any[]>([]);
   const [activeChat, setActiveChat] = useState<any>(null);
@@ -25,12 +24,7 @@ const AdminMessages = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [replyText, setReplyText] = useState('');
-
   useEffect(() => {
-    const savedTheme = localStorage.getItem('galaAdminTheme');
-    if (savedTheme === 'dark') {
-      setIsDark(true);
-    }
     fetchConversations();
 
     // Close menu when clicking outside
@@ -176,11 +170,7 @@ const AdminMessages = () => {
     }
   };
 
-  const toggleTheme = () => {
-    const newTheme = !isDark;
-    setIsDark(newTheme);
-    localStorage.setItem('galaAdminTheme', newTheme ? 'dark' : 'light');
-  };
+
 
   // Helper to get initials
   const getInitials = (name: string) => {
@@ -195,10 +185,8 @@ const AdminMessages = () => {
   const toggleSidebar = () => setIsCollapsed(prev => !prev);
 
   return (
-    <div className={`admin-layout ${isDark ? 'admin-dark-theme' : ''}`}>
+    <div className="admin-layout">
       <AdminSidebar
-        isDark={isDark}
-        toggleTheme={toggleTheme}
         isCollapsed={isCollapsed}
         toggleSidebar={toggleSidebar}
       />

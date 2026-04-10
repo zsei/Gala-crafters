@@ -48,7 +48,7 @@ try:
 
     from models import User
     import uuid
-    from datetime import datetime, timedelta
+    import datetime as gala_dt
     from email_service import send_reset_email
 
     user = db.query(User).first()
@@ -59,7 +59,7 @@ try:
     print(f"Testing with user: {user.email}")
 
     token = str(uuid.uuid4())
-    expiry = datetime.utcnow() + timedelta(hours=1)
+    expiry = gala_dt.datetime.utcnow() + gala_dt.timedelta(hours=1)
     user.reset_token = token
     user.reset_token_expires = expiry
     db.commit()

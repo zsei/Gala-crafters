@@ -5,7 +5,7 @@ SQLAlchemy ORM Models for Gala Crafters CRM
 from database import Base
 from sqlalchemy import Column, Integer, String, Date, DateTime, Float, Boolean, Text, ForeignKey, ARRAY
 from sqlalchemy.orm import relationship
-from datetime import datetime
+import datetime as gala_dt
 
 
 class User(Base):
@@ -25,8 +25,8 @@ class User(Base):
     postal_code = Column(String(20))
     status = Column(String(50), default="Active")
     user_role = Column(String(50), default="Customer")
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=gala_dt.datetime.utcnow)
+    updated_at = Column(DateTime, default=gala_dt.datetime.utcnow, onupdate=gala_dt.datetime.utcnow)
 
     # Relationships
     bookings = relationship("Booking", back_populates="customer")
@@ -43,8 +43,8 @@ class AdminUser(Base):
     phone = Column(String(20))
     role = Column(String(100), nullable=False)
     status = Column(String(50), default="Active")
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=gala_dt.datetime.utcnow)
+    updated_at = Column(DateTime, default=gala_dt.datetime.utcnow, onupdate=gala_dt.datetime.utcnow)
 
 
 class EventPackage(Base):
@@ -59,8 +59,8 @@ class EventPackage(Base):
     max_guests = Column(Integer)
     features = Column(ARRAY(String), default=[])
     status = Column(String(50), default="Active")
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=gala_dt.datetime.utcnow)
+    updated_at = Column(DateTime, default=gala_dt.datetime.utcnow, onupdate=gala_dt.datetime.utcnow)
 
     # Relationships
     bookings = relationship("Booking", back_populates="package")
@@ -76,8 +76,8 @@ class Service(Base):
     category = Column(String(100), nullable=False)
     base_price = Column(Float)
     status = Column(String(50), default="Active")
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=gala_dt.datetime.utcnow)
+    updated_at = Column(DateTime, default=gala_dt.datetime.utcnow, onupdate=gala_dt.datetime.utcnow)
 
     # Relationships
     booking_services = relationship("BookingService", back_populates="service")
@@ -99,8 +99,8 @@ class Booking(Base):
     total_price = Column(Float)
     status = Column(String(50), default="Pending")
     notes = Column(Text)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=gala_dt.datetime.utcnow)
+    updated_at = Column(DateTime, default=gala_dt.datetime.utcnow, onupdate=gala_dt.datetime.utcnow)
 
     # Relationships
     customer = relationship("User", back_populates="bookings")
@@ -134,8 +134,8 @@ class Message(Base):
     message_subject = Column(String(255))
     message_body = Column(Text, nullable=False)
     status = Column(String(50), default="Unread")
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=gala_dt.datetime.utcnow)
+    updated_at = Column(DateTime, default=gala_dt.datetime.utcnow, onupdate=gala_dt.datetime.utcnow)
 
 
 class AdminMessage(Base):
@@ -147,7 +147,7 @@ class AdminMessage(Base):
     sender_name = Column(String(150))
     sender_email = Column(String(255))
     message_body = Column(Text, nullable=False)
-    message_date = Column(DateTime, default=datetime.utcnow)
+    message_date = Column(DateTime, default=gala_dt.datetime.utcnow)
     is_read = Column(Boolean, default=False)
     conversation_id = Column(String(100), index=True)
 
@@ -162,8 +162,8 @@ class PendingApproval(Base):
     customer_name = Column(String(150))
     description = Column(Text)
     status = Column(String(50), default="Pending")
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=gala_dt.datetime.utcnow)
+    updated_at = Column(DateTime, default=gala_dt.datetime.utcnow, onupdate=gala_dt.datetime.utcnow)
 
 
 class PromoCode(Base):
@@ -178,7 +178,7 @@ class PromoCode(Base):
     max_uses = Column(Integer)
     current_uses = Column(Integer, default=0)
     status = Column(String(50), default="Active")
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=gala_dt.datetime.utcnow)
 
 
 class DashboardMetric(Base):
@@ -191,4 +191,4 @@ class DashboardMetric(Base):
     active_bookings = Column(Integer)
     pending_approvals = Column(Integer)
     registered_users = Column(Integer)
-    recorded_at = Column(DateTime, default=datetime.utcnow)
+    recorded_at = Column(DateTime, default=gala_dt.datetime.utcnow)
