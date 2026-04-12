@@ -13,15 +13,20 @@ import datetime as gala_dt
 import jwt
 import uuid
 from email_service import send_reset_email
-from sms_service import send_verification_sms, verify_phone_code, update_phone_verification_status
 
 # Create tables
 models.Base.metadata.create_all(bind=engine)
 
 # Security setup
 security = HTTPBearer()
+optional_security = HTTPBearer(auto_error=False)
 SECRET_KEY = "your-secret-key-change-in-production"  # Change this in production!
 ALGORITHM = "HS256"
+
+def customer_member_status(user: User) -> str:
+    """Member account label: email verified or not (phone verification removed)."""
+    return "Verified" if user.is_email_verified else "Unverified"
+
 
 # Dependency
 def get_db():
@@ -83,10 +88,9 @@ def login(email: str, password: str, db: Session = Depends(get_db)):
             "city": user.city,
             "barangay": user.barangay,
             "postal_code": user.postal_code,
-            "status": user.status,
+            "status": customer_member_status(user),
             "user_role": user.user_role,
             "is_email_verified": user.is_email_verified,
-            "is_phone_verified": user.is_phone_verified
         }
     }
 
@@ -170,7 +174,7 @@ def register(
         barangay=barangay,
         building_details=building_details,
         postal_code=zip,
-        status="Active",
+        status="Unverified",
         user_role="Customer"
     )
     
@@ -272,6 +276,19 @@ def verify_token(credentials = Depends(security)):
         raise HTTPException(status_code=401, detail="Invalid token")
 
 
+def verify_token_optional(credentials=Depends(optional_security)):
+    """Same as verify_token but returns None when no/invalid token (for optional customer context)."""
+    if credentials is None or not getattr(credentials, "credentials", None):
+        return None
+    try:
+        payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
+        if payload.get("sub") is None:
+            return None
+        return payload
+    except Exception:
+        return None
+
+
 def logout(token_data: dict = Depends(verify_token), db: Session = Depends(get_db)):
     """
     User logout endpoint
@@ -291,60 +308,6 @@ def logout(token_data: dict = Depends(verify_token), db: Session = Depends(get_d
         "success": True,
         "message": "Logged out successfully",
         "logout_time": user.last_logout_at
-    }
-
-
-def send_phone_verification_code(phone_number: str, token_data: dict = Depends(verify_token), db: Session = Depends(get_db)):
-    """
-    Send phone verification code via SMS
-    """
-    user_id = token_data.get("sub")
-    user = db.query(User).filter(User.id == int(user_id)).first()
-    
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    # Validate phone number
-    if not phone_number or len(phone_number) < 10:
-        raise HTTPException(status_code=400, detail="Invalid phone number")
-    
-    # Send SMS
-    result = send_verification_sms(phone_number)
-    
-    if not result['success']:
-        raise HTTPException(status_code=500, detail=result['message'])
-    
-    return {
-        "success": True,
-        "message": result['message'],
-        "phone": phone_number
-    }
-
-
-def verify_phone_number(phone_number: str, code: str, token_data: dict = Depends(verify_token), db: Session = Depends(get_db)):
-    """
-    Verify phone number with the provided code
-    """
-    user_id = token_data.get("sub")
-    user = db.query(User).filter(User.id == int(user_id)).first()
-    
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    # Verify the code
-    result = verify_phone_code(phone_number, code)
-    
-    if not result['success']:
-        raise HTTPException(status_code=400, detail=result['message'])
-    
-    # Update database
-    update_phone_verification_status(user, db, is_verified=True)
-    
-    return {
-        "success": True,
-        "message": result['message'],
-        "phone": phone_number,
-        "is_phone_verified": True
     }
 
 
@@ -373,10 +336,9 @@ def get_user_profile(token_data: dict = Depends(verify_token), db: Session = Dep
         "city": user.city,
         "barangay": user.barangay,
         "postal_code": user.postal_code,
-        "status": user.status,
+        "status": customer_member_status(user),
         "user_role": user.user_role,
         "is_email_verified": user.is_email_verified,
-        "is_phone_verified": user.is_phone_verified,
         "created_at": user.created_at
     }
 
@@ -401,6 +363,7 @@ def update_user_profile(
         
         # Automatically reset verification status when email is changed
         user.is_email_verified = False
+        user.status = "Unverified"
         # Remove is_email_verified from update_data if it's there to prevent frontend from overriding this reset
         if "is_email_verified" in update_data:
             del update_data["is_email_verified"]
@@ -425,7 +388,8 @@ def update_user_profile(
                     pass
             else:
                 setattr(user, field, update_data[field])
-    
+
+    user.status = customer_member_status(user)
     user.updated_at = gala_dt.datetime.utcnow()
     db.commit()
     db.refresh(user)
@@ -452,7 +416,7 @@ def update_user_profile(
             "city": user.city,
             "barangay": user.barangay,
             "postal_code": user.postal_code,
-            "status": user.status,
+            "status": customer_member_status(user),
             "user_role": user.user_role,
             "is_email_verified": user.is_email_verified
         }
@@ -486,9 +450,13 @@ def list_all_users(db: Session = Depends(get_db)):
         "users": [
             {
                 "id": u.id,
+                "first_name": u.first_name,
+                "last_name": u.last_name,
                 "name": f"{u.first_name} {u.last_name}",
                 "email": u.email,
-                "status": u.status,
+                "phone": u.phone,
+                "user_role": u.user_role,
+                "status": customer_member_status(u),
                 "created_at": u.created_at
             }
             for u in users

@@ -10,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 import os
 import shutil
 from pydantic import BaseModel
+from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
 import models
 import os
@@ -24,8 +25,6 @@ from auth_endpoints import (
     forgot_password,
     reset_password,
     logout,
-    send_phone_verification_code,
-    verify_phone_number,
     get_user_profile, 
     update_user_profile,
     get_user_by_id,
@@ -34,6 +33,7 @@ from auth_endpoints import (
     get_admin_profile,
     get_admin_profile,
     verify_token,
+    verify_token_optional,
     update_booking_statuses_by_date,
 )
 import database_setup
@@ -131,6 +131,53 @@ class BookingCreateRequest(BaseModel):
     guest_count: int = None
     notes: str = None
 
+ALLOWED_PROMO_AUDIENCES = frozenset({"verified", "unverified"})
+# Legacy DB values still handled in promo_eligibility_for_user
+LEGACY_PROMO_AUDIENCES = frozenset({"all", "fully_verified"})
+
+
+def normalize_promo_audience(value: str | None) -> str:
+    v = (value or "verified").strip().lower()
+    if v in ALLOWED_PROMO_AUDIENCES:
+        return v
+    if v in LEGACY_PROMO_AUDIENCES:
+        return "verified"
+    return "verified"
+
+
+def resolve_customer_user_from_token(db: Session, token_payload: dict | None):
+    if not token_payload:
+        return None
+    uid = token_payload.get("sub")
+    if uid is None:
+        return None
+    try:
+        return db.query(models.User).filter(models.User.id == int(uid)).first()
+    except (TypeError, ValueError):
+        return None
+
+
+def promo_eligibility_for_user(audience: str | None, user: models.User | None) -> tuple[bool, str | None]:
+    """Returns (allowed, error_message). audience: verified | unverified; legacy all/fully_verified supported."""
+    raw = (audience or "verified").strip().lower()
+    if raw == "all":
+        return True, None
+    if raw == "fully_verified":
+        raw = "verified"
+    aud = raw if raw in ("verified", "unverified") else "verified"
+    if user is None:
+        return False, "Sign in to use this promo code."
+    if aud == "verified":
+        if not user.is_email_verified:
+            return False, "Verify your email address to use this promo code."
+        return True, None
+    if aud == "unverified":
+        if user.is_email_verified:
+            return False, "This promo code is only for members who have not verified their email yet."
+        return True, None
+    return True, None
+
+
 class PromoCodeRequest(BaseModel):
     code: str
     discount_percentage: float = None
@@ -138,6 +185,12 @@ class PromoCodeRequest(BaseModel):
     expiry_date: str = None # YYYY-MM-DD
     max_uses: int = None
     status: str = "Active"
+    audience: str = "verified"
+    applicable_event: str = "all"
+    applicable_package: str = "all"
+
+class PromoValidateRequest(BaseModel):
+    code: str
 
 class AdminReplyRequest(BaseModel):
     message_body: str
@@ -190,6 +243,44 @@ class PackageUpdateRequest(BaseModel):
     features: list[str] = None
     image_url: str = None
     status: str = None
+
+class BlockedDateCreateRequest(BaseModel):
+    block_date: str  # YYYY-MM-DD
+    note: str = None
+
+
+def assert_event_date_not_blocked(db: Session, event_date: gala_dt.date):
+    blocked = db.query(models.BlockedBookingDate).filter(
+        models.BlockedBookingDate.block_date == event_date
+    ).first()
+    if blocked:
+        raise HTTPException(
+            status_code=400,
+            detail="This date is unavailable for bookings (marked as day off). Please choose another date.",
+        )
+
+
+def assert_event_date_no_active_booking(db: Session, event_date: gala_dt.date):
+    """One active reservation per calendar day (cancelled bookings free the date)."""
+    taken = (
+        db.query(models.Booking)
+        .filter(
+            models.Booking.event_date == event_date,
+            models.Booking.status != "Cancelled",
+        )
+        .first()
+    )
+    if taken:
+        raise HTTPException(
+            status_code=400,
+            detail="This date is already reserved. Please choose another date.",
+        )
+
+
+def assert_event_date_available_for_new_booking(db: Session, event_date: gala_dt.date):
+    assert_event_date_not_blocked(db, event_date)
+    assert_event_date_no_active_booking(db, event_date)
+
 
 def get_db():
     """Database session dependency"""
@@ -284,25 +375,6 @@ def logout_endpoint(credentials = Depends(verify_token), db: Session = Depends(g
     User logout endpoint - records logout timestamp in database
     """
     return logout(credentials, db)
-
-@app.post("/api/auth/send-phone-verification")
-def send_phone_verification_endpoint(request_data: dict, credentials = Depends(verify_token), db: Session = Depends(get_db)):
-    """
-    Send phone verification code via SMS
-    Expects: {"phone_number": "+63 9XXXXXXXXX"}
-    """
-    phone_number = request_data.get("phone_number")
-    return send_phone_verification_code(phone_number, credentials, db)
-
-@app.post("/api/auth/verify-phone")
-def verify_phone_endpoint(request_data: dict, credentials = Depends(verify_token), db: Session = Depends(get_db)):
-    """
-    Verify phone number with code
-    Expects: {"phone_number": "+63 9XXXXXXXXX", "code": "123456"}
-    """
-    phone_number = request_data.get("phone_number")
-    code = request_data.get("code")
-    return verify_phone_number(phone_number, code, credentials, db)
 
 # ============================================================================
 # USER PROFILE ROUTES
@@ -419,7 +491,8 @@ def create_booking(request: BookingCreateRequest, credentials = Depends(verify_t
     try:
         # Convert date string to date object
         event_date_obj = gala_dt.datetime.strptime(request.event_date, "%Y-%m-%d").date()
-        
+        assert_event_date_available_for_new_booking(db, event_date_obj)
+
         new_booking = models.Booking(
             booking_reference=booking_ref,
             customer_id=user_id,
@@ -444,11 +517,45 @@ def create_booking(request: BookingCreateRequest, credentials = Depends(verify_t
             "booking_reference": booking_ref,
             "id": new_booking.id
         }
+    except HTTPException:
+        db.rollback()
+        raise
     except ValueError as e:
+        db.rollback()
         raise HTTPException(status_code=400, detail=f"Invalid date format: {str(e)}")
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to create booking: {str(e)}")
+
+
+@app.get("/api/blocked-dates")
+def get_blocked_dates_public(db: Session = Depends(get_db)):
+    """Dates that are closed for new bookings (for customer date pickers)."""
+    today = gala_dt.date.today()
+    rows = (
+        db.query(models.BlockedBookingDate)
+        .filter(models.BlockedBookingDate.block_date >= today)
+        .order_by(models.BlockedBookingDate.block_date)
+        .all()
+    )
+    return [r.block_date.isoformat() for r in rows]
+
+
+@app.get("/api/booked-dates")
+def get_booked_dates_public(db: Session = Depends(get_db)):
+    """Event dates that already have a non-cancelled booking (for date pickers)."""
+    today = gala_dt.date.today()
+    rows = (
+        db.query(models.Booking.event_date)
+        .filter(
+            models.Booking.event_date >= today,
+            models.Booking.status != "Cancelled",
+        )
+        .distinct()
+        .all()
+    )
+    out = sorted({r[0].isoformat() for r in rows if r[0] is not None})
+    return out
 
 
 # ============================================================================
@@ -472,6 +579,69 @@ def get_admin_bookings_endpoint(credentials = Depends(verify_token), db: Session
     update_booking_statuses_by_date(db)
     
     return database_setup.get_active_bookings()
+
+
+@app.get("/api/admin/blocked-dates")
+def admin_get_blocked_dates(credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    rows = (
+        db.query(models.BlockedBookingDate)
+        .order_by(models.BlockedBookingDate.block_date)
+        .all()
+    )
+    return [
+        {
+            "id": r.id,
+            "block_date": r.block_date.isoformat(),
+            "note": r.note,
+        }
+        for r in rows
+    ]
+
+
+@app.post("/api/admin/blocked-dates")
+def admin_add_blocked_date(
+    request: BlockedDateCreateRequest,
+    credentials = Depends(verify_token),
+    db: Session = Depends(get_db),
+):
+    try:
+        d = gala_dt.datetime.strptime(request.block_date.strip(), "%Y-%m-%d").date()
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date. Use YYYY-MM-DD.")
+    existing = (
+        db.query(models.BlockedBookingDate)
+        .filter(models.BlockedBookingDate.block_date == d)
+        .first()
+    )
+    if existing:
+        raise HTTPException(status_code=400, detail="This date is already marked unavailable.")
+    row = models.BlockedBookingDate(block_date=d, note=request.note)
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return {"success": True, "id": row.id, "block_date": row.block_date.isoformat()}
+
+
+@app.delete("/api/admin/blocked-dates/{block_date}")
+def admin_remove_blocked_date(
+    block_date: str,
+    credentials = Depends(verify_token),
+    db: Session = Depends(get_db),
+):
+    try:
+        d = gala_dt.datetime.strptime(block_date.strip(), "%Y-%m-%d").date()
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date.")
+    row = (
+        db.query(models.BlockedBookingDate)
+        .filter(models.BlockedBookingDate.block_date == d)
+        .first()
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail="This date is not marked unavailable.")
+    db.delete(row)
+    db.commit()
+    return {"success": True}
 
 @app.post("/api/admin/bookings/{booking_reference}/confirm")
 def confirm_booking(booking_reference: str, credentials = Depends(verify_token), db: Session = Depends(get_db)):
@@ -816,6 +986,82 @@ def mark_message_read(message_id: int, credentials = Depends(verify_token), db: 
     db.commit()
     return {"success": True, "message": "Inquiry marked as read"}
 
+@app.get("/api/promo-codes/active")
+def get_active_promo_codes_public(
+    db: Session = Depends(get_db),
+    token_payload: dict | None = Depends(verify_token_optional),
+):
+    """Active, non-expired promo codes with uses remaining. Send Bearer token to see audience-restricted codes."""
+    today = gala_dt.date.today()
+    user = resolve_customer_user_from_token(db, token_payload)
+    rows = db.query(models.PromoCode).filter(models.PromoCode.status == "Active").all()
+    out = []
+    for p in rows:
+        if p.expiry_date and p.expiry_date < today:
+            continue
+        uses = p.current_uses or 0
+        if p.max_uses is not None and uses >= p.max_uses:
+            continue
+        aud = getattr(p, "audience", None) or "verified"
+        allowed, _ = promo_eligibility_for_user(aud, user)
+        if not allowed:
+            continue
+        out.append({
+            "id": p.id,
+            "code": p.code,
+            "discount_percentage": p.discount_percentage,
+            "discount_amount": p.discount_amount,
+            "expiry_date": p.expiry_date.isoformat() if p.expiry_date else None,
+            "max_uses": p.max_uses,
+            "current_uses": uses,
+            "status": p.status,
+            "audience": aud,
+        })
+    return out
+
+
+@app.post("/api/promo-codes/validate")
+def validate_promo_code_public(
+    request: PromoValidateRequest,
+    db: Session = Depends(get_db),
+    token_payload: dict | None = Depends(verify_token_optional),
+):
+    """Validate a promo code for checkout. Send Bearer token when code is restricted to verified users."""
+    code_clean = (request.code or "").strip()
+    if not code_clean:
+        raise HTTPException(status_code=400, detail="Promo code is required")
+
+    promo = db.query(models.PromoCode).filter(
+        func.upper(models.PromoCode.code) == func.upper(code_clean)
+    ).first()
+
+    if not promo:
+        return {"valid": False, "message": "Invalid promo code"}
+
+    today = gala_dt.date.today()
+    if promo.status != "Active":
+        return {"valid": False, "message": "This promo code is not active"}
+    if promo.expiry_date and promo.expiry_date < today:
+        return {"valid": False, "message": "This promo code has expired"}
+    uses = promo.current_uses or 0
+    if promo.max_uses is not None and uses >= promo.max_uses:
+        return {"valid": False, "message": "This promo code has reached its usage limit"}
+
+    user = resolve_customer_user_from_token(db, token_payload)
+    aud = getattr(promo, "audience", None) or "verified"
+    allowed, err_msg = promo_eligibility_for_user(aud, user)
+    if not allowed:
+        return {"valid": False, "message": err_msg or "You are not eligible for this promo code."}
+
+    return {
+        "valid": True,
+        "code": promo.code,
+        "discount_percentage": promo.discount_percentage,
+        "discount_amount": promo.discount_amount,
+        "message": "Promo applied",
+    }
+
+
 @app.get("/api/admin/promo-codes")
 def get_promo_codes(credentials = Depends(verify_token), db: Session = Depends(get_db)):
     """Get all promo codes for admin"""
@@ -839,7 +1085,10 @@ def create_promo_code(request: PromoCodeRequest, credentials = Depends(verify_to
         discount_amount=request.discount_amount,
         expiry_date=expires,
         max_uses=request.max_uses,
-        status=request.status
+        status=request.status,
+        audience=normalize_promo_audience(request.audience),
+        applicable_event=request.applicable_event,
+        applicable_package=request.applicable_package
     )
     db.add(new_code)
     try:
@@ -864,7 +1113,10 @@ def update_promo_code(code_id: int, request: PromoCodeRequest, credentials = Dep
     promo.discount_amount = request.discount_amount
     promo.max_uses = request.max_uses
     promo.status = request.status
-    
+    promo.audience = normalize_promo_audience(request.audience)
+    promo.applicable_event = request.applicable_event
+    promo.applicable_package = request.applicable_package
+
     if request.expiry_date:
         try:
             promo.expiry_date = gala_dt.datetime.strptime(request.expiry_date, "%Y-%m-%d").date()
@@ -908,12 +1160,41 @@ def get_package_reviews(package_id: int, db: Session = Depends(get_db)):
                 "rating": r.rating,
                 "comment": r.comment,
                 "created_at": r.created_at,
-                "customer_name": r.customer.first_name if r.customer else "Customer"
+                "customer_name": r.customer.first_name if r.customer else "Customer",
+                "package_name": r.booking.package.package_name if (r.booking and r.booking.package) else "Event Package"
             }
             for r in reviews
         ]
     except Exception as e:
         print(f"Error fetching package reviews: {e}")
+        return []
+
+@app.get("/api/reviews/featured")
+def get_featured_reviews(limit: int = 10, db: Session = Depends(get_db)):
+    """Get featured 5-star reviews for landing page (public endpoint)"""
+    try:
+        reviews = db.query(models.Review).filter(
+            models.Review.rating == 5,
+            models.Review.status == "Visible"
+        ).order_by(models.Review.created_at.desc()).limit(limit).all()
+        
+        if not reviews:
+            return []
+        
+        return [
+            {
+                "id": r.id,
+                "rating": r.rating,
+                "comment": r.comment,
+                "created_at": r.created_at,
+                "first_name": r.customer.first_name if r.customer else "Customer",
+                "last_name": r.customer.last_name if r.customer else "",
+                "package_name": r.booking.package.package_name if (r.booking and r.booking.package) else "Event Package"
+            }
+            for r in reviews
+        ]
+    except Exception as e:
+        print(f"Error fetching featured reviews: {e}")
         return []
 
 @app.get("/api/admin/reviews")
@@ -1033,6 +1314,8 @@ def create_paymongo_checkout(request: PaymentRequest, credentials = Depends(veri
             except:
                 print(f"DEBUG: Could not parse date '{request.selected_date}', using today.")
 
+        assert_event_date_available_for_new_booking(db, event_date_obj)
+
         new_booking = models.Booking(
             booking_reference=booking_ref,
             customer_id=user_id,
@@ -1070,10 +1353,16 @@ def create_paymongo_checkout(request: PaymentRequest, credentials = Depends(veri
         db.add(new_approval)
         db.commit()
         
+    except HTTPException:
+        db.rollback()
+        raise
     except Exception as e:
         db.rollback()
         print(f"DATABASE BOOKING ERROR: {str(e)}")
-        # Continue with payment even if DB fails, though ideally both should work
+        raise HTTPException(
+            status_code=500,
+            detail="Could not create your reservation. Please try again or pick another date.",
+        )
 
     # 2. Proceed with PayMongo session creation
     secret_key = os.getenv("PAYMONGO_SECRET_KEY")

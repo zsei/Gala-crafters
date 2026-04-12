@@ -227,75 +227,107 @@ function ServicesPage() {
 
           <div className="service-row">
             <div className="service-text">
-              <h3>Wedding Catering</h3>
+              <h3>Chef's Special</h3>
               <div style={{ width: '40px', height: '2px', background: '#c49a2c', marginBottom: '15px' }}></div>
-              <p>
-                Make your wedding reception stress-free and memorable with our catering services.
-                We carefully consider factors like your theme and guests' preferences to create the perfect menu.
-              </p>
+              <div style={{ fontSize: '15px', lineHeight: '2', color: '#ffffff', opacity: '0.9' }}>
+                <ul style={{ listStyleType: 'disc', paddingLeft: '20px', margin: 0 }}>
+                  <li>15 Hours Slow Roast Beef Belly with Truffle Demi-Glace</li>
+                  <li>Chef Special's Birthday Noodles (Cha Misua)</li>
+                  <li>Salted Egg Crabs (Deep-fried crabs in signature salted egg sauce)</li>
+                  <li>Paella Bagnet (Filipino-Spanish fusion with crispy pork)</li>
+                  <li>Chef Special's Mixed Salad with Russian Dressing</li>
+                  <li>40 Cloves Garlic Chicken with Java Rice</li>
+                  <li>Baked 4 Cheese Lobster Meat Rice</li>
+                </ul>
+              </div>
             </div>
             <div className="service-image">
-              <img src={img1} alt="Wedding Catering" />
+              <img src={img1} alt="Chef's Special" />
             </div>
           </div>
 
           <div className="service-row reverse">
             <div className="service-text">
-              <h3>Corporate Catering</h3>
+              <h3>Signature Plated</h3>
               <div style={{ width: '40px', height: '2px', background: '#c49a2c', marginBottom: '15px' }}></div>
-              <p>
-                Whether it's a high-profile business meeting, a product launch, or a corporate gala,
-                our catering services in the Philippines add a touch of sophistication to your professional gatherings.
-              </p>
+              <div style={{ fontSize: '15px', lineHeight: '2', color: '#ffffff', opacity: '0.9' }}>
+                <ul style={{ listStyleType: 'disc', paddingLeft: '20px', margin: 0 }}>
+                  <li>Sous Vide Beef Cheeks Kare-Kare</li>
+                  <li>Garlic Rosemary Roasted Chicken Au Jus with Mashed Potatoes</li>
+                  <li>Baked Salmon with Creamed Spinach and Mixed Vegetables</li>
+                  <li>Sous Vide Roast Pork Loin with Mushroom Gravy</li>
+                  <li>Grilled Prawns in Lemon Butter Sauce</li>
+                  <li>Scallop Rockefeller or Baked Cheesy Mussels</li>
+                  <li>Sous Vide Beef Lengua with Mixed Vegetables</li>
+                </ul>
+              </div>
             </div>
             <div className="service-image">
-              <img src={img2} alt="Corporate Catering" />
+              <img src={img2} alt="Signature Plated" />
             </div>
           </div>
 
           <div className="service-row">
             <div className="service-text">
-              <h3>Debut Catering</h3>
+              <h3>International Menu</h3>
               <div style={{ width: '40px', height: '2px', background: '#c49a2c', marginBottom: '15px' }}></div>
-              <p>
-                For your debut, we ensure perfection at every step, creating memorable and magical events.
-                Our attention to detail and quality have attracted high-profile clientele, showcasing our
-                ability to make every debut truly special.
-              </p>
+              <div style={{ fontSize: '15px', lineHeight: '2', color: '#ffffff', opacity: '0.9' }}>
+                <ul style={{ listStyleType: 'disc', paddingLeft: '20px', margin: 0 }}>
+                  <li>Japanese Gyoza and Assorted Dimsum</li>
+                  <li>Peking Duck (Marinated and roasted to a crisp)</li>
+                  <li>Chicken Karaage with Japanese Mayonnaise</li>
+                  <li>Yang Chow or Fookien Fried Rice</li>
+                  <li>Korean Chap Chae (Stir-fry glass noodles)</li>
+                  <li>Cordon Bleu with Creamy Mushroom Sauce</li>
+                  <li>Beef Lasagna or Meaty Spaghetti Bolognese</li>
+                  <li>Seafood Casserole and Baked Fish Fillet Parmigiano</li>
+                </ul>
+              </div>
             </div>
             <div className="service-image">
-              <img src={img3} alt="Debut Catering" />
+              <img src={img3} alt="International Menu" />
             </div>
           </div>
 
-          <div className="service-row reverse">
+       <div className="service-row reverse">
             <div className="service-text">
-              <h3>Children's Party Catering</h3>
+              <h3>Traditional Filipino</h3>
               <div style={{ width: '40px', height: '2px', background: '#c49a2c', marginBottom: '15px' }}></div>
-              <p>
-                We specialize in the best children's party designs, crafting menus with care. Collaborate
-                with us, and even involve your child in theme customization. Our attention to clientele
-                includes facilitating parties for esteemed families.
-              </p>
+              <div style={{ fontSize: '15px', lineHeight: '2', color: '#ffffff', opacity: '0.9' }}>
+                <ul style={{ listStyleType: 'disc', paddingLeft: '20px', margin: 0 }}>
+                  <li>Crispy Pork Bagnet in Kare-Kare Sauce</li>
+                  <li>Sizzling Pork Sisig</li>
+                  <li>Beef Tapsilog and Bangus Silog</li>
+                  <li>Pinoy Style Spaghetti (Sweet style)</li>
+                  <li>Lumpia Shanghai (Spring rolls)</li>
+                  <li>Lechon Macau and Pork Adobo</li>
+                  <li>Buko Pandan (Traditional dessert)</li>
+                </ul>
+              </div>
             </div>
             <div className="service-image">
-              <img src={img1} alt="Children's Party Catering" />
+              <img src={img2} alt="Signature Plated" />
             </div>
           </div>
 
-          <div className="service-row">
+           <div className="service-row">
             <div className="service-text">
-              <h3>Special Occasions Catering</h3>
+              <h3>International Menu</h3>
               <div style={{ width: '40px', height: '2px', background: '#c49a2c', marginBottom: '15px' }}></div>
-              <p>
-                Life is punctuated by special moments, and our food services extend to embrace the richness
-                of these occasions through tailored menus and impeccable service. Whether it's a milestone
-                anniversary or a family reunion, our special occasions catering ensures that the culinary
-                experience becomes an integral part of your celebrations.
-              </p>
+              <div style={{ fontSize: '15px', lineHeight: '2', color: '#ffffff', opacity: '0.9' }}>
+                <ul style={{ listStyleType: 'disc', paddingLeft: '20px', margin: 0 }}>
+                  <li>Chicken Nuggets or Chicken Lollipops</li>
+                  <li>Hotdog on a Stick with Marshmallows)</li>
+                  <li>Burger Steak with Mushroom Sauce</li>
+                  <li>Macaroni and Cheese or Baked Macaroni</li>
+                  <li>Mini Burgers with Cheese</li>
+                  <li>Parmesan Chicken Wings</li>
+                  <li>Assorted Pastries and Blondies</li>
+                </ul>
+              </div>
             </div>
             <div className="service-image">
-              <img src={img2} alt="Special Occasions Catering" />
+              <img src={img3} alt="International Menu" />
             </div>
           </div>
 

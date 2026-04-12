@@ -167,22 +167,12 @@
 
 .modal-actions-row {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   margin-bottom: 25px;
 }
 
-.modal-premium-tag {
-  background-color: #c49a2c;
-  color: white;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1px;
-}
-
 .modal-stars {
-  margin-top: 10px;
+  margin-top: 0;
   color: #c49a2c;
   font-size: 16px;
 }
@@ -191,17 +181,6 @@
   color: #aaa;
   font-size: 13px;
 }
-
-.modal-icon-btns { display: flex; gap: 10px; }
-.modal-icon-btn {
-  background: rgba(255, 255, 255, 0.05); 
-  border: 1px solid rgba(255, 255, 255, 0.1); 
-  border-radius: 50%;
-  width: 40px; height: 40px; display: flex; justify-content: center; align-items: center;
-  cursor: pointer; color: white; transition: 0.2s;
-}
-
-.modal-icon-btn:hover { border-color: #c49a2c; color: #c49a2c; background: rgba(196, 154, 44, 0.1); }
 
 .modal-desc-text {
   font-size: 15px;
@@ -231,7 +210,15 @@
   background: rgba(255, 255, 255, 0.03); 
   border: 1px solid rgba(255, 255, 255, 0.08); 
   border-radius: 10px;
-  padding: 20px; display: flex; gap: 15px;
+  padding: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.modal-included-card > svg {
+  flex-shrink: 0;
+  margin-top: 2px;
 }
 
 .modal-included-info h4 { margin: 0 0 5px 0; font-size: 15px; color: white; }
@@ -358,6 +345,35 @@
   font-weight: 700;
 }
 
+.calendar-days span.calendar-day-off {
+  background: rgba(196, 154, 44, 0.2);
+  color: rgba(255, 255, 255, 0.45);
+  text-decoration: line-through;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.calendar-days span.calendar-day-booked {
+  background: rgba(200, 72, 72, 0.35);
+  color: rgba(255, 200, 200, 0.95);
+  font-weight: 600;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.calendar-days span.calendar-day-past {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.calendar-days span.calendar-day-off:hover,
+.calendar-days span.calendar-day-booked:hover,
+.calendar-days span.calendar-day-past:hover {
+  background: inherit;
+  color: inherit;
+}
+
 .modal-form-group select {
   width: 100%; padding: 10px 12px; 
   background: rgba(255, 255, 255, 0.05);
@@ -403,8 +419,13 @@
   transition: background 0.2s;
 }
 
-.modal-stepper-btn:hover { background: #a98322; }
-.modal-stepper-btn:active { transform: scale(0.95); }
+.modal-stepper-btn:hover:not(:disabled) { background: #a98322; }
+.modal-stepper-btn:active:not(:disabled) { transform: scale(0.95); }
+.modal-stepper-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  background: rgba(196, 154, 44, 0.45);
+}
 
 .modal-stepper-val {
   flex: 1;

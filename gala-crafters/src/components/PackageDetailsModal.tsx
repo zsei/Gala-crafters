@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, Share2, Heart, CheckCircle, Utensils, Sparkles, Layout, Users, ChevronLeft, ChevronRight, Star } from 'lucide-react';
+import { X, Calendar, CheckCircle, Utensils, Sparkles, Layout, Users, ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import './PackageDetailsModal.css';
 import { API_BASE_URL } from '../api/config';
 
@@ -199,14 +199,27 @@ const packageData = {
   }
 };
 
+function toBookingYMD(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 const PackageDetailsModal: React.FC<PackageDetailsModalProps> = ({ isOpen, onClose, packageType, onReserve }) => {
   const [promoCode, setPromoCode] = useState('');
   const [isPromoApplied, setIsPromoApplied] = useState(false);
-  const [guestCount, setGuestCount] = useState(50);
+  const [promoDiscountAmount, setPromoDiscountAmount] = useState(0);
+  const [promoError, setPromoError] = useState<string | null>(null);
+  const [appliedPromoCode, setAppliedPromoCode] = useState<string | null>(null);
+  const [promoValidating, setPromoValidating] = useState(false);
+  const [guestCount, setGuestCount] = useState(20);
   const [selectedDate, setSelectedDate] = useState(new Date(2026, 3, 11));
   const [showCalendar, setShowCalendar] = useState(false);
   const [viewDate, setViewDate] = useState(new Date(2026, 3, 11));
-  
+  const [blockedBookingDates, setBlockedBookingDates] = useState<Set<string>>(new Set());
+  const [bookedEventDates, setBookedEventDates] = useState<Set<string>>(new Set());
+
   // Review states
   const [reviews, setReviews] = useState<any[]>([]);
   const [averageRating, setAverageRating] = useState(0);
@@ -297,20 +310,166 @@ const PackageDetailsModal: React.FC<PackageDetailsModalProps> = ({ isOpen, onClo
     }
   }, [isOpen, packageType]);
 
+  useEffect(() => {
+    setPromoCode('');
+    setIsPromoApplied(false);
+    setPromoDiscountAmount(0);
+    setPromoError(null);
+    setAppliedPromoCode(null);
+    setGuestCount(
+      packageType === 'intimate' ? 20 : 
+      (['utopian', 'elite'].includes(packageType) ? 100 : 
+      (packageType.startsWith('corporate') ? 20 : 
+      (packageType === 'debutIntimate' ? 20 : 
+      (['debutClassy', 'debutVogue'].includes(packageType) ? 100 : 
+      (packageType === 'kiddiePlayful' ? 20 : 
+      (['kiddieAdventure', 'kiddieCarnival'].includes(packageType) ? 100 : 
+      (packageType === 'specialIntimate' ? 20 : 
+      (['specialGrand', 'specialLegacy'].includes(packageType) ? 100 : 50))))))))
+    );
+  }, [isOpen, packageType]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const parseList = (data: unknown): string[] =>
+      Array.isArray(data) ? (data as string[]).filter((s) => typeof s === 'string') : [];
+
+    Promise.all([
+      fetch(`${API_BASE_URL}/api/blocked-dates`).then((r) => r.json()),
+      fetch(`${API_BASE_URL}/api/booked-dates`).then((r) => r.json()),
+    ])
+      .then(([blockedRaw, bookedRaw]) => {
+        setBlockedBookingDates(new Set(parseList(blockedRaw)));
+        setBookedEventDates(new Set(parseList(bookedRaw)));
+      })
+      .catch(() => {
+        setBlockedBookingDates(new Set());
+        setBookedEventDates(new Set());
+      });
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const unavailable = (d: Date) => {
+      const ymd = toBookingYMD(d);
+      return blockedBookingDates.has(ymd) || bookedEventDates.has(ymd) || d < today;
+    };
+    if (!unavailable(selectedDate)) return;
+    const next = new Date(today);
+    for (let i = 0; i < 800; i++) {
+      if (!unavailable(next)) {
+        setSelectedDate(new Date(next));
+        setViewDate(new Date(next.getFullYear(), next.getMonth(), 1));
+        break;
+      }
+      next.setDate(next.getDate() + 1);
+    }
+  }, [isOpen, blockedBookingDates, bookedEventDates, selectedDate]);
+
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   };
 
   if (!isOpen) return null;
 
+  const isIntimateWedding = packageType === 'intimate';
+  const isUtopianWedding = packageType === 'utopian';
+  const isEliteWedding = packageType === 'elite';
+  const isCorporate = packageType.startsWith('corporate');
+  const isDebutIntimate = packageType === 'debutIntimate';
+  const isDebutClassy = packageType === 'debutClassy';
+  const isDebutVogue = packageType === 'debutVogue';
+  const isKiddiePlayful = packageType === 'kiddiePlayful';
+  const isKiddieAdventure = packageType === 'kiddieAdventure';
+  const isKiddieCarnival = packageType === 'kiddieCarnival';
+  const isSpecialIntimate = packageType === 'specialIntimate';
+  const isSpecialGrand = packageType === 'specialGrand';
+  const isSpecialLegacy = packageType === 'specialLegacy';
+  
+  const intimateMinGuests = 20;
+  const weddingMinGuests = 100;
+  const corporateMinGuests = 20;
+  const debutIntimateMinGuests = 20;
+  const debutLargeMinGuests = 100;
+  const kiddiePlayfulMinGuests = 20;
+  const kiddieLargeMinGuests = 100;
+  const specialIntimateMinGuests = 20;
+  const specialLargeMinGuests = 100;
+  const extraPaxRate = 350;
+  
+  const minGuests = isIntimateWedding ? intimateMinGuests : 
+                    (isUtopianWedding || isEliteWedding ? weddingMinGuests : 
+                    (isCorporate ? corporateMinGuests : 
+                    (isDebutIntimate ? debutIntimateMinGuests : 
+                    (isDebutClassy || isDebutVogue ? debutLargeMinGuests : 
+                    (isKiddiePlayful ? kiddiePlayfulMinGuests : 
+                    (isKiddieAdventure || isKiddieCarnival ? kiddieLargeMinGuests : 
+                    (isSpecialIntimate ? specialIntimateMinGuests : 
+                    (isSpecialGrand || isSpecialLegacy ? specialLargeMinGuests : 1))))))));
+                    
+  const maxGuests = (isIntimateWedding || isUtopianWedding || isEliteWedding || isCorporate || isDebutIntimate || isDebutClassy || isDebutVogue || isKiddiePlayful || isKiddieAdventure || isKiddieCarnival || isSpecialIntimate || isSpecialGrand || isSpecialLegacy) ? Number.POSITIVE_INFINITY : 999;
+
   const data = packageData[packageType] || packageData.intimate;
   const basePrice = data.basePrice;
-  const serviceFee = basePrice * 0.10;
-  const promoDiscount = isPromoApplied ? 500 : 0;
-  const totalEstimated = basePrice + serviceFee - promoDiscount;
+  
+  const extraGuestBillablePax = (isIntimateWedding || isUtopianWedding || isEliteWedding || isCorporate || isDebutIntimate || isDebutClassy || isDebutVogue || isKiddiePlayful || isKiddieAdventure || isKiddieCarnival || isSpecialIntimate || isSpecialGrand || isSpecialLegacy) ? Math.max(0, guestCount - minGuests) : 0;
+  const additionalGuestsFee = (isIntimateWedding || isUtopianWedding || isEliteWedding || isCorporate || isDebutIntimate || isDebutClassy || isDebutVogue || isKiddiePlayful || isKiddieAdventure || isKiddieCarnival || isSpecialIntimate || isSpecialGrand || isSpecialLegacy) ? extraGuestBillablePax * extraPaxRate : 0;
+  const packageSubtotal = basePrice + additionalGuestsFee;
+  const prePromoTotal = packageSubtotal;
+  const totalEstimated = prePromoTotal - promoDiscountAmount;
 
-  const handleApplyPromo = () => {
-    if (promoCode === 'GALA2024') setIsPromoApplied(true);
+  const handleApplyPromo = async () => {
+    setPromoError(null);
+    const trimmed = promoCode.trim();
+    if (!trimmed) {
+      setPromoError('Enter a promo code');
+      return;
+    }
+    setPromoValidating(true);
+    try {
+      const token = localStorage.getItem('token');
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const res = await fetch(`${API_BASE_URL}/api/promo-codes/validate`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ code: trimmed }),
+      });
+      const body = await res.json();
+      if (!body.valid) {
+        setIsPromoApplied(false);
+        setPromoDiscountAmount(0);
+        setAppliedPromoCode(null);
+        setPromoError(body.message || 'Invalid code');
+        return;
+      }
+      const subtotal = prePromoTotal;
+      let discount = 0;
+      if (body.discount_percentage != null && body.discount_percentage > 0) {
+        discount = Math.min(subtotal, Math.round((subtotal * body.discount_percentage) / 100));
+      } else if (body.discount_amount != null && body.discount_amount > 0) {
+        discount = Math.min(subtotal, body.discount_amount);
+      }
+      if (discount <= 0) {
+        setIsPromoApplied(false);
+        setPromoDiscountAmount(0);
+        setAppliedPromoCode(null);
+        setPromoError('This code has no discount configured.');
+        return;
+      }
+      setPromoDiscountAmount(discount);
+      setIsPromoApplied(true);
+      setAppliedPromoCode(body.code);
+    } catch {
+      setPromoError('Could not verify promo code. Try again.');
+      setIsPromoApplied(false);
+      setPromoDiscountAmount(0);
+      setAppliedPromoCode(null);
+    } finally {
+      setPromoValidating(false);
+    }
   };
 
   return (
@@ -401,7 +560,6 @@ const PackageDetailsModal: React.FC<PackageDetailsModalProps> = ({ isOpen, onClo
 
             <div className="modal-actions-row" style={{ marginTop: '40px' }}>
               <div className="modal-tags">
-                <span className="modal-premium-tag">PREMIUM CHOICE</span>
                 <div className="modal-stars">
                   {loadingReviews ? (
                     <span className="modal-review-count">Loading reviews...</span>
@@ -422,10 +580,6 @@ const PackageDetailsModal: React.FC<PackageDetailsModalProps> = ({ isOpen, onClo
                   )}
                 </div>
               </div>
-              <div className="modal-icon-btns">
-                <button className="modal-icon-btn"><Share2 size={18} /></button>
-                <button className="modal-icon-btn"><Heart size={18} /></button>
-              </div>
             </div>
 
             <p className="modal-desc-text">{data.description}</p>
@@ -436,7 +590,7 @@ const PackageDetailsModal: React.FC<PackageDetailsModalProps> = ({ isOpen, onClo
               <div className="modal-included-grid">
                 {data.included.map((item, idx) => (
                   <div key={idx} className="modal-included-card">
-                    <item.icon size={20} color="#c49a2c" />
+                    <item.icon size={32} color="#c49a2c" strokeWidth={1.75} />
                     <div className="modal-included-info">
                       <h4>{item.title}</h4>
                       <p>{item.desc}</p>
@@ -465,7 +619,7 @@ const PackageDetailsModal: React.FC<PackageDetailsModalProps> = ({ isOpen, onClo
               <div className="modal-widget-header">
               <div className="modal-price-label">
                   <span>TOTAL PRICE</span>
-                  <span className="modal-price-val">₱{basePrice.toLocaleString()}</span>
+                  <span className="modal-price-val">₱{Number(totalEstimated.toFixed(1)).toLocaleString()}</span>
                 </div>
               </div>
 
@@ -489,12 +643,39 @@ const PackageDetailsModal: React.FC<PackageDetailsModalProps> = ({ isOpen, onClo
                         {Array.from({ length: firstDay(viewDate.getFullYear(), viewDate.getMonth()) }).map((_, i) => <span key={`empty-${i}`} />)}
                         {Array.from({ length: daysInMonth(viewDate.getFullYear(), viewDate.getMonth()) }).map((_, i) => {
                           const day = i + 1;
+                          const cell = new Date(viewDate.getFullYear(), viewDate.getMonth(), day);
+                          const ymd = toBookingYMD(cell);
+                          const todayStart = new Date();
+                          todayStart.setHours(0, 0, 0, 0);
+                          const isPast = cell < todayStart;
+                          const isDayOff = blockedBookingDates.has(ymd);
+                          const isBooked = bookedEventDates.has(ymd);
+                          const isUnavailable = isPast || isDayOff || isBooked;
                           const isSelected = selectedDate.getDate() === day && selectedDate.getMonth() === viewDate.getMonth() && selectedDate.getFullYear() === viewDate.getFullYear();
                           return (
-                            <span 
-                              key={day} 
-                              className={isSelected ? 'selected' : ''} 
-                              onClick={() => { setSelectedDate(new Date(viewDate.getFullYear(), viewDate.getMonth(), day)); setShowCalendar(false); }}
+                            <span
+                              key={day}
+                              className={[
+                                isSelected ? 'selected' : '',
+                                isDayOff ? 'calendar-day-off' : '',
+                                !isDayOff && isBooked ? 'calendar-day-booked' : '',
+                                isPast ? 'calendar-day-past' : '',
+                              ].filter(Boolean).join(' ')}
+                              aria-label={
+                                isDayOff
+                                  ? `Day off ${ymd}`
+                                  : isBooked
+                                    ? `Already booked ${ymd}`
+                                    : isPast
+                                      ? `Past ${ymd}`
+                                      : `Select ${ymd}`
+                              }
+                              style={isUnavailable ? { cursor: 'not-allowed' } : undefined}
+                              onClick={() => {
+                                if (isUnavailable) return;
+                                setSelectedDate(cell);
+                                setShowCalendar(false);
+                              }}
                             >
                               {day}
                             </span>
@@ -508,10 +689,29 @@ const PackageDetailsModal: React.FC<PackageDetailsModalProps> = ({ isOpen, onClo
 
               <div className="modal-form-group">
                 <label>ESTIMATED GUESTS</label>
+                {(isIntimateWedding || isUtopianWedding || isEliteWedding || isCorporate || isDebutIntimate || isDebutClassy || isDebutVogue || isKiddiePlayful || isKiddieAdventure || isKiddieCarnival || isSpecialIntimate || isSpecialGrand || isSpecialLegacy) && (
+                  <p style={{ margin: '0 0 8px 0', fontSize: 12, color: 'rgba(255,255,255,0.55)', lineHeight: 1.4 }}>
+                    Minimum {minGuests} guests (included in base). +₱{extraPaxRate.toLocaleString()} for each additional guest.
+                  </p>
+                )}
                 <div className="modal-guest-stepper">
-                  <button className="modal-stepper-btn" onClick={() => setGuestCount(prev => Math.max(1, prev - 1))}>-</button>
+                  <button
+                    type="button"
+                    className="modal-stepper-btn"
+                    disabled={guestCount <= minGuests}
+                    onClick={() => setGuestCount((prev) => Math.max(minGuests, prev - 1))}
+                  >
+                    -
+                  </button>
                   <div className="modal-stepper-val">{guestCount} Guests</div>
-                  <button className="modal-stepper-btn" onClick={() => setGuestCount(prev => prev + 1)}>+</button>
+                  <button
+                    type="button"
+                    className="modal-stepper-btn"
+                    disabled={guestCount >= maxGuests}
+                    onClick={() => setGuestCount((prev) => Math.min(maxGuests, prev + 1))}
+                  >
+                    +
+                  </button>
                 </div>
               </div>
 
@@ -519,16 +719,26 @@ const PackageDetailsModal: React.FC<PackageDetailsModalProps> = ({ isOpen, onClo
                 <label>PROMO CODE</label>
                 <div className="modal-promo-row">
                   <input type="text" placeholder="enter promo code" value={promoCode} onChange={e => setPromoCode(e.target.value)} />
-                  <button onClick={handleApplyPromo}>APPLY</button>
+                  <button type="button" onClick={handleApplyPromo} disabled={promoValidating}>{promoValidating ? '…' : 'APPLY'}</button>
                 </div>
-                {isPromoApplied && <span className="modal-promo-success">Code applied (₱500 off!)</span>}
+                {promoError && <span className="modal-promo-error" style={{ color: '#e85d5d', fontSize: 13, display: 'block', marginTop: 6 }}>{promoError}</span>}
+                {isPromoApplied && appliedPromoCode && (
+                  <span className="modal-promo-success">Code {appliedPromoCode} applied (₱{promoDiscountAmount.toLocaleString()} off!)</span>
+                )}
               </div>
 
               <div className="modal-breakdown">
                 <div className="modal-row"><span>Base Package</span><span>₱{basePrice.toLocaleString()}</span></div>
-                <div className="modal-row"><span>Service Fee (10%)</span><span>₱{serviceFee.toLocaleString()}</span></div>
-                {isPromoApplied && <div className="modal-row modal-discount"><span>Promo Discount</span><span>-₱500</span></div>}
-                <div className="modal-total-row"><span>Total Estimated</span><span className="modal-total-acc">₱{totalEstimated.toLocaleString()}</span></div>
+                {(isIntimateWedding || isUtopianWedding || isEliteWedding || isCorporate || isDebutIntimate || isDebutClassy || isDebutVogue || isKiddiePlayful || isKiddieAdventure || isKiddieCarnival || isSpecialIntimate || isSpecialGrand || isSpecialLegacy) && extraGuestBillablePax > 0 && (
+                  <div className="modal-row">
+                    <span>Additional guests ({extraGuestBillablePax} × ₱{extraPaxRate.toLocaleString()})</span>
+                    <span>₱{additionalGuestsFee.toLocaleString()}</span>
+                  </div>
+                )}
+                {isPromoApplied && promoDiscountAmount > 0 && (
+                  <div className="modal-row modal-discount"><span>Promo Discount</span><span>-₱{promoDiscountAmount.toLocaleString()}</span></div>
+                )}
+                <div className="modal-total-row"><span>Total Estimated</span><span className="modal-total-acc">₱{Number(totalEstimated.toFixed(1)).toLocaleString()}</span></div>
               </div>
 
               <button 
@@ -536,8 +746,8 @@ const PackageDetailsModal: React.FC<PackageDetailsModalProps> = ({ isOpen, onClo
                 onClick={() => onReserve({ 
                   packageTitle: data.title,
                   basePrice: basePrice,
-                  serviceFee: serviceFee,
-                  promoDiscount: promoDiscount,
+                  additionalGuestsFee: (isIntimateWedding || isUtopianWedding || isEliteWedding || isCorporate || isDebutIntimate || isDebutClassy || isDebutVogue || isKiddiePlayful || isKiddieAdventure || isKiddieCarnival || isSpecialIntimate || isSpecialGrand || isSpecialLegacy) ? additionalGuestsFee : 0,
+                  promoDiscount: promoDiscountAmount,
                   totalPrice: totalEstimated,
                   guestCount: guestCount,
                   selectedDate: formatDate(selectedDate)

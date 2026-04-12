@@ -134,6 +134,16 @@ CREATE TABLE pending_approvals (
     FOREIGN KEY (related_booking_id) REFERENCES bookings(id)
 );
 
+-- Blocked booking dates (admin day off / unavailable)
+CREATE TABLE blocked_booking_dates (
+    id SERIAL PRIMARY KEY,
+    block_date DATE UNIQUE NOT NULL,
+    note VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_blocked_booking_dates_date ON blocked_booking_dates(block_date);
+
 -- Promo Codes Table
 CREATE TABLE promo_codes (
     id SERIAL PRIMARY KEY,
@@ -144,6 +154,7 @@ CREATE TABLE promo_codes (
     max_uses INT,
     current_uses INT DEFAULT 0,
     status VARCHAR(50) DEFAULT 'Active',
+    audience VARCHAR(50) DEFAULT 'all',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -240,13 +251,10 @@ VALUES
     ('Payment Verification', 2, 'John Anderson', 'Payment received, awaiting final confirmation', 'Pending'),
     ('Venue Change', 4, 'Emma Thompson', 'Customer requesting alternative venue due to availability', 'Pending');
 
--- Insert Sample Promo Codes
-INSERT INTO promo_codes (code, discount_percentage, discount_amount, expiry_date, max_uses, status)
+-- Default live promo (manage additional codes from Admin → Discounts)
+INSERT INTO promo_codes (code, discount_percentage, discount_amount, expiry_date, max_uses, status, audience)
 VALUES
-    ('GALA10', 10.00, NULL, '2026-12-31', 100, 'Active'),
-    ('SPRING20', 20.00, NULL, '2026-06-30', 50, 'Active'),
-    ('EARLY2000', NULL, 2000.00, '2026-04-30', 25, 'Active'),
-    ('LOYAL15', 15.00, NULL, '2026-12-31', 200, 'Active');
+    ('GALACRAFTERS12', 12.00, NULL, '2026-12-31', 500, 'Active', 'all');
 
 -- Insert Sample Dashboard Metrics
 INSERT INTO dashboard_metrics (metric_date, total_revenue, active_bookings, pending_approvals, registered_users)

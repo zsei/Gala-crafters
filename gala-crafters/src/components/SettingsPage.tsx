@@ -55,7 +55,8 @@ const SettingsPage = () => {
   const [userReviews, setUserReviews] = useState<any[]>([]);
   const [transactionFilter, setTransactionFilter] = useState('All');
   const [transactionSearch, setTransactionSearch] = useState('');
-  
+  const [promoCodes, setPromoCodes] = useState<any[]>([]);
+
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -65,6 +66,33 @@ const SettingsPage = () => {
       setToast(prev => ({ ...prev, show: false }));
     }, 4000);
   };
+
+  const fetchPromoCodes = React.useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const headers: HeadersInit = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const response = await fetch(`${API_BASE_URL}/api/promo-codes/active`, { headers });
+      if (!response.ok) return;
+      const data = await response.json();
+      if (!Array.isArray(data)) return;
+      const activeCodes = data.filter((code: any) => {
+        const isActive = code.status === 'Active';
+        const isNotExpired = !code.expiry_date || new Date(code.expiry_date) >= new Date();
+        const hasUsesLeft = !code.max_uses || (code.current_uses ?? 0) < code.max_uses;
+        return isActive && isNotExpired && hasUsesLeft;
+      });
+      setPromoCodes(activeCodes);
+    } catch (err) {
+      console.error('Failed to fetch promo codes:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'bonuses') {
+      fetchPromoCodes();
+    }
+  }, [activeTab, fetchPromoCodes]);
 
   // Define loadAllBookings outside useEffect so it can be called after review submission
   const loadAllBookings = React.useCallback(async () => {
@@ -211,7 +239,19 @@ const SettingsPage = () => {
   });
   const [formErrors, setFormErrors] = useState<any>({});
   const [showTransactionDetails, setShowTransactionDetails] = useState(false);
+  const [showBonusTerms, setShowBonusTerms] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
+
+  // Complaint States
+  const [showComplaintModal, setShowComplaintModal] = useState(false);
+  const [complaintStatus, setComplaintStatus] = useState<'idle' | 'submitting' | 'success'>('idle');
+  const [complaintForm, setComplaintForm] = useState({
+    bookingId: '',
+    category: 'Service Quality',
+    subject: '',
+    details: ''
+  });
+  const [complaintErrors, setComplaintErrors] = useState<any>({});
 
   // Review States
   const [showReviewModal, setShowReviewModal] = useState(false);
@@ -229,13 +269,6 @@ const SettingsPage = () => {
   const [emailVerificationCode, setEmailVerificationCode] = useState('');
   const [generatedEmailCode, setGeneratedEmailCode] = useState('');
   const [emailVerificationError, setEmailVerificationError] = useState('');
-
-  // Phone Verification States
-  const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
-  const [editedPhoneNumber, setEditedPhoneNumber] = useState('');
-  const [phoneVerificationStatus, setPhoneVerificationStatus] = useState<'idle' | 'sending' | 'sent' | 'verifying' | 'success'>('idle');
-  const [phoneVerificationCode, setPhoneVerificationCode] = useState('');
-  const [phoneVerificationError, setPhoneVerificationError] = useState('');
 
   const [notificationSettings, setNotificationSettings] = useState({
     promotions: true,
@@ -781,69 +814,6 @@ ${complaintForm.details}`;
     }
   };
 
-  const handleOpenPhoneModal = () => {
-    setEditedPhoneNumber(user.phone || '');
-    setPhoneVerificationStatus('idle');
-    setPhoneVerificationCode('');
-    setPhoneVerificationError('');
-    setIsPhoneModalOpen(true);
-  };
-
-  const handleSendPhoneVerification = async () => {
-    try {
-      setPhoneVerificationStatus('sending');
-      setPhoneVerificationError('');
-      
-      // Update user phone number if it was changed
-      if (editedPhoneNumber !== user.phone) {
-        setUser({ ...user, phone: editedPhoneNumber });
-        localStorage.setItem('user', JSON.stringify({ ...user, phone: editedPhoneNumber }));
-      }
-      
-      // Call backend to send SMS code
-      const result = await authService.sendPhoneVerificationCode(editedPhoneNumber);
-      
-      setPhoneVerificationStatus('sent');
-      showNotification('success', 'Code Sent', 'Verification code sent to your phone!');
-    } catch (err: any) {
-      console.error('Phone verification error:', err);
-      setPhoneVerificationStatus('idle');
-      setPhoneVerificationError(err.message || 'Failed to send verification code');
-      showNotification('error', 'Failed', err.message || 'Failed to send verification code');
-    }
-  };
-
-  const handleVerifyPhoneCode = async () => {
-    if (!phoneVerificationCode.trim()) {
-      setPhoneVerificationError('Please enter the verification code');
-      return;
-    }
-
-    try {
-      setPhoneVerificationStatus('verifying');
-      setPhoneVerificationError('');
-
-      // Verify code with backend
-      const result = await authService.verifyPhoneNumber(editedPhoneNumber, phoneVerificationCode);
-      
-      setPhoneVerificationStatus('success');
-      setUser({ ...user, is_phone_verified: true, phone: editedPhoneNumber });
-      localStorage.setItem('user', JSON.stringify({ ...user, is_phone_verified: true, phone: editedPhoneNumber }));
-      showNotification('success', 'Phone Verified', 'Your phone number has been verified successfully!');
-      
-      setTimeout(() => {
-        setIsPhoneModalOpen(false);
-        setPhoneVerificationStatus('idle');
-        setPhoneVerificationCode('');
-      }, 1000);
-    } catch (err: any) {
-      console.error('Verification error:', err);
-      setPhoneVerificationStatus('sent');
-      setPhoneVerificationError(err.message || 'Invalid or expired code');
-      showNotification('error', 'Verification Failed', err.message || 'Failed to verify phone');
-    }
-  };
-
   if (loading || !user) {
     return <div className="settings-page-loader">Loading...</div>;
   }
@@ -914,36 +884,11 @@ ${complaintForm.details}`;
                 <div className="settings-group-desc" style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '14px', marginBottom: '10px' }}>The phone number associated with your account.</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <span style={{ fontSize: '16px', color: '#ffffff', fontWeight: '500' }}>{user.phone || 'Not set'}</span>
-                  {user.is_phone_verified ? (
-                    <span className="badge-verified" style={{ 
-                      backgroundColor: 'rgba(52, 199, 89, 0.1)', 
-                      color: '#34c759', 
-                      padding: '2px 8px', 
-                      borderRadius: '4px', 
-                      fontSize: '11px', 
-                      fontWeight: '700',
-                      letterSpacing: '0.5px',
-                      display: 'flex',
-                      alignItems: 'center'
-                    }}>
-                      VERIFIED
-                    </span>
-                  ) : (
-                    <span className="badge-unverified" style={{ 
-                      backgroundColor: 'rgba(255, 59, 48, 0.1)', 
-                      color: '#ff3b30', 
-                      padding: '2px 8px', 
-                      borderRadius: '4px', 
-                      fontSize: '11px', 
-                      fontWeight: '700',
-                      letterSpacing: '0.5px'
-                    }}>UNVERIFIED</span>
-                  )}
                 </div>
               </div>
               <button 
                 className="edit-btn-mini"
-                onClick={handleOpenPhoneModal}
+                onClick={() => setIsEditPersonalOpen(true)}
                 style={{ 
                   display: 'flex', 
                   alignItems: 'center', 
@@ -1001,24 +946,19 @@ ${complaintForm.details}`;
                     {/* Verification Status Badge */}
                     {(() => {
                       const isEmailVerified = user.is_email_verified;
-                      const isPhoneVerified = user.is_phone_verified;
                       
                       let statusText = '';
                       let statusColor = '';
                       let statusDescription = '';
                       
-                      if (isEmailVerified && isPhoneVerified) {
-                        statusText = 'FULLY VERIFIED MEMBER';
-                        statusColor = '#4CAF50';
-                        statusDescription = 'Your account is fully verified with email and phone number confirmation. You have access to all platform features.';
-                      } else if (isEmailVerified || isPhoneVerified) {
+                      if (isEmailVerified) {
                         statusText = 'VERIFIED MEMBER';
-                        statusColor = '#2196F3';
-                        statusDescription = `${isEmailVerified ? 'Email verified' : 'Phone verified'}. Please verify your ${isEmailVerified ? 'phone number' : 'email address'} to become a fully verified member.`;
+                        statusColor = '#4CAF50';
+                        statusDescription = 'Your email address is verified. You have access to member features that require a verified account.';
                       } else {
                         statusText = 'UNVERIFIED MEMBER';
                         statusColor = '#FF9800';
-                        statusDescription = 'Please verify your email address and phone number to fully experience all platform features and services.';
+                        statusDescription = 'Verify your email address in Account security to become a verified member.';
                       }
                       
                       return (
@@ -1399,13 +1339,101 @@ ${complaintForm.details}`;
         return (
           <div className="settings-tab-section">
             <h2 className="settings-header-title">Discount and Bonuses</h2>
-            <div className="bonus-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
-              <div className="bonus-card" style={{ background: 'rgba(196, 154, 44, 0.1)', border: '1px dashed #c49a2c', padding: '25px', borderRadius: '15px', position: 'relative', overflow: 'hidden' }}>
-                <Gift style={{ position: 'absolute', right: '-10px', top: '-10px', opacity: 0.1, transform: 'rotate(-15deg)' }} size={100} />
-                <h3 style={{ color: '#c49a2c', fontSize: '20px', fontWeight: '800', marginBottom: '5px' }}>WELCOME GALA</h3>
-                <p style={{ color: '#ffffff', fontSize: '14px', marginBottom: '15px' }}>15% off on your first grand wedding booking.</p>
-                <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '1px' }}>Status: Available</span>
-              </div>
+            <p style={{ color: 'rgba(255, 255, 255, 0.5)', marginBottom: '20px' }}>Available promotional codes and exclusive offers for your next booking.</p>
+            
+            <div className="bonus-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
+              {promoCodes.length > 0 ? (
+                promoCodes.map((code) => (
+                  <div key={code.id} className="bonus-card" style={{ 
+                    background: 'rgba(196, 154, 44, 0.05)', 
+                    border: '1px dashed rgba(196, 154, 44, 0.4)', 
+                    padding: '25px', 
+                    borderRadius: '15px', 
+                    position: 'relative', 
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px'
+                  }}>
+                    <Gift style={{ position: 'absolute', right: '-10px', top: '-10px', opacity: 0.05, transform: 'rotate(-15deg)' }} size={100} />
+                    
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div className="promo-tag" style={{ 
+                        background: 'var(--admin-accent)', 
+                        color: 'white', 
+                        padding: '4px 12px', 
+                        borderRadius: '20px', 
+                        fontSize: '18px', 
+                        fontWeight: '800',
+                        fontFamily: 'monospace',
+                        letterSpacing: '1px'
+                      }}>
+                        {code.code}
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ color: '#c49a2c', fontSize: '24px', fontWeight: '800' }}>
+                          {code.discount_percentage ? `${code.discount_percentage}% OFF` : `₱${code.discount_amount?.toLocaleString()} OFF`}
+                        </div>
+                      </div>
+                    </div>
+
+                    <p style={{ color: '#ffffff', fontSize: '14px', margin: '10px 0' }}>
+                      Apply this code at checkout to receive your discount.
+                    </p>
+                    <p 
+                      style={{ 
+                        color: 'rgba(255, 255, 255, 0.4)', 
+                        fontSize: '11px', 
+                        margin: '-5px 0 10px 0', 
+                        fontStyle: 'italic',
+                        cursor: 'pointer',
+                        textDecoration: 'underline'
+                      }}
+                      onClick={() => setShowBonusTerms(true)}
+                    >
+                      *terms and condition applies
+                    </p>
+                    {code.audience && code.audience !== 'all' && (
+                      <p style={{ color: 'rgba(196, 154, 44, 0.95)', fontSize: '12px', margin: 0 }}>
+                        {code.audience === 'unverified'
+                          ? 'For members who have not verified their email yet.'
+                          : 'For verified email accounts.'}
+                      </p>
+                    )}
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '15px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                      <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>
+                        <Calendar size={12} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
+                        Expires: {code.expiry_date ? new Date(code.expiry_date).toLocaleDateString() : 'Never'}
+                      </div>
+                      <button 
+                        onClick={() => {
+                          navigator.clipboard.writeText(code.code);
+                          showNotification('success', 'Copied!', 'Promo code copied to clipboard');
+                        }}
+                        style={{
+                          background: 'rgba(196, 154, 44, 0.1)',
+                          border: '1px solid #c49a2c',
+                          color: '#c49a2c',
+                          padding: '4px 12px',
+                          borderRadius: '6px',
+                          fontSize: '12px',
+                          fontWeight: '600',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Copy Code
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="empty-state-card" style={{ gridColumn: '1 / -1' }}>
+                  <Gift size={48} className="empty-icon" />
+                  <p>No active promo codes available at the moment.</p>
+                  <button className="action-btn" onClick={() => navigate('/services')}>View Packages</button>
+                </div>
+              )}
             </div>
           </div>
         );
@@ -1518,8 +1546,15 @@ ${complaintForm.details}`;
 
       {/* Change Password Modal */}
       {showPasswordModal && (
-        <div className="modal-overlay">
-          <div className="modal-container password-modal-container">
+        <div
+          className="modal-overlay"
+          onClick={() => {
+            setShowPasswordModal(false);
+            setPasswordFormData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+          }}
+          role="presentation"
+        >
+          <div className="modal-container password-modal-container" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2 className="modal-title">Change Password</h2>
               <button 
@@ -1593,8 +1628,8 @@ ${complaintForm.details}`;
 
       {/* Edit Personal Info Modal */}
       {isEditPersonalOpen && (
-        <div className="modal-overlay">
-          <div className="modal-container">
+        <div className="modal-overlay" onClick={() => setIsEditPersonalOpen(false)} role="presentation">
+          <div className="modal-container" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2 className="modal-title">Edit Personal Information</h2>
               <button className="modal-close-btn" onClick={() => setIsEditPersonalOpen(false)} aria-label="Close">
@@ -1685,8 +1720,8 @@ ${complaintForm.details}`;
 
       {/* Edit Address Modal */}
       {isEditAddressOpen && (
-        <div className="modal-overlay">
-          <div className="modal-container">
+        <div className="modal-overlay" onClick={() => setIsEditAddressOpen(false)} role="presentation">
+          <div className="modal-container" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2 className="modal-title">Edit Address</h2>
               <button className="modal-close-btn" onClick={() => setIsEditAddressOpen(false)} aria-label="Close">
@@ -2082,6 +2117,47 @@ ${complaintForm.details}`;
         </div>
       )}
 
+      {/* Bonus Terms Modal */}
+      {showBonusTerms && (
+        <div className="modal-overlay" onClick={() => setShowBonusTerms(false)}>
+          <div className="modal-container terms-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+            <div className="modal-header">
+              <h2 className="modal-title">Promo Terms & Conditions</h2>
+              <button className="modal-close-btn" onClick={() => setShowBonusTerms(false)}>
+                <X size={20} />
+              </button>
+            </div>
+            <div className="modal-body" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+              <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '14px', lineHeight: '1.6' }}>
+                <h4 style={{ color: '#c49a2c', marginBottom: '10px' }}>1. General Rules</h4>
+                <p style={{ marginBottom: '15px' }}>Promotional codes are valid for a limited time only. Gala Crafters reserves the right to modify or cancel them at any time.</p>
+                
+                <h4 style={{ color: '#c49a2c', marginBottom: '10px' }}>2. Applicability</h4>
+                <p style={{ marginBottom: '15px' }}>Each promo code can only be applied to eligible event packages. It cannot be combined with other offers, discounts, or previous bookings.</p>
+                
+                <h4 style={{ color: '#c49a2c', marginBottom: '10px' }}>3. Redemption</h4>
+                <p style={{ marginBottom: '15px' }}>To redeem, enter the code exactly as shown during the checkout process. Discounts will be applied to the base package price before additional guest fees or taxes.</p>
+                
+                <h4 style={{ color: '#c49a2c', marginBottom: '10px' }}>4. Expiration</h4>
+                <p style={{ marginBottom: '15px' }}>Codes must be used before the specified expiration date. Expired codes will not be honored or reactivated.</p>
+                
+                <h4 style={{ color: '#c49a2c', marginBottom: '10px' }}>5. User Eligibility</h4>
+                <p>Some codes are exclusive to verified members or specific account types as indicated on the promo card.</p>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button 
+                className="modal-save-btn" 
+                onClick={() => setShowBonusTerms(false)}
+                style={{ backgroundColor: '#c49a2c', width: '100%' }}
+              >
+                I Understand
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Global Toast Notification */}
       {toast.show && (
         <div className={`toast-notification ${toast.type}`}>
@@ -2302,148 +2378,6 @@ ${complaintForm.details}`;
         </div>
       )}
 
-      {/* Phone Verification Modal */}
-      {isPhoneModalOpen && (
-        <div className="modal-overlay">
-          <div className="modal-container email-modal-container" style={{ maxWidth: '450px' }}>
-            <div className="modal-header">
-              <h2 className="modal-title">Verify Phone Number</h2>
-              <button className="modal-close-btn" onClick={() => setIsPhoneModalOpen(false)}>
-                <X size={20} />
-              </button>
-            </div>
-            
-            <div className="modal-body">
-              <div className="modal-form-grid" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                {phoneVerificationStatus === 'idle' || phoneVerificationStatus === 'sending' ? (
-                  <>
-                    <div style={{ textAlign: 'center' }}>
-                      <p style={{ color: 'rgba(255,255,255,0.7)', marginBottom: '20px' }}>
-                        Enter your phone number and we'll send a verification code.
-                      </p>
-                    </div>
-                    <input
-                      type="text"
-                      value={editedPhoneNumber}
-                      onChange={(e) => setEditedPhoneNumber(e.target.value)}
-                      placeholder="+63 9XXXXXXXXX"
-                      style={{
-                        padding: '12px 16px',
-                        background: 'rgba(255,255,255,0.05)',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        borderRadius: '8px',
-                        color: '#ffffff',
-                        fontSize: '14px',
-                        fontFamily: 'inherit'
-                      }}
-                    />
-                    <button 
-                      className="modal-save-btn" 
-                      onClick={handleSendPhoneVerification}
-                      disabled={phoneVerificationStatus === 'sending' || !editedPhoneNumber.trim()}
-                      style={{ 
-                        backgroundColor: phoneVerificationStatus === 'sending' || !editedPhoneNumber.trim() ? 'rgba(196,154,44,0.5)' : '#c49a2c',
-                        width: '100%',
-                        height: '45px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '8px'
-                      }}
-                    >
-                      {phoneVerificationStatus === 'sending' ? (
-                        <>
-                          <div className="spinner-mini" style={{ width: '16px', height: '16px', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#ffffff', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
-                          Sending Code...
-                        </>
-                      ) : 'Send Verification Code'}
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <div style={{ textAlign: 'center' }}>
-                      <p style={{ color: 'rgba(255,255,255,0.7)', marginBottom: '20px' }}>
-                        Enter the 6-digit code sent to {editedPhoneNumber}
-                      </p>
-                    </div>
-                    <input 
-                      type="text" 
-                      maxLength={6}
-                      value={phoneVerificationCode}
-                      onChange={(e) => {
-                        setPhoneVerificationCode(e.target.value.replace(/[^\d]/g, ''));
-                        setPhoneVerificationError('');
-                      }}
-                      placeholder="000000"
-                      style={{
-                        fontSize: '20px',
-                        letterSpacing: '8px',
-                        textAlign: 'center',
-                        padding: '12px',
-                        background: 'rgba(255,255,255,0.05)',
-                        border: phoneVerificationError ? '1px solid #ff3b30' : '1px solid rgba(255,255,255,0.1)',
-                        borderRadius: '8px',
-                        color: '#ffffff'
-                      }}
-                    />
-                    {phoneVerificationError && (
-                      <p style={{ color: '#ff3b30', fontSize: '12px', margin: '0' }}>
-                        {phoneVerificationError}
-                      </p>
-                    )}
-                    <button 
-                      className="modal-save-btn" 
-                      onClick={handleVerifyPhoneCode}
-                      disabled={phoneVerificationStatus === 'verifying' || phoneVerificationCode.length !== 6}
-                      style={{ 
-                        backgroundColor: phoneVerificationStatus === 'verifying' ? 'rgba(196,154,44,0.5)' : '#c49a2c',
-                        width: '100%',
-                        height: '45px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '8px'
-                      }}
-                    >
-                      {phoneVerificationStatus === 'verifying' ? (
-                        <>
-                          <div className="spinner-mini" style={{ width: '16px', height: '16px', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#ffffff', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
-                          Verifying...
-                        </>
-                      ) : (
-                        <>
-                          <Check size={18} /> Verify Code
-                        </>
-                      )}
-                    </button>
-                    <button 
-                      onClick={handleSendPhoneVerification}
-                      style={{
-                        background: 'transparent',
-                        border: 'none',
-                        color: '#c49a2c',
-                        fontSize: '12px',
-                        cursor: 'pointer',
-                        textDecoration: 'underline'
-                      }}
-                    >
-                      Resend Code
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {phoneVerificationStatus !== 'success' && (
-              <div className="modal-footer">
-                <button className="modal-save-btn" style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }} onClick={() => setIsPhoneModalOpen(false)}>
-                  Cancel
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

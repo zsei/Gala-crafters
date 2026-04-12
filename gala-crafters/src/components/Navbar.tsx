@@ -31,15 +31,23 @@ function Navbar() {
           setNotificationsEnabled(settings.bookingUpdates);
         }
 
-        // Mock some real-time notifications if enabled
-        const settings = savedSettings ? JSON.parse(savedSettings) : { bookingUpdates: true };
-        if (settings.bookingUpdates) {
-          setNotifications([
-            { id: 1, text: "Your booking BK-001 has been confirmed!", time: "2 mins ago", unread: true },
-            { id: 2, text: "New message from Gala Crafters admin.", time: "1 hour ago", unread: true }
-          ]);
+        // Load persisted notifications
+        const savedNotifications = localStorage.getItem('user_notifications');
+        if (savedNotifications) {
+          setNotifications(JSON.parse(savedNotifications));
         } else {
-          setNotifications([]);
+          // Fallback to mock data if no saved notifications
+          const settings = savedSettings ? JSON.parse(savedSettings) : { bookingUpdates: true };
+          if (settings.bookingUpdates) {
+            const initialNotifications = [
+              { id: 1, text: "Your booking BK-001 has been confirmed!", time: "2 mins ago", unread: true },
+              { id: 2, text: "New message from Gala Crafters admin.", time: "1 hour ago", unread: true }
+            ];
+            setNotifications(initialNotifications);
+            localStorage.setItem('user_notifications', JSON.stringify(initialNotifications));
+          } else {
+            setNotifications([]);
+          }
         }
       }
     };
@@ -50,12 +58,17 @@ function Navbar() {
       setNotificationsEnabled(e.detail.bookingUpdates);
       if (e.detail.bookingUpdates) {
         // Add a mock notification when enabled
-        setNotifications(prev => [
-          { id: Date.now(), text: "Booking updates enabled! You'll receive real-time alerts.", time: "Just now", unread: true },
-          ...prev
-        ]);
+        setNotifications(prev => {
+          const updated = [
+            { id: Date.now(), text: "Booking updates enabled! You'll receive real-time alerts.", time: "Just now", unread: true },
+            ...prev
+          ];
+          localStorage.setItem('user_notifications', JSON.stringify(updated));
+          return updated;
+        });
       } else {
         setNotifications([]);
+        localStorage.removeItem('user_notifications');
       }
     };
 
@@ -94,6 +107,25 @@ function Navbar() {
     setShowLogoutModal(false);
     setUserMenuOpen(false);
     navigate('/');
+  };
+
+  const toggleNotifications = () => {
+    const isOpening = !showNotifications;
+    setShowNotifications(isOpening);
+    
+    // If opening, mark all as read
+    if (isOpening && notifications.some(n => n.unread)) {
+      setNotifications(prev => {
+        const updated = prev.map(n => ({ ...n, unread: false }));
+        localStorage.setItem('user_notifications', JSON.stringify(updated));
+        return updated;
+      });
+    }
+  };
+
+  const handleClearNotifications = () => {
+    setNotifications([]);
+    localStorage.setItem('user_notifications', JSON.stringify([]));
   };
 
   const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
@@ -144,7 +176,7 @@ function Navbar() {
                 <button 
                   className="nav-notification-btn" 
                   aria-label="Notifications"
-                  onClick={() => setShowNotifications(!showNotifications)}
+                  onClick={toggleNotifications}
                 >
                   <Bell size={20} color="#ffffff" />
                   {notifications.filter(n => n.unread).length > 0 && (
@@ -158,7 +190,7 @@ function Navbar() {
                   <div className="notification-dropdown">
                     <div className="notification-header">
                       <h3>Notifications</h3>
-                      <button onClick={() => setNotifications([])}>Clear all</button>
+                      <button onClick={handleClearNotifications}>Clear all</button>
                     </div>
                     <div className="notification-list">
                       {notifications.length > 0 ? (

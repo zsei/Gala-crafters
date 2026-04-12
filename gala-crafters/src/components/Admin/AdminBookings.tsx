@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Search, Download, Calendar as CalendarIcon, Filter, ChevronDown, MoreVertical, DollarSign,  TrendingUp, ClipboardList, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
+import { Search, Download, Calendar as CalendarIcon, Filter, ChevronDown, MoreVertical, DollarSign,  TrendingUp, ClipboardList, AlertCircle, CheckCircle, XCircle, Clock, CalendarDays, CalendarRange } from 'lucide-react';
 import AdminSidebar from './AdminSidebar';
 import './Admin.css'; // Inheriting the primary admin styles
 
@@ -9,8 +9,9 @@ const bookingsData = [];
 import { API_BASE_URL, API_ENDPOINTS } from '../../api/config';
 
 const AdminBookings = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const statusFilter = searchParams.get('status') || 'all';
+  const refSearch = searchParams.get('ref') || '';
   
   // Inherit the theme logic
   const [isCollapsed, setIsCollapsed] = React.useState(false);
@@ -23,8 +24,12 @@ const AdminBookings = () => {
   const [currentPage, setCurrentPage] = React.useState(1);
   const [itemsPerPage] = React.useState(10);
   
-  // Search state
-  const [searchTerm, setSearchTerm] = React.useState('');
+  // Search and filter state
+  const [searchTerm, setSearchTerm] = React.useState(refSearch);
+  const [dateFilterOpen, setDateFilterOpen] = React.useState(false);
+  const [selectedDateFilter, setSelectedDateFilter] = React.useState('all');
+  const [typeFilterOpen, setTypeFilterOpen] = React.useState(false);
+  const [selectedTypeFilter, setSelectedTypeFilter] = React.useState('all');
   
   // Dropdown and modal states
   const [openDropdown, setOpenDropdown] = React.useState<number | null>(null);
@@ -117,6 +122,18 @@ const AdminBookings = () => {
     fetchBookings();
     fetchMetrics();
   }, []);
+
+  // Effect to handle ref parameter changes (when coming from Reviews page)
+  React.useEffect(() => {
+    const ref = searchParams.get('ref');
+    if (ref) {
+      setSearchTerm(ref);
+      // Optional: clear the ref param after applying it to search
+      // const newParams = new URLSearchParams(searchParams);
+      // newParams.delete('ref');
+      // setSearchParams(newParams);
+    }
+  }, [searchParams]);
 
   // Action handlers
   const handleViewDetails = (booking: any) => {
@@ -266,7 +283,40 @@ const AdminBookings = () => {
     return statusMap[urlParam] || [];
   };
 
-  // Filter bookings based on status and search
+  const isWithinDateRange = (bookingDateStr: string, filter: string) => {
+    if (filter === 'all' || !bookingDateStr) return true;
+    
+    const bookingDate = new Date(bookingDateStr);
+    bookingDate.setHours(0, 0, 0, 0); // Normalize to start of day
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    switch (filter) {
+      case 'today':
+        return bookingDate.getTime() === today.getTime();
+      case 'this-week': {
+        // Intuitive "This Week": Last 7 days including today
+        const sevenDaysAgo = new Date(today);
+        sevenDaysAgo.setDate(today.getDate() - 7);
+        sevenDaysAgo.setHours(0, 0, 0, 0);
+
+        const endOfToday = new Date(today);
+        endOfToday.setHours(23, 59, 59, 999);
+
+        const match = bookingDate >= sevenDaysAgo && bookingDate <= endOfToday;
+        return match;
+      }
+      case 'this-month':
+        return bookingDate.getMonth() === today.getMonth() && bookingDate.getFullYear() === today.getFullYear();
+      case 'this-year':
+        return bookingDate.getFullYear() === today.getFullYear();
+      default:
+        return true;
+    }
+  };
+
+  // Filter bookings based on status, search, date, and type
   const actualStatuses = getActualStatusValue(statusFilter);
   const filteredBookings = bookings.filter(booking => {
     const matchesStatus = statusFilter === 'all' || actualStatuses.includes(booking.status || '');
@@ -281,7 +331,12 @@ const AdminBookings = () => {
       (booking.venue_proposed || '').toLowerCase().includes(searchLower) ||
       (booking.specific_venue_address || '').toLowerCase().includes(searchLower);
       
-    return matchesStatus && matchesSearch;
+    const matchesDate = isWithinDateRange(booking.booked_date || booking.event_date, selectedDateFilter);
+    
+    const matchesType = selectedTypeFilter === 'all' || 
+      (booking.package_name || '').toLowerCase().includes(selectedTypeFilter.toLowerCase());
+      
+    return matchesStatus && matchesSearch && matchesDate && matchesType;
   });
 
   // Calculate Paginated Bookings
@@ -352,9 +407,11 @@ const AdminBookings = () => {
     showNotification('success', 'Export Successful', `${filteredBookings.length} bookings exported`);
   };
 
-  // Reset page when filter or search changes
+  // Reset page and close dropdowns when filter or search changes
   React.useEffect(() => {
     setCurrentPage(1);
+    setDateFilterOpen(false);
+    setTypeFilterOpen(false);
   }, [statusFilter, searchTerm]);
 
   // Helper for status colors
@@ -377,6 +434,28 @@ const AdminBookings = () => {
       case 'completed': return 'Completed Events';
       case 'cancelled': return 'Cancelled Bookings';
       default: return 'All Event Bookings';
+    }
+  };
+
+  // Helper for date filter label
+  const getDateFilterLabel = () => {
+    switch (selectedDateFilter) {
+      case 'today': return 'Today';
+      case 'this-week': return 'This Week';
+      case 'this-month': return 'This Month';
+      case 'this-year': return 'This Year';
+      default: return 'All Dates';
+    }
+  };
+
+  // Helper for type filter label
+  const getTypeFilterLabel = () => {
+    switch (selectedTypeFilter) {
+      case 'wedding': return 'Type: Wedding';
+      case 'corporate': return 'Type: Corporate';
+      case 'debut': return 'Type: Debut';
+      case 'party': return 'Type: Children\'s Party';
+      default: return 'Type: All Events';
     }
   };
 
@@ -416,15 +495,89 @@ const AdminBookings = () => {
         {/* Filters & Actions Bar */}
         <div className="bookings-toolbar">
           <div className="filters-group">
-            <button className="filter-dropdown">
-              <CalendarIcon size={16} className="text-accent" />
-              All Dates
-              <ChevronDown size={14} className="text-sub" />
-            </button>
-            <button className="filter-dropdown">
-              Type: All Events
-              <ChevronDown size={14} className="text-sub" />
-            </button>
+            <div style={{ position: 'relative' }}>
+              <button 
+                className={`filter-dropdown ${selectedDateFilter !== 'all' ? 'active' : ''}`}
+                onClick={() => setDateFilterOpen(!dateFilterOpen)}
+              >
+                <CalendarIcon size={16} className="text-accent" />
+                {getDateFilterLabel()}
+                <ChevronDown size={14} className="text-sub" />
+              </button>
+
+              {dateFilterOpen && (
+                <div className="admin-dropdown-menu" style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  marginTop: '8px',
+                  zIndex: 100,
+                  minWidth: '160px'
+                }}>
+                  {[
+                    { id: 'all', label: 'All Dates', icon: <CalendarIcon size={14} /> },
+                    { id: 'today', label: 'Today', icon: <Clock size={14} /> },
+                    { id: 'this-week', label: 'This Week', icon: <CalendarDays size={14} /> },
+                    { id: 'this-month', label: 'This Month', icon: <CalendarRange size={14} /> },
+                    { id: 'this-year', label: 'This Year', icon: <CalendarIcon size={14} /> }
+                  ].map(option => (
+                    <button
+                      key={option.id}
+                      className={`dropdown-item ${selectedDateFilter === option.id ? 'active' : ''}`}
+                      onClick={() => {
+                        setSelectedDateFilter(option.id);
+                        setDateFilterOpen(false);
+                      }}
+                    >
+                      {option.icon}
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            {statusFilter === 'all' && (
+              <div style={{ position: 'relative' }}>
+                <button 
+                  className={`filter-dropdown ${selectedTypeFilter !== 'all' ? 'active' : ''}`}
+                  onClick={() => setTypeFilterOpen(!typeFilterOpen)}
+                >
+                  {getTypeFilterLabel()}
+                  <ChevronDown size={14} className="text-sub" />
+                </button>
+
+                {typeFilterOpen && (
+                  <div className="admin-dropdown-menu" style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    marginTop: '8px',
+                    zIndex: 100,
+                    minWidth: '200px'
+                  }}>
+                    {[
+                      { id: 'all', label: 'All Events' },
+                      { id: 'wedding', label: 'Weddings' },
+                      { id: 'corporate', label: 'Corporate' },
+                      { id: 'debut', label: 'Debut' },
+                      { id: 'party', label: 'Children\'s Party' }
+                    ].map(option => (
+                      <button
+                        key={option.id}
+                        className={`dropdown-item ${selectedTypeFilter === option.id ? 'active' : ''}`}
+                        onClick={() => {
+                          setSelectedTypeFilter(option.id);
+                          setTypeFilterOpen(false);
+                        }}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           <div className="entries-count text-sub font-medium" style={{ fontSize: '11px', letterSpacing: '1px', textTransform: 'uppercase' }}>
             SHOWING {filteredBookings.length} ENTRIES

@@ -150,7 +150,7 @@ function EventsPage() {
             <div className="custom-catering-text">
               <h2>Additional Catering Services at Gala Crafters</h2>
               <div className="gold-line" style={{ margin: '0 0 20px 0' }}></div>
-              <p>At Gala Crafters, we explore beyond the ordinary with our bespoke offerings tailored to your unique needs.</p>
+              <p>At Gala Crafters, we explore beyond the ordinary with our bespoke offerings tailored to your unique needs. We believe that every event tells a story, and our mission is to ensure yours is narrated with elegance and precision. From intimate dinner parties to grand corporate galas, our dedicated team of culinary experts and event stylists work in harmony to create an atmosphere that resonates with your vision. Our commitment to excellence means we don't just provide services—we craft unforgettable experiences that leave a lasting impression on every guest.</p>
             </div>
           </div>
 

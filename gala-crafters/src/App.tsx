@@ -36,6 +36,7 @@ import AdminDiscounts from './components/Admin/AdminDiscounts';
 import AdminReviews from './components/Admin/AdminReviews';
 import AdminReports from './components/Admin/AdminReports';
 import AdminInquiries from './components/Admin/AdminInquiries';
+import AdminCalendarPage from './components/Admin/AdminCalendarPage';
 
 import Hero from './components/Hero';
 import Services from './components/Services';
@@ -74,46 +75,48 @@ const AppLayout = () => {
     <>
       {!isAdmin && !isAuth && <Navbar />}
 
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<RegisterPage />} />
-        <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
-        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-        <Route path="/events" element={<EventsPage />} />
-        <Route path="/about" element={<AboutUsPage />} />
-        <Route path="/contact" element={<ContactUsPage />} />
+      <div className={isAdmin ? "" : "fade-in-section"} key={location.pathname}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<RegisterPage />} />
+          <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/events" element={<EventsPage />} />
+          <Route path="/about" element={<AboutUsPage />} />
+          <Route path="/contact" element={<ContactUsPage />} />
 
-        {/* Main Services Page */}
-        <Route path="/services" element={<ServicesPage />} />
+          {/* Main Services Page */}
+          <Route path="/services" element={<ServicesPage />} />
 
-        {/* Account Settings & Transactions */}
-        <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-        <Route path="/messages" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
-        <Route path="/transactions" element={<ProtectedRoute><TransactionHistory /></ProtectedRoute>} />
+          {/* Account Settings & Transactions */}
+          <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+          <Route path="/messages" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
+          <Route path="/transactions" element={<ProtectedRoute><TransactionHistory /></ProtectedRoute>} />
 
-        {/* === UPDATED: Wedding Page Route === */}
-        <Route path="/services/weddings" element={<WeddingPage />} />
+          {/* === UPDATED: Wedding Page Route === */}
+          <Route path="/services/weddings" element={<WeddingPage />} />
 
-        {/* Other dropdown links */}
-        <Route path="/corporate" element={<CorporateEventPage />} />
-        <Route path="/debut" element={<DebutPage />} />
-        <Route path="/services/childrens-party" element={<ChildrensPartyPage />} />
-        <Route path="/services/special-occasions" element={<SpecialOccasionsPage />} />
-        <Route path="/services/packages" element={<ServicesPage />} />
+          {/* Other dropdown links */}
+          <Route path="/corporate" element={<CorporateEventPage />} />
+          <Route path="/debut" element={<DebutPage />} />
+          <Route path="/services/childrens-party" element={<ChildrensPartyPage />} />
+          <Route path="/services/special-occasions" element={<SpecialOccasionsPage />} />
+          <Route path="/services/packages" element={<ServicesPage />} />
 
-        {/* Admin Routes */}
-        <Route path="/admin/login" element={<AdminLoginPage />} />
-        <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />
-        <Route path="/admin/bookings" element={<ProtectedRoute requiredRole="admin" allowedRoles={['superadmin', 'staff_bookings']}><AdminBookings /></ProtectedRoute>} />
-        <Route path="/admin/packages" element={<ProtectedRoute requiredRole="admin" allowedRoles={['superadmin', 'staff_packages']}><AdminPackages /></ProtectedRoute>} />
-        <Route path="/admin/users" element={<ProtectedRoute requiredRole="admin" allowedRoles={['superadmin']}><AdminUsers /></ProtectedRoute>} />
-        <Route path="/admin/messages" element={<ProtectedRoute requiredRole="admin" allowedRoles={['superadmin', 'staff_bookings']}><AdminMessages /></ProtectedRoute>} />
-        <Route path="/admin/inquiries" element={<ProtectedRoute requiredRole="admin" allowedRoles={['superadmin', 'staff_bookings']}><AdminInquiries /></ProtectedRoute>} />
-        <Route path="/admin/discounts" element={<ProtectedRoute requiredRole="admin" allowedRoles={['superadmin', 'staff_packages']}><AdminDiscounts /></ProtectedRoute>} />
-        <Route path="/admin/reviews" element={<ProtectedRoute requiredRole="admin" allowedRoles={['superadmin']}><AdminReviews /></ProtectedRoute>} />
-        <Route path="/admin/reports" element={<ProtectedRoute requiredRole="admin" allowedRoles={['superadmin']}><AdminReports /></ProtectedRoute>} />
-      </Routes>
+          {/* Admin Routes */}
+          <Route path="/admin/login" element={<AdminLoginPage />} />
+          <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin/bookings" element={<ProtectedRoute requiredRole="admin" allowedRoles={['superadmin', 'staff_bookings']}><AdminBookings /></ProtectedRoute>} />
+          <Route path="/admin/packages" element={<ProtectedRoute requiredRole="admin" allowedRoles={['superadmin', 'staff_packages']}><AdminPackages /></ProtectedRoute>} />
+          <Route path="/admin/users" element={<ProtectedRoute requiredRole="admin" allowedRoles={['superadmin']}><AdminUsers /></ProtectedRoute>} />
+          <Route path="/admin/messages" element={<ProtectedRoute requiredRole="admin" allowedRoles={['superadmin', 'staff_bookings']}><AdminMessages /></ProtectedRoute>} />
+          <Route path="/admin/inquiries" element={<ProtectedRoute requiredRole="admin" allowedRoles={['superadmin', 'staff_bookings']}><AdminInquiries /></ProtectedRoute>} />
+          <Route path="/admin/discounts" element={<ProtectedRoute requiredRole="admin" allowedRoles={['superadmin', 'staff_packages']}><AdminDiscounts /></ProtectedRoute>} />
+          <Route path="/admin/reviews" element={<ProtectedRoute requiredRole="admin" allowedRoles={['superadmin']}><AdminReviews /></ProtectedRoute>} />
+          <Route path="/admin/reports" element={<ProtectedRoute requiredRole="admin" allowedRoles={['superadmin']}><AdminReports /></ProtectedRoute>} />
+        </Routes>
+      </div>
 
       {!isAdmin && !isAuth && <Footer />}
       {!isAdmin && !isAuth && isLoggedIn && <FloatingChat />}

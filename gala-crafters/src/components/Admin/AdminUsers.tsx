@@ -231,8 +231,24 @@ const AdminUsers = () => {
                     </td>
                     <td>
                       <div className="status-cell">
-                        <span className={`status-dot bg-success`}></span>
-                        <span className={`text-main font-medium`}>{user.status || 'Active'}</span>
+                        <span
+                          className={`status-dot ${
+                            activeTab === 'clients'
+                              ? user.status === 'Verified'
+                                ? 'bg-success'
+                                : 'bg-sub'
+                              : user.status === 'Active'
+                                ? 'bg-success'
+                                : 'bg-sub'
+                          }`}
+                        ></span>
+                        <span className={`text-main font-medium`}>
+                          {activeTab === 'clients'
+                            ? user.status === 'Verified'
+                              ? 'Verified'
+                              : 'Unverified'
+                            : user.status || 'Active'}
+                        </span>
                       </div>
                     </td>
                     <td className="actions-cell">

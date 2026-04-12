@@ -10,26 +10,74 @@ import av3 from '../assets/debut1.jpg';
 const FALLBACK_TESTIMONIALS = [
   {
     id: 1,
-    name: 'Dennis and Jen',
+    name: 'Angeline Khaleira',
     location: 'Wedding Clients',
     avatar: av1,
-    text: 'Thank you! Sarap ng food! The styling was incredible and exceeded all our expectations for our special day. Highly recommended!',
+    text: 'The service is AMAZING!! Everything was handled with such professionalism and care.',
     rating: 5
   },
   {
     id: 2,
-    name: 'Tracye Lawyer',
+    name: 'Manuel Gonzales',
     location: 'Corporate Event',
     avatar: av2,
-    text: "Gala Crafters transformed our corporate gala into an unforgettable experience. Their attention to detail and professionalism is unmatched.",
+    text: "Gala Crafters transformed our corporate gala into an unforgettable experience. Truly exceptional.",
     rating: 5
   },
   {
     id: 3,
-    name: 'Angeline Chua',
+    name: 'Gabriel Ortega',
     location: 'Debut Celebration',
     avatar: av3,
-    text: "The most beautiful debut I've ever seen. Every detail, from the floral arrangements to the lighting, was absolutely perfect.",
+    text: "Professional, responsive, and delivered perfection. The attention to detail was unmatched.",
+    rating: 5
+  },
+  {
+    id: 4,
+    name: 'Sarah Jenkins',
+    location: 'Wedding Clients',
+    avatar: av1,
+    text: 'Most beautiful event I have ever seen. Every detail was absolutely perfect.',
+    rating: 5
+  },
+  {
+    id: 5,
+    name: 'Daniel Cruz',
+    location: 'Corporate Event',
+    avatar: av2,
+    text: "Outstanding quality and exceptional attention to detail. Highly recommended!",
+    rating: 5
+  },
+  {
+    id: 6,
+    name: 'Angela Villanueva',
+    location: 'Debut Celebration',
+    avatar: av3,
+    text: "The styling was incredible and exceeded all our expectations for our special day.",
+    rating: 5
+  },
+  {
+    id: 7,
+    name: 'Alfonso Tolentino',
+    location: 'Special Occasion',
+    avatar: av1,
+    text: "Fantastic attention to detail and smooth execution. Our guests are still talking about it!",
+    rating: 5
+  },
+  {
+    id: 8,
+    name: 'Rosa Reyes',
+    location: 'Wedding Clients',
+    avatar: av2,
+    text: "Best decision we made. Truly exceptional service and the food was delicious.",
+    rating: 5
+  },
+  {
+    id: 9,
+    name: 'Victoria Lopez',
+    location: 'Debut Celebration',
+    avatar: av3,
+    text: "Transformed our vision into reality beautifully. Thank you for making it so special.",
     rating: 5
   }
 ];
@@ -38,7 +86,10 @@ interface Review {
   id: number;
   rating: number;
   comment: string;
-  customer_name: string;
+  first_name?: string;
+  last_name?: string;
+  customer_name?: string;
+  package_name?: string;
   created_at: string;
 }
 
@@ -50,12 +101,31 @@ interface ClientTestimonialsProps {
 const ClientTestimonials: React.FC<ClientTestimonialsProps> = ({ variant = 'dark', packageId }) => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
-    if (packageId) {
-      fetchPackageReviews(packageId);
+    fetchAllReviews();
+  }, []);
+
+  const fetchAllReviews = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_BASE_URL}/api/reviews/featured?limit=9`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.length > 0) {
+          setReviews(data);
+          return;
+        }
+      }
+      setReviews([]);
+    } catch (error) {
+      console.error('Error fetching reviews:', error);
+      setReviews([]);
+    } finally {
+      setLoading(false);
     }
-  }, [packageId]);
+  };
 
   const fetchPackageReviews = async (pkgId: number) => {
     try {
@@ -79,15 +149,43 @@ const ClientTestimonials: React.FC<ClientTestimonialsProps> = ({ variant = 'dark
 
   // Use fetched reviews if available, otherwise use fallback testimonials
   const testimonials = reviews.length > 0 
-    ? reviews.map((review, index) => ({
-        id: review.id,
-        name: review.customer_name,
-        location: 'Verified Customer',
-        avatar: [av1, av2, av3][index % 3],
-        text: review.comment,
-        rating: review.rating
-      }))
+    ? reviews.map((review, index) => {
+        let name = 'Verified Customer';
+        if (review.customer_name) {
+          name = review.customer_name;
+        } else if (review.first_name || review.last_name) {
+          name = `${review.first_name || ''} ${review.last_name || ''}`.trim();
+        }
+
+        return {
+          id: review.id,
+          name: name,
+          location: review.package_name || 'Verified Customer',
+          avatar: [av1, av2, av3][index % 3],
+          text: review.comment,
+          rating: review.rating
+        };
+      })
     : FALLBACK_TESTIMONIALS;
+
+  // Show 3 testimonials at a time
+  const itemsPerPage = 3;
+  const visibleTestimonials = testimonials.slice(currentIndex, currentIndex + itemsPerPage);
+  const totalPages = Math.ceil(testimonials.length / itemsPerPage);
+
+  const handlePrev = () => {
+    setCurrentIndex((prev) => {
+      const newIndex = prev - itemsPerPage;
+      return newIndex < 0 ? Math.max(0, testimonials.length - itemsPerPage) : newIndex;
+    });
+  };
+
+  const handleNext = () => {
+    setCurrentIndex((prev) => {
+      const newIndex = prev + itemsPerPage;
+      return newIndex >= testimonials.length ? 0 : newIndex;
+    });
+  };
 
   return (
     <section className={`client-testimonials-section theme-${variant}`}>
@@ -101,7 +199,7 @@ const ClientTestimonials: React.FC<ClientTestimonialsProps> = ({ variant = 'dark
         </div>
 
         <div className="testimonials-grid">
-          {testimonials.map((item) => (
+          {visibleTestimonials.map((item) => (
             <div key={item.id} className="testimonial-card">
               <div className="card-header">
                 <div className="author-meta">
@@ -110,6 +208,7 @@ const ClientTestimonials: React.FC<ClientTestimonialsProps> = ({ variant = 'dark
                   </div>
                   <div className="author-info">
                     <h4>{item.name}</h4>
+                    <span className="package-booked">{item.location}</span>
                   </div>
                 </div>
                 <div className="quote-icon">
@@ -132,14 +231,16 @@ const ClientTestimonials: React.FC<ClientTestimonialsProps> = ({ variant = 'dark
           ))}
         </div>
 
-        <div className="testimonials-nav">
-          <button className="nav-btn prev" aria-label="Previous testimonial">
-            <ChevronLeft size={20} />
-          </button>
-          <button className="nav-btn next" aria-label="Next testimonial">
-            <ChevronRight size={20} />
-          </button>
-        </div>
+        {testimonials.length > itemsPerPage && (
+          <div className="testimonials-nav">
+            <button className="nav-btn prev" onClick={handlePrev} aria-label="Previous testimonial">
+              <ChevronLeft size={20} />
+            </button>
+            <button className="nav-btn next" onClick={handleNext} aria-label="Next testimonial">
+              <ChevronRight size={20} />
+            </button>
+          </div>
+        )}
       </div>
     </section>
   );

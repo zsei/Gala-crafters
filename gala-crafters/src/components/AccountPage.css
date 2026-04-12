@@ -211,7 +211,7 @@
   }
 }
 
-/* MODALS */
+/* MODALS — z-index above fixed navbar (1000) and nav dropdowns (1001) */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -222,11 +222,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 10050;
   backdrop-filter: blur(5px);
 }
 
 .modal-container {
+  position: relative;
+  z-index: 1;
   background: #0a0f1d;
   width: 90%;
   max-width: 500px;
@@ -240,21 +242,29 @@
 }
 
 .modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  position: relative;
+  display: block;
   border-bottom: 1px solid rgba(196, 154, 44, 0.2);
   padding-bottom: 15px;
+  padding-right: 52px;
+  min-height: 44px;
 }
 
 .modal-title {
+  margin: 0;
+  padding-top: 2px;
+  padding-right: 8px;
   color: rgba(255, 255, 255, 0.5);
   font-size: 20px;
   font-weight: 700;
-  margin: 0;
+  line-height: 1.3;
 }
 
 .modal-close-btn {
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 2;
   background: transparent;
   border: none;
   color: #ffffff;
@@ -262,6 +272,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  margin: 0;
+  border-radius: 8px;
+}
+
+.modal-close-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
 }
 
 .modal-form-grid {

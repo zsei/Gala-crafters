@@ -384,60 +384,6 @@ export const authService = {
     return admin ? JSON.parse(admin) : null;
   },
 
-  /**
-   * Send phone verification code via SMS
-   */
-  sendPhoneVerificationCode: async (phoneNumber: string) => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No token found');
-    }
-
-    const response = await fetch(`${API_BASE_URL}/api/auth/send-phone-verification`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ phone_number: phoneNumber })
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || 'Failed to send verification code');
-    }
-
-    return response.json();
-  },
-
-  /**
-   * Verify phone number with code
-   */
-  verifyPhoneNumber: async (phoneNumber: string, code: string) => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No token found');
-    }
-
-    const response = await fetch(`${API_BASE_URL}/api/auth/verify-phone`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ 
-        phone_number: phoneNumber,
-        code: code
-      })
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || 'Failed to verify phone');
-    }
-
-    return response.json();
-  }
 };
 
 export default authService;

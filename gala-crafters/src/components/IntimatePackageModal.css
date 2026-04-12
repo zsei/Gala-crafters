@@ -206,6 +206,7 @@
   border-radius: 12px;
   padding: 25px;
   display: flex;
+  align-items: flex-start;
   gap: 20px;
   transition: box-shadow 0.3s ease;
 }
@@ -216,9 +217,13 @@
 
 .included-icon {
   background: #fff8eb;
-  padding: 12px;
+  padding: 14px;
   border-radius: 8px;
   height: fit-content;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .included-text h4 {

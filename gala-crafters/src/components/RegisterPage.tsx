@@ -596,15 +596,26 @@ const RegisterPage = () => {
             )}
 
             {isSuccess && (
-                <div className="modal-overlay" style={{ background: 'rgba(10, 15, 29, 0.95)', backdropFilter: 'blur(10px)' }}>
-                    <div className="modal-content" style={{ 
-                        background: '#1a1f35', 
-                        padding: '60px 40px', 
-                        textAlign: 'center',
-                        maxWidth: '500px',
-                        border: '1px solid rgba(196, 154, 44, 0.2)',
-                        boxShadow: '0 20px 50px rgba(0, 0, 0, 0.5)'
-                    }}>
+                <div 
+                    className="modal-overlay" 
+                    style={{ background: 'rgba(10, 15, 29, 0.95)', backdropFilter: 'blur(10px)' }}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <div 
+                        className="modal-content" 
+                        style={{ 
+                            background: '#1a1f35', 
+                            padding: '60px 40px', 
+                            textAlign: 'center',
+                            maxWidth: '500px',
+                            border: '1px solid rgba(196, 154, 44, 0.2)',
+                            boxShadow: '0 20px 50px rgba(0, 0, 0, 0.5)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center'
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         <div style={{ 
                             width: '80px', 
                             height: '80px', 

@@ -166,6 +166,16 @@ class PendingApproval(Base):
     updated_at = Column(DateTime, default=gala_dt.datetime.utcnow, onupdate=gala_dt.datetime.utcnow)
 
 
+class BlockedBookingDate(Base):
+    """Admin-marked days with no new bookings."""
+    __tablename__ = "blocked_booking_dates"
+
+    id = Column(Integer, primary_key=True, index=True)
+    block_date = Column(Date, unique=True, nullable=False, index=True)
+    note = Column(String(255))
+    created_at = Column(DateTime, default=gala_dt.datetime.utcnow)
+
+
 class PromoCode(Base):
     """Promo code model"""
     __tablename__ = "promo_codes"
@@ -178,6 +188,7 @@ class PromoCode(Base):
     max_uses = Column(Integer)
     current_uses = Column(Integer, default=0)
     status = Column(String(50), default="Active")
+    audience = Column(String(50), default="all")
     created_at = Column(DateTime, default=gala_dt.datetime.utcnow)
 
 

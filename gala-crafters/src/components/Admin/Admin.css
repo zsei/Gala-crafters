@@ -27,6 +27,79 @@
 
 
 
+/* Admin Dropdown Menu - Modern Styling */
+.admin-dropdown-menu {
+  background-color: var(--admin-sidebar-bg);
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  padding: 8px;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: dropdownFadeIn 0.2s ease-out;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-item {
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  background: transparent;
+  color: var(--admin-text-sub);
+  text-align: left;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dropdown-item:hover {
+  background-color: var(--admin-hover);
+  color: var(--admin-accent);
+}
+
+.dropdown-item.active {
+  background-color: var(--admin-hover);
+  color: var(--admin-accent);
+  font-weight: 600;
+}
+
+.filter-dropdown.active {
+  background-color: var(--admin-hover);
+  border-color: var(--admin-accent);
+  color: var(--admin-accent);
+}
+
+/* Promo modal: custom dropdowns (avoid native <select> blue OS highlight) */
+.promo-modal-dropdown {
+  width: 100%;
+  justify-content: space-between;
+  box-sizing: border-box;
+  text-align: left;
+  font-family: inherit;
+}
+
+.promo-modal-dropdown-menu .dropdown-item {
+  white-space: normal;
+  line-height: 1.35;
+}
+
 /* Layout */
 .admin-layout {
   display: flex;
@@ -99,6 +172,7 @@
 
 .admin-nav {
   flex: 1;
+  min-height: 0;
   padding: 0 16px;
   display: flex;
   flex-direction: column;
@@ -1964,4 +2038,254 @@ body.sidebar-collapsed .admin-main {
 
 .cancel-btn:hover {
   background-color: var(--admin-hover);
+}
+
+/* —— Admin booking calendar page —— */
+.admin-calendar-page-card {
+  max-width: 520px;
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-border);
+  border-radius: 16px;
+  padding: 28px 32px 24px;
+  box-shadow: var(--admin-shadow);
+}
+
+.admin-availability-cal {
+  padding: 0;
+}
+
+.admin-availability-cal__err {
+  font-size: 12px;
+  color: #b45348;
+  margin-bottom: 8px;
+}
+
+.admin-availability-cal__nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.admin-availability-cal__month {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--admin-text-main);
+}
+
+.admin-availability-cal__nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--admin-border);
+  border-radius: 8px;
+  background: var(--admin-bg);
+  color: var(--admin-text-main);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.admin-availability-cal__nav-btn:hover {
+  background: var(--admin-hover);
+  border-color: var(--admin-accent);
+  color: var(--admin-accent);
+}
+
+.admin-availability-cal__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.admin-availability-cal__dow {
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--admin-text-sub);
+  text-transform: uppercase;
+  padding: 6px 0;
+}
+
+.admin-availability-cal__cell--empty {
+  min-height: 40px;
+}
+
+.admin-availability-cal__day {
+  min-height: 40px;
+  border: none;
+  border-radius: 10px;
+  background: var(--admin-bg);
+  color: var(--admin-text-main);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  font-family: inherit;
+}
+
+.admin-availability-cal__day:hover:not(:disabled) {
+  background: var(--admin-hover);
+  color: var(--admin-accent);
+}
+
+.admin-availability-cal__day--today:not(.admin-availability-cal__day--blocked):not(.admin-availability-cal__day--booked) {
+  box-shadow: inset 0 0 0 1px var(--admin-accent);
+}
+
+.admin-availability-cal__day--blocked {
+  background: rgba(196, 154, 44, 0.22);
+  color: var(--admin-text-main);
+  font-weight: 700;
+}
+
+.admin-availability-cal__day--blocked:hover:not(:disabled) {
+  background: rgba(196, 154, 44, 0.35);
+  color: var(--admin-accent-hover);
+}
+
+.admin-availability-cal__day--booked {
+  background: rgba(200, 72, 72, 0.4);
+  color: #fecaca;
+  font-weight: 700;
+}
+
+.admin-availability-cal__day--past {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.admin-availability-cal__day:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+
+.admin-availability-cal__day--booked:disabled {
+  opacity: 1;
+}
+
+.admin-availability-cal__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--admin-border);
+  font-size: 11px;
+  color: var(--admin-text-sub);
+}
+
+.admin-availability-cal__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.admin-availability-cal__swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  border: 1px solid var(--admin-border);
+}
+
+.admin-availability-cal__swatch--open {
+  background: var(--admin-bg);
+}
+
+.admin-availability-cal__swatch--blocked {
+  background: rgba(196, 154, 44, 0.28);
+  border-color: var(--admin-accent);
+}
+
+.admin-availability-cal__swatch--booked {
+  background: rgba(200, 72, 72, 0.55);
+  border-color: rgba(248, 113, 113, 0.8);
+}
+
+/* —— Admin Calendar Modal —— */
+.admin-calendar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: modalFadeIn 0.2s ease-out;
+}
+
+.admin-calendar-modal {
+  background-color: var(--admin-card-bg);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 550px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  animation: modalSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.admin-calendar-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 32px 32px 20px;
+  background-color: var(--admin-sidebar-bg);
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.admin-calendar-modal-header h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--admin-text-main);
+  margin: 0 0 4px 0;
+}
+
+.admin-calendar-modal-header p {
+  font-size: 14px;
+  color: var(--admin-text-sub);
+  margin: 0;
+}
+
+.admin-calendar-modal-close {
+  background: none;
+  border: none;
+  color: var(--admin-text-sub);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.admin-calendar-modal-close:hover {
+  background-color: var(--admin-hover);
+  color: var(--admin-accent);
+}
+
+.admin-calendar-modal-content {
+  padding: 24px 32px 32px;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }

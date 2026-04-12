@@ -16,19 +16,42 @@ const BookingModal = ({ isOpen, onClose, initialEventType = "" }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [blockedDates, setBlockedDates] = useState<string[]>([]);
+  const [bookedDates, setBookedDates] = useState<string[]>([]);
 
   useEffect(() => {
     if (isOpen) {
       setFormData(prev => ({ ...prev, event_type: initialEventType }));
       setSuccess(false);
       setError("");
+      const parse = (data: unknown) => (Array.isArray(data) ? (data as string[]) : []);
+      Promise.all([
+        fetch(`${API_BASE_URL}/api/blocked-dates`).then((r) => r.json()),
+        fetch(`${API_BASE_URL}/api/booked-dates`).then((r) => r.json()),
+      ])
+        .then(([blockedRaw, bookedRaw]) => {
+          setBlockedDates(parse(blockedRaw));
+          setBookedDates(parse(bookedRaw));
+        })
+        .catch(() => {
+          setBlockedDates([]);
+          setBookedDates([]);
+        });
     }
   }, [isOpen, initialEventType]);
+
+  const isDateUnavailable = (ymd: string) =>
+    blockedDates.includes(ymd) || bookedDates.includes(ymd);
 
   if (!isOpen) return null;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    if (name === 'event_date' && value && isDateUnavailable(value)) {
+      setError('This date is unavailable (day off or already booked). Please choose another date.');
+      return;
+    }
+    if (name === 'event_date') setError('');
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
@@ -36,6 +59,12 @@ const BookingModal = ({ isOpen, onClose, initialEventType = "" }) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+
+    if (formData.event_date && isDateUnavailable(formData.event_date)) {
+      setError('This date is unavailable (day off or already booked). Please choose another date.');
+      setLoading(false);
+      return;
+    }
 
     const token = localStorage.getItem('token');
     if (!token) {

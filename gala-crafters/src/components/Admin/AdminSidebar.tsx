@@ -11,16 +11,19 @@ import {
   Tag,
   Star,
   FileText,
-  LogOut
+  LogOut,
+  X
 } from 'lucide-react';
 import { authService } from '../../api/auth';
 import { API_BASE_URL, API_ENDPOINTS } from '../../api/config';
+import AdminAvailabilityCalendar from './AdminAvailabilityCalendar';
 
 const AdminSidebar = ({ isCollapsed: propIsCollapsed, toggleSidebar: propToggleSidebar }) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [localIsCollapsed, setLocalIsCollapsed] = useState(false);
   const [isBookingsOpen, setIsBookingsOpen] = useState(false);
   const [isPackagesOpen, setIsPackagesOpen] = useState(false);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const location = useLocation();
   
   // RBAC Role Extraction
@@ -47,7 +50,10 @@ const AdminSidebar = ({ isCollapsed: propIsCollapsed, toggleSidebar: propToggleS
 
   // Keep dropdown open if we are on a bookings route
   useEffect(() => {
-    if (location.pathname.startsWith('/admin/bookings') && !isCollapsed) {
+    if (
+      (location.pathname.startsWith('/admin/bookings')) &&
+      !isCollapsed
+    ) {
       setIsBookingsOpen(true);
     }
   }, [location.pathname, isCollapsed]);
@@ -105,6 +111,7 @@ const AdminSidebar = ({ isCollapsed: propIsCollapsed, toggleSidebar: propToggleS
   }, []);
 
   return (
+    <>
     <aside className={`admin-sidebar ${isCollapsed ? 'collapsed' : ''}`}>
       <div className="admin-logo" onClick={toggleSidebar} style={{ cursor: 'pointer' }}>
         <div className="diamond-icon">
@@ -153,6 +160,13 @@ const AdminSidebar = ({ isCollapsed: propIsCollapsed, toggleSidebar: propToggleS
               <NavLink to="/admin/bookings?status=ongoing" className="admin-subnav-item">On-going Events</NavLink>
               <NavLink to="/admin/bookings?status=completed" className="admin-subnav-item">Completed Event</NavLink>
               <NavLink to="/admin/bookings?status=cancelled" className="admin-subnav-item">Cancelled/Postponed</NavLink>
+              <div 
+                className="admin-subnav-item" 
+                onClick={() => setIsCalendarOpen(true)}
+                style={{ cursor: 'pointer' }}
+              >
+                Booking calendar
+              </div>
             </div>
           </div>
         )}
@@ -271,6 +285,25 @@ const AdminSidebar = ({ isCollapsed: propIsCollapsed, toggleSidebar: propToggleS
         </button>
       </div>
     </aside>
+    {isCalendarOpen && (
+      <div className="admin-calendar-overlay" onClick={() => setIsCalendarOpen(false)}>
+        <div className="admin-calendar-modal" onClick={(e) => e.stopPropagation()}>
+          <div className="admin-calendar-modal-header">
+            <div>
+              <h2>Booking Calendar</h2>
+              <p>Mark days as unavailable for reservations</p>
+            </div>
+            <button className="admin-calendar-modal-close" onClick={() => setIsCalendarOpen(false)}>
+              <X size={24} />
+            </button>
+          </div>
+          <div className="admin-calendar-modal-content">
+            <AdminAvailabilityCalendar />
+          </div>
+        </div>
+      </div>
+    )}
+  </>
   );
 };
 
