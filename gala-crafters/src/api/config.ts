@@ -24,12 +24,21 @@ export const API_ENDPOINTS = {
     METRICS: '/api/admin/metrics',
     MESSAGES: '/api/admin/messages',
   },
+  PACKAGES: {
+    LIST: '/api/packages',
+  },
   BOOKINGS: {
     CREATE: '/api/bookings',
     USER_HISTORY: '/api/users/bookings',
   },
   PAYMENTS: {
     CREATE_CHECKOUT: '/api/payments/create-checkout',
+  },
+  NOTIFICATIONS: {
+    GET: '/api/notifications',
+    MARK_READ: (id: number) => `/api/notifications/${id}/read`,
+    READ_ALL: '/api/notifications/read-all',
+    CLEAR: '/api/notifications'
   },
   HEALTH: '/api/health'
 };

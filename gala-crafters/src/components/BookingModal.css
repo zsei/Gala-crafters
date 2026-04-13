@@ -13,7 +13,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 10000; /* Above everything */
+    z-index: 999999; /* Above everything */
     padding: 20px;
     animation: fadeInBookingModal 0.4s ease-out;
 }

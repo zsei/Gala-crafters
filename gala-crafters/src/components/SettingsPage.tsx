@@ -35,7 +35,7 @@ import {
   onAuthStateChanged
 } from '../firebase';
 import { sendVerificationEmail } from '../utils/emailjs';
-import bgImage from '../assets/img3.jpg';
+import bgImage from '../assets/art9.jpg';
 import './SettingsPage.css';
 import './AccountPage.css'; // Reusing existing card styles
 

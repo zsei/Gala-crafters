@@ -433,15 +433,15 @@ const AdminDiscounts = () => {
                                 </div>
                                 <span className="form-or">OR</span>
                                 <div className="admin-form-group">
-                                    <label>Discount Amount ($)</label>
+                                    <label>Discount Amount (₱)</label>
                                     <div className="input-with-icon">
                                         <Hash size={16} />
                                         <input 
                                             type="number" 
-                                            name="discount_amount" 
-                                            value={formData.discount_amount} 
-                                            onChange={handleInputChange} 
-                                            placeholder="0"
+                                            name="discount_amount"
+                                            value={formData.discount_amount || ''}
+                                            onChange={handleInputChange}
+                                            placeholder="₱500"
                                             disabled={!!formData.discount_percentage}
                                         />
                                     </div>

@@ -5,22 +5,50 @@ import ClientTestimonials from './ClientTestimonials';
 import LocationsSection from './LocationsSection';
 import PackageDetailsModal from './PackageDetailsModal';
 import ReservationModal from './ReservationModal';
+import { API_BASE_URL, API_ENDPOINTS } from '../api/config';
 
 // Assets
-import heroBg from '../assets/img2b.jpg';
-import img1 from '../assets/img1.jpg';
-import img2 from '../assets/img1a.jpg';
-import img3 from '../assets/banner-7.jpg';
+import img2b from '../assets/img2b.jpg';
+import img2a from '../assets/img2a.jpg';
+import ww from '../assets/ww.jpg';
+import sea from '../assets/sea.jpg';
+import wed1 from '../assets/wed1.jpg';
+import glamour2 from '../assets/glamour-2.jpg';
+import bt from '../assets/bt.jpg';
+import art2 from '../assets/art2.jpg';
+import kiss from '../assets/kiss.jpg';
+import img11 from '../assets/img11.jpg';
+import wed2 from '../assets/wed2.jpg';
+import wedblue from '../assets/wedblue.jpg';
 import { FaGift, FaRegHeart, FaCheckSquare } from "react-icons/fa";
 
-const sliderImages = [heroBg, img1, img2, img3];
-const weddingGalleryImages = [img1, img2, img3, heroBg, img1, img2, img3, heroBg];
+const sliderImages = [img2b, img2a, ww, sea];
+const weddingGalleryImages = [wed1, glamour2, bt, art2, kiss, img11, wed2, wedblue];
 function WeddingPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState<'intimate' | 'utopian' | 'elite'>('intimate');
   const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
   const [reservationData, setReservationData] = useState<any>(null);
+  const [packages, setPackages] = useState<any[]>([]);
+  const [selectedPackageData, setSelectedPackageData] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchPackages = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.PACKAGES.LIST}`);
+        if (response.ok) {
+          const data = await response.json();
+          // Filter for wedding packages only
+          const weddingPkgs = data.filter((p: any) => p.event_type.toLowerCase() === 'wedding');
+          setPackages(weddingPkgs);
+        }
+      } catch (err) {
+        console.error('Error fetching packages:', err);
+      }
+    };
+    fetchPackages();
+  }, []);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -33,38 +61,48 @@ function WeddingPage() {
     return () => clearInterval(timer);
   }, []);
 
-  useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash.toLowerCase().replace('#', '');
-      if (['intimate', 'utopian', 'elite'].includes(hash)) {
-        setSelectedPackage(hash as 'intimate' | 'utopian' | 'elite');
-        setIsModalOpen(true);
-      } else if (!hash) {
-        setIsModalOpen(false);
-      }
-    };
-
-    // Initial check
-    handleHashChange();
-
-    // Listen for hash changes (e.g., back button or manual URL edits)
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
-
   const openPackageModal = (type: 'intimate' | 'utopian' | 'elite') => {
-    window.location.hash = type;
+    setSelectedPackage(type);
+    
+    // Find the actual data for this package from the fetched list
+    if (packages.length > 0) {
+      const pkgNameMap: any = {
+        'intimate': 'Intimate Wedding Package',
+        'utopian': 'Utopian Wedding Package',
+        'elite': 'Elite Wedding Package'
+      };
+      const targetName = pkgNameMap[type];
+      const found = packages.find(p => p.package_name === targetName);
+      if (found) {
+        // Map backend fields to frontend format if needed
+        const mapped = {
+          ...found,
+          title: found.package_name,
+          basePrice: found.base_price,
+          included: found.included_items ? (function() {
+            try {
+              const parsed = JSON.parse(found.included_items);
+              return Array.isArray(parsed) ? parsed : [];
+            } catch(e) { return []; }
+          })() : []
+        };
+        setSelectedPackageData(mapped);
+      } else {
+        setSelectedPackageData(null);
+      }
+    }
+    
+    setIsModalOpen(true);
   };
 
   const closePackageModal = () => {
-    window.location.hash = ''; // Removing the hash closes the modal via handleHashChange
+    setIsModalOpen(false);
   };
 
   const handleOpenReservation = (data: any) => {
     setReservationData(data);
     setIsModalOpen(false); // Close the first modal
     setIsReservationModalOpen(true); // Open the reservation modal
-    // Note: We keep the hash for now so that 'onBack' can return to it
   };
 
   const handleBackToPackage = () => {
@@ -77,21 +115,21 @@ function WeddingPage() {
       title: "Intimate",
       desc: "Designed for smaller celebrations with those who matter most. We focus on the personal touches that make a close-knit wedding feel truly special and unforgettable.",
       link: "#",
-      bg: img1,
+      bg: img2a,
       onClick: () => openPackageModal('intimate')
     },
     {
       title: "Utopian",
       desc: "Our signature choice for couples who want a beautiful balance of elegance and detail. We handle the heavy lifting so you can enjoy a polished, stress-free celebration.",
       link: "#",
-      bg: img2,
+      bg: ww,
       onClick: () => openPackageModal('utopian')
     },
     {
       title: "Elite",
       desc: "Our most comprehensive experience. This is for the couple who wants every detail handled—from premium styling to full-scale coordination—for a truly grand celebration.",
       link: "#",
-      bg: img3,
+      bg: sea,
       onClick: () => openPackageModal('elite')
     }
   ];
@@ -173,7 +211,7 @@ function WeddingPage() {
         <div className="wedding-hire-row">
 
           <div className="wedding-hire-image">
-            <img src={img2} alt="Wedding Ceremony" />
+            <img src={img2a} alt="Wedding Ceremony" />
           </div>
 
           <div className="wedding-hire-text">
@@ -208,7 +246,7 @@ function WeddingPage() {
         <div className="wedding-hire-row reverse">
 
           <div className="wedding-hire-image">
-            <img src={img3} alt="Wedding Signing" />
+            <img src={ww} alt="Wedding Signing" />
           </div>
 
           <div className="wedding-hire-text">
@@ -251,6 +289,7 @@ function WeddingPage() {
         onClose={closePackageModal} 
         packageType={selectedPackage}
         onReserve={handleOpenReservation}
+        packageData={selectedPackageData}
       />
 
       <ReservationModal

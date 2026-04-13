@@ -55,11 +55,77 @@ const AdminReports = () => {
     const toggleSidebar = () => setIsCollapsed(prev => !prev);
 
     const formatCurrency = (value: number) => {
-        return new Intl.NumberFormat('en-US', {
+        return new Intl.NumberFormat('en-PH', {
             style: 'currency',
-            currency: 'USD',
+            currency: 'PHP',
             minimumFractionDigits: 0
         }).format(value);
+    };
+
+    // Calculate dynamic metrics and trends
+    const getMetrics = () => {
+        if (!salesData || !salesData.yearly.length) return {
+            revenue: 0, revenueTrend: 0,
+            bookings: 0, bookingsTrend: 0,
+            aov: 0, aovTrend: 0
+        };
+
+        const currentYearData = salesData.yearly[0]; // Assuming descending order
+        const prevYearData = salesData.yearly[1];
+
+        const currentRevenue = Number(currentYearData.total_sales || 0);
+        const prevRevenue = prevYearData ? Number(prevYearData.total_sales || 0) : 0;
+        const revenueTrend = prevRevenue ? ((currentRevenue - prevRevenue) / prevRevenue) * 100 : 0;
+
+        const currentBookings = Number(currentYearData.total_bookings || 0);
+        const prevBookings = prevYearData ? Number(prevYearData.total_bookings || 0) : 0;
+        const bookingsTrend = prevBookings ? ((currentBookings - prevBookings) / prevBookings) * 100 : 0;
+
+        const currentAOV = currentBookings ? currentRevenue / currentBookings : 0;
+        const prevAOV = prevBookings ? prevRevenue / prevBookings : 0;
+        const aovTrend = prevAOV ? ((currentAOV - prevAOV) / prevAOV) * 100 : 0;
+
+        return {
+            revenue: currentRevenue,
+            revenueTrend,
+            bookings: currentBookings,
+            bookingsTrend,
+            aov: currentAOV,
+            aovTrend
+        };
+    };
+
+    const metrics = getMetrics();
+
+    const handleExportPDF = () => {
+        window.print();
+    };
+
+    const handleExportCSV = () => {
+        if (!salesData) return;
+        
+        const data = viewMode === 'monthly' ? salesData.monthly : salesData.yearly;
+        const headers = ['Period', 'Bookings', 'Total Revenue'];
+        const rows = data.map(row => [
+            viewMode === 'monthly' ? row.month : row.year,
+            row.total_bookings,
+            row.total_sales
+        ]);
+        
+        const csvContent = [
+            headers.join(','),
+            ...rows.map(row => row.join(','))
+        ].join('\n');
+        
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `gala_crafters_sales_report_${viewMode}_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
 
     const currentData = viewMode === 'monthly' ? salesData?.monthly : salesData?.yearly;
@@ -79,11 +145,11 @@ const AdminReports = () => {
                     </div>
                     
                     <div className="bookings-header-actions">
-                        <button className="export-btn secondary">
+                        <button className="export-btn secondary" onClick={handleExportPDF}>
                             <Download size={16} />
                             Export PDF
                         </button>
-                        <button className="export-btn" style={{ backgroundColor: 'var(--admin-accent)', color: 'white', border: 'none' }}>
+                        <button className="export-btn" style={{ backgroundColor: 'var(--admin-accent)', color: 'white', border: 'none' }} onClick={handleExportCSV}>
                             <Download size={16} />
                             CSV Full Report
                         </button>
@@ -95,12 +161,12 @@ const AdminReports = () => {
                         <div className="metric-content">
                             <span className="metric-label">Total Annual Revenue</span>
                             <div className="metric-value-row">
-                                <DollarSign size={20} className="text-accent" />
-                                <h3>{salesData ? formatCurrency(salesData.yearly.reduce((acc, curr) => acc + Number(curr.total_sales || 0), 0)) : '$0'}</h3>
+                                <span className="text-accent font-bold" style={{ fontSize: '20px' }}>₱</span>
+                                <h3>{formatCurrency(metrics.revenue).replace('PHP', '').replace('₱', '').trim()}</h3>
                             </div>
-                            <div className="metric-trend positive">
-                                <TrendingUp size={14} />
-                                <span>+12.5% from last year</span>
+                            <div className={`metric-trend ${metrics.revenueTrend >= 0 ? 'positive' : 'negative'}`}>
+                                {metrics.revenueTrend >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                                <span>{metrics.revenueTrend > 0 ? '+' : ''}{metrics.revenueTrend.toFixed(1)}% from last year</span>
                             </div>
                         </div>
                         <div className="metric-icon-bg">
@@ -113,11 +179,11 @@ const AdminReports = () => {
                             <span className="metric-label">Total Bookings</span>
                             <div className="metric-value-row">
                                 <Package size={20} className="text-accent" />
-                                <h3>{salesData ? salesData.yearly.reduce((acc, curr) => acc + Number(curr.total_bookings || 0), 0) : '0'}</h3>
+                                <h3>{metrics.bookings}</h3>
                             </div>
-                            <div className="metric-trend positive">
-                                <TrendingUp size={14} />
-                                <span>+4.2% from last year</span>
+                            <div className={`metric-trend ${metrics.bookingsTrend >= 0 ? 'positive' : 'negative'}`}>
+                                {metrics.bookingsTrend >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                                <span>{metrics.bookingsTrend > 0 ? '+' : ''}{metrics.bookingsTrend.toFixed(1)}% from last year</span>
                             </div>
                         </div>
                         <div className="metric-icon-bg">
@@ -129,12 +195,12 @@ const AdminReports = () => {
                         <div className="metric-content">
                             <span className="metric-label">Average Order Value</span>
                             <div className="metric-value-row">
-                                <TrendingUp size={20} className="text-accent" />
-                                <h3>{salesData && salesData.yearly.length > 0 ? formatCurrency(salesData.yearly.reduce((acc, curr) => acc + Number(curr.total_sales || 0), 0) / salesData.yearly.reduce((acc, curr) => acc + Number(curr.total_bookings || 0), 1)) : '$0'}</h3>
+                                <span className="text-accent font-bold" style={{ fontSize: '20px' }}>₱</span>
+                                <h3>{formatCurrency(metrics.aov).replace('PHP', '').replace('₱', '').trim()}</h3>
                             </div>
-                            <div className="metric-trend positive">
-                                <CheckCircle size={14} />
-                                <span>Above target</span>
+                            <div className={`metric-trend ${metrics.aovTrend >= 0 ? 'positive' : 'negative'}`}>
+                                {metrics.aovTrend >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                                <span>{metrics.aovTrend > 0 ? '+' : ''}{metrics.aovTrend.toFixed(1)}% from last year</span>
                             </div>
                         </div>
                         <div className="metric-icon-bg">
@@ -182,7 +248,7 @@ const AdminReports = () => {
                                             axisLine={false}
                                             tickLine={false}
                                             tick={{ fill: 'var(--admin-text-sub)', fontSize: 12 }}
-                                            tickFormatter={(value) => `$${value / 1000}k`}
+                                            tickFormatter={(value) => `₱${value / 1000}k`}
                                         />
                                         <Tooltip 
                                             contentStyle={{ 
@@ -191,7 +257,7 @@ const AdminReports = () => {
                                                 borderRadius: '8px',
                                                 boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
                                             }}
-                                            formatter={(value: any) => [formatCurrency(value), 'Revenue']}
+                                            formatter={(value: any) => [formatCurrency(value).replace('PHP', '₱').trim(), 'Revenue']}
                                         />
                                         <Bar dataKey="total_sales" radius={[4, 4, 0, 0]} barSize={40}>
                                             {(currentData || []).map((entry, index) => (
@@ -223,7 +289,7 @@ const AdminReports = () => {
                                         <tr key={i}>
                                             <td className="font-bold">{viewMode === 'monthly' ? row.month : row.year}</td>
                                             <td>{row.total_bookings}</td>
-                                            <td className="text-right text-accent font-bold">{formatCurrency(row.total_sales)}</td>
+                                            <td className="text-right text-accent font-bold">{formatCurrency(row.total_sales).replace('PHP', '₱').trim()}</td>
                                         </tr>
                                     ))}
                                 </tbody>

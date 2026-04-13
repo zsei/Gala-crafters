@@ -501,6 +501,7 @@ def get_admin_profile(token_data: dict = Depends(verify_token), db: Session = De
         "role": admin.role,
         "status": admin.status,
         "phone": admin.phone,
+        "image_url": admin.image_url,
         "created_at": admin.created_at
     }
 
@@ -524,6 +525,13 @@ def update_booking_statuses_by_date(db: Session):
         
         for booking in today_bookings:
             booking.status = "On-going Event"
+            # Create notification
+            new_notif = models.Notification(
+                user_id=booking.customer_id,
+                message=f"Your booking {booking.booking_reference} for {booking.package.package_name} is now On-going! We hope you have a wonderful gala.",
+                notification_type="booking"
+            )
+            db.add(new_notif)
         
         # 2. Update past "On-going Event" or "Confirmed" to "Completed Event"
         past_bookings = db.query(models.Booking).filter(
@@ -533,6 +541,13 @@ def update_booking_statuses_by_date(db: Session):
         
         for booking in past_bookings:
             booking.status = "Completed Event"
+            # Create notification
+            new_notif = models.Notification(
+                user_id=booking.customer_id,
+                message=f"Thank you for choosing Gala Crafters! Your event {booking.booking_reference} is now marked as Completed.",
+                notification_type="booking"
+            )
+            db.add(new_notif)
         
         total_updated = len(today_bookings) + len(past_bookings)
         if total_updated > 0:

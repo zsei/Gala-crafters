@@ -37,6 +37,7 @@ import AdminReviews from './components/Admin/AdminReviews';
 import AdminReports from './components/Admin/AdminReports';
 import AdminInquiries from './components/Admin/AdminInquiries';
 import AdminCalendarPage from './components/Admin/AdminCalendarPage';
+import AdminProfilePage from './components/Admin/AdminProfilePage';
 
 import Hero from './components/Hero';
 import Services from './components/Services';
@@ -115,6 +116,7 @@ const AppLayout = () => {
           <Route path="/admin/discounts" element={<ProtectedRoute requiredRole="admin" allowedRoles={['superadmin', 'staff_packages']}><AdminDiscounts /></ProtectedRoute>} />
           <Route path="/admin/reviews" element={<ProtectedRoute requiredRole="admin" allowedRoles={['superadmin']}><AdminReviews /></ProtectedRoute>} />
           <Route path="/admin/reports" element={<ProtectedRoute requiredRole="admin" allowedRoles={['superadmin']}><AdminReports /></ProtectedRoute>} />
+          <Route path="/admin/profile" element={<ProtectedRoute requiredRole="admin"><AdminProfilePage /></ProtectedRoute>} />
         </Routes>
       </div>
 

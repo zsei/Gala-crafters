@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { User, Bell, X } from 'lucide-react';
 import { authService } from '../api/auth';
+import { formatRelativeTime } from '../utils/time';
 
 function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -17,7 +18,12 @@ function Navbar() {
 
   // Check login state and notifications
   useEffect(() => {
-    const checkAuth = () => {
+    const fetchNotifications = async () => {
+      const data = await authService.getNotifications();
+      setNotifications(data);
+    };
+
+    const checkAuth = async () => {
       const loggedIn = authService.isLoggedIn();
       setIsLoggedIn(loggedIn);
       if (loggedIn) {
@@ -31,44 +37,29 @@ function Navbar() {
           setNotificationsEnabled(settings.bookingUpdates);
         }
 
-        // Load persisted notifications
-        const savedNotifications = localStorage.getItem('user_notifications');
-        if (savedNotifications) {
-          setNotifications(JSON.parse(savedNotifications));
-        } else {
-          // Fallback to mock data if no saved notifications
-          const settings = savedSettings ? JSON.parse(savedSettings) : { bookingUpdates: true };
-          if (settings.bookingUpdates) {
-            const initialNotifications = [
-              { id: 1, text: "Your booking BK-001 has been confirmed!", time: "2 mins ago", unread: true },
-              { id: 2, text: "New message from Gala Crafters admin.", time: "1 hour ago", unread: true }
-            ];
-            setNotifications(initialNotifications);
-            localStorage.setItem('user_notifications', JSON.stringify(initialNotifications));
-          } else {
-            setNotifications([]);
-          }
-        }
+        // Fetch real notifications from API
+        await fetchNotifications();
+      } else {
+        setNotifications([]);
+        setUserData(null);
       }
     };
     checkAuth();
     
+    // Poll for notifications every 30 seconds if logged in
+    const interval = setInterval(() => {
+      if (authService.isLoggedIn()) {
+        fetchNotifications();
+      }
+    }, 30000);
+
     // Listen for custom events from SettingsPage
     const handleSettingsUpdate = (e: any) => {
       setNotificationsEnabled(e.detail.bookingUpdates);
       if (e.detail.bookingUpdates) {
-        // Add a mock notification when enabled
-        setNotifications(prev => {
-          const updated = [
-            { id: Date.now(), text: "Booking updates enabled! You'll receive real-time alerts.", time: "Just now", unread: true },
-            ...prev
-          ];
-          localStorage.setItem('user_notifications', JSON.stringify(updated));
-          return updated;
-        });
+        fetchNotifications();
       } else {
         setNotifications([]);
-        localStorage.removeItem('user_notifications');
       }
     };
 
@@ -78,6 +69,7 @@ function Navbar() {
     return () => {
       window.removeEventListener('notification_settings_updated', handleSettingsUpdate);
       window.removeEventListener('storage', checkAuth);
+      clearInterval(interval);
     };
   }, [location]);
 
@@ -104,28 +96,26 @@ function Navbar() {
     authService.logout();
     setIsLoggedIn(false);
     setUserData(null);
+    setNotifications([]);
     setShowLogoutModal(false);
     setUserMenuOpen(false);
     navigate('/');
   };
 
-  const toggleNotifications = () => {
+  const toggleNotifications = async () => {
     const isOpening = !showNotifications;
     setShowNotifications(isOpening);
     
     // If opening, mark all as read
     if (isOpening && notifications.some(n => n.unread)) {
-      setNotifications(prev => {
-        const updated = prev.map(n => ({ ...n, unread: false }));
-        localStorage.setItem('user_notifications', JSON.stringify(updated));
-        return updated;
-      });
+      setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
+      await authService.markAllNotificationsRead();
     }
   };
 
-  const handleClearNotifications = () => {
+  const handleClearNotifications = async () => {
     setNotifications([]);
-    localStorage.setItem('user_notifications', JSON.stringify([]));
+    await authService.clearNotifications();
   };
 
   const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
@@ -140,33 +130,34 @@ function Navbar() {
         </Link>
 
         <ul className="menu">
-          <li><Link to="/events" className="nav-link">EVENTS</Link></li>
+          <li><Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}>HOME</Link></li>
+          <li><Link to="/events" className={`nav-link ${location.pathname === '/events' ? 'active' : ''}`}>EVENTS</Link></li>
           <li className="nav-dropdown">
-            <Link to="/services" className="nav-link">SERVICES</Link>
+            <Link to="/services" className={`nav-link ${(location.pathname.startsWith('/services') || location.pathname === '/corporate' || location.pathname === '/debut') ? 'active' : ''}`}>SERVICES</Link>
             <div className="dropdown-mega-menu">
 
               {/* Column 1 */}
               <div className="dropdown-col">
-                <Link to="/services/weddings">Weddings</Link>
-                <Link to="/corporate" className="nav-link">Corporate</Link>
+                <Link to="/services/weddings" className={location.pathname === '/services/weddings' ? 'active' : ''}>Weddings</Link>
+                <Link to="/corporate" className={location.pathname === '/corporate' ? 'active' : ''}>Corporate</Link>
               </div>
 
               {/* Column 2 */}
               <div className="dropdown-col">
-                <Link to="/debut">Debut</Link>
-                <Link to="/services/childrens-party">Children's Party</Link>
+                <Link to="/debut" className={location.pathname === '/debut' ? 'active' : ''}>Debut</Link>
+                <Link to="/services/childrens-party" className={location.pathname === '/services/childrens-party' ? 'active' : ''}>Children's Party</Link>
               </div>
 
               {/* Column 3 */}
               <div className="dropdown-col">
-                <Link to="/services/special-occasions">Special Occasions</Link>
-                <Link to="/services/packages">All Packages</Link>
+                <Link to="/services/special-occasions" className={location.pathname === '/services/special-occasions' ? 'active' : ''}>Special Occasions</Link>
+                <Link to="/services/packages" className={location.pathname === '/services/packages' ? 'active' : ''}>All Packages</Link>
               </div>
 
             </div>
           </li>
-          <li><Link to="/about" className="nav-link">ABOUT US</Link></li>
-          {!isLoggedIn && <li><Link to="/contact" className="nav-link">CONTACT US</Link></li>}
+          <li><Link to="/about" className={`nav-link ${location.pathname === '/about' ? 'active' : ''}`}>ABOUT US</Link></li>
+          {!isLoggedIn && <li><Link to="/contact" className={`nav-link ${location.pathname === '/contact' ? 'active' : ''}`}>CONTACT US</Link></li>}
         </ul>
 
         {!isAuthPage && (
@@ -198,7 +189,7 @@ function Navbar() {
                           <div key={notif.id} className={`notification-item ${notif.unread ? 'unread' : ''}`}>
                             <div className="notification-content">
                               <p>{notif.text}</p>
-                              <span className="notification-time">{notif.time}</span>
+                              <span className="notification-time">{formatRelativeTime(notif.time)}</span>
                             </div>
                             {notif.unread && <span className="unread-dot"></span>}
                           </div>
@@ -226,17 +217,36 @@ function Navbar() {
 
               {userMenuOpen && (
                 <div className="user-dropdown">
-                  <Link to="/settings" state={{ tab: 'profile' }} onClick={() => setUserMenuOpen(false)}>My Profile</Link>
-                  <Link to="/settings" state={{ tab: 'transactions' }} onClick={() => setUserMenuOpen(false)}>Transaction List</Link>
-                  <Link to="/settings" state={{ tab: 'security' }} onClick={() => {
-                    setUserMenuOpen(false);
-                  }}>Account Settings</Link>
+                  <Link 
+                    to="/settings" 
+                    state={{ tab: 'profile' }} 
+                    onClick={() => setUserMenuOpen(false)}
+                    className={location.pathname === '/settings' && (!new URLSearchParams(location.search).get('tab') || new URLSearchParams(location.search).get('tab') === 'profile') ? 'active' : ''}
+                  >
+                    My Profile
+                  </Link>
+                  <Link 
+                    to="/settings" 
+                    state={{ tab: 'transactions' }} 
+                    onClick={() => setUserMenuOpen(false)}
+                    className={location.pathname === '/settings' && new URLSearchParams(location.search).get('tab') === 'transactions' ? 'active' : ''}
+                  >
+                    Transaction List
+                  </Link>
+                  <Link 
+                    to="/settings" 
+                    state={{ tab: 'security' }} 
+                    onClick={() => setUserMenuOpen(false)}
+                    className={location.pathname === '/settings' && new URLSearchParams(location.search).get('tab') === 'security' ? 'active' : ''}
+                  >
+                    Account Settings
+                  </Link>
                   <button className="logout-nav-btn" onClick={() => setShowLogoutModal(true)}>Log out</button>
                 </div>
               )}
             </div>
           ) : (
-            <Link to="/login" className="nav-login-btn sign-up">SIGN IN</Link>
+            <Link to="/login" className={`nav-login-btn sign-up ${location.pathname === '/login' ? 'active' : ''}`}>SIGN IN</Link>
           )
         )}
       </div>

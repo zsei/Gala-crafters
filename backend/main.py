@@ -98,6 +98,10 @@ class ResetPasswordRequest(BaseModel):
     token: str
     password: str
 
+class PasswordChangeRequest(BaseModel):
+    current_password: str
+    new_password: str
+
 class RegistrationRequest(BaseModel):
     first_name: str
     last_name: str
@@ -228,9 +232,13 @@ class PackageCreateRequest(BaseModel):
     package_name: str
     event_type: str
     description: str = None
+    detailed_description: str = None
     base_price: float
+    min_guests: int = 1
     max_guests: int = None
+    extra_pax_rate: float = 350.0
     features: list[str] = []
+    included_items: str = None
     image_url: str = None
     status: str = "Active"
 
@@ -238,9 +246,13 @@ class PackageUpdateRequest(BaseModel):
     package_name: str = None
     event_type: str = None
     description: str = None
+    detailed_description: str = None
     base_price: float = None
+    min_guests: int = None
     max_guests: int = None
+    extra_pax_rate: float = None
     features: list[str] = None
+    included_items: str = None
     image_url: str = None
     status: str = None
 
@@ -508,6 +520,15 @@ def create_booking(request: BookingCreateRequest, credentials = Depends(verify_t
         )
         
         db.add(new_booking)
+        
+        # Create notification for admin
+        admin_notif = models.Notification(
+            user_id=1, # Default admin ID
+            message=f"New booking request {booking_ref} is pending approval.",
+            notification_type="booking_pending"
+        )
+        db.add(admin_notif)
+        
         db.commit()
         db.refresh(new_booking)
         
@@ -567,10 +588,265 @@ def get_admin_profile_endpoint(credentials = Depends(verify_token), db: Session 
     """Get current logged-in admin's profile"""
     return get_admin_profile(credentials, db)
 
+@app.put("/api/admin/profile/update")
+def update_admin_profile_endpoint(update_data: dict, credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Update current admin's profile"""
+    from auth_endpoints import AdminUser
+    admin = db.query(AdminUser).filter(AdminUser.email == credentials.get("email")).first()
+    if not admin:
+        raise HTTPException(status_code=404, detail="Admin not found")
+    
+    if "name" in update_data:
+        admin.name = update_data["name"]
+    if "phone" in update_data:
+        admin.phone = update_data["phone"]
+        
+    db.commit()
+    db.refresh(admin)
+    return {"success": True, "message": "Profile updated", "admin": {"name": admin.name, "phone": admin.phone, "image_url": admin.image_url}}
+
+@app.put("/api/admin/profile/change-password")
+def change_admin_password_endpoint(request: PasswordChangeRequest, credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Change current admin's password"""
+    from auth_endpoints import AdminUser
+    admin = db.query(AdminUser).filter(AdminUser.email == credentials.get("email")).first()
+    if not admin:
+        raise HTTPException(status_code=404, detail="Admin not found")
+    
+    # Check current password (in production, use proper hashing)
+    if admin.password != request.current_password:
+        raise HTTPException(status_code=400, detail="Incorrect current password")
+    
+    admin.password = request.new_password
+    db.commit()
+    return {"success": True, "message": "Password changed successfully"}
+
+@app.post("/api/admin/profile/upload-avatar")
+async def upload_admin_avatar(file: UploadFile = File(...), credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Upload an admin avatar and return the URL"""
+    from auth_endpoints import AdminUser
+    admin = db.query(AdminUser).filter(AdminUser.email == credentials.get("email")).first()
+    if not admin:
+        raise HTTPException(status_code=404, detail="Admin not found")
+
+    try:
+        # Create unique filename
+        timestamp = gala_dt.datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"avatar_{admin.id}_{timestamp}_{file.filename.replace(' ', '_')}"
+        file_path = os.path.join(UPLOAD_DIR, filename)
+        
+        # Save file
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+            
+        # Update admin record
+        image_url = f"http://localhost:8000/uploads/{filename}"
+        admin.image_url = image_url
+        db.commit()
+        
+        return {"url": image_url}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error uploading image: {str(e)}")
+
+# Helper: Create Audit Log
+def create_audit_log(db: Session, admin_id: int, admin_name: str, action: str, details: str = None):
+    new_log = models.AuditLog(
+        admin_id=admin_id,
+        admin_name=admin_name,
+        action=action,
+        details=details,
+        created_at=gala_dt.datetime.utcnow()
+    )
+    db.add(new_log)
+    db.commit()
+
+
 @app.get("/api/admin/users")
-def get_admin_users_endpoint(db: Session = Depends(get_db)):
-    """Get all admin users"""
-    return get_admin_users(db)
+def get_admin_users_endpoint(credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Get all admin users from real database"""
+    admins = database_setup.get_admin_users()
+    return {"admins": admins}
+
+
+class AdminUserCreate(BaseModel):
+    first_name: str
+    last_name: str
+    email: str
+    password: str
+    role: str
+    phone: str | None = None
+
+
+@app.post("/api/admin/users/create")
+def create_admin_user_endpoint(request: AdminUserCreate, credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Create a new admin/staff user with PH phone format"""
+    from auth_endpoints import AdminUser
+    
+    # Check if user already exists
+    existing = db.query(AdminUser).filter(AdminUser.email == request.email).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Ensure phone has +63 if provided and doesn't have it
+    phone = request.phone
+    if phone:
+        phone = phone.strip()
+        if not phone.startswith('+63'):
+            # Remove leading 0 if present
+            if phone.startswith('0'): phone = phone[1:]
+            phone = f"+63 {phone}"
+    
+    # Create new admin user
+    new_admin = AdminUser(
+        name=f"{request.first_name} {request.last_name}",
+        email=request.email,
+        password=request.password,
+        role=request.role,
+        status="Active",
+        phone=phone or "+63 000 000 0000",
+        created_at=gala_dt.datetime.utcnow()
+    )
+    
+    db.add(new_admin)
+    db.commit()
+    db.refresh(new_admin)
+    
+    # Log the action
+    admin_id = credentials.get("sub")
+    admin_name = credentials.get("name") or "Admin"
+    create_audit_log(db, int(admin_id) if admin_id else 0, admin_name, "Created User", f"Created staff member: {new_admin.name} ({new_admin.role})")
+    
+    return {"success": True, "message": "Staff member created successfully"}
+
+
+class AdminUserUpdate(BaseModel):
+    name: str | None = None
+    email: str | None = None
+    role: str | None = None
+    phone: str | None = None
+    status: str | None = None
+
+
+@app.put("/api/admin/users/{user_id}")
+def update_admin_user_endpoint(user_id: int, request: AdminUserUpdate, credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Update admin/staff user details"""
+    from auth_endpoints import AdminUser
+    admin_id = credentials.get("sub")
+    admin_name = credentials.get("name") or "Admin"
+    
+    user = db.query(AdminUser).filter(AdminUser.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Staff not found")
+    
+    # Check email uniqueness if changing
+    if request.email and request.email != user.email:
+        existing = db.query(AdminUser).filter(AdminUser.email == request.email).first()
+        if existing:
+            raise HTTPException(status_code=400, detail="Email already in use")
+        user.email = request.email
+
+    if request.name: user.name = request.name
+    if request.role: user.role = request.role
+    if request.status: user.status = request.status
+    
+    if request.phone:
+        phone = request.phone.strip()
+        if not phone.startswith('+63'):
+            if phone.startswith('0'): phone = phone[1:]
+            phone = f"+63 {phone}"
+        user.phone = phone
+
+    db.commit()
+    create_audit_log(db, int(admin_id) if admin_id else 0, admin_name, "Updated Staff Details", f"Updated details for staff member: {user.name}")
+    
+    return {"success": True, "message": "Staff member updated successfully"}
+
+
+@app.delete("/api/admin/users/{user_id}")
+def delete_admin_user_endpoint(user_id: int, is_admin: bool = True, credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Archive or delete a user"""
+    admin_id = credentials.get("sub")
+    admin_name = credentials.get("name") or "Admin"
+    
+    if is_admin:
+        from auth_endpoints import AdminUser
+        user = db.query(AdminUser).filter(AdminUser.id == user_id).first()
+        if not user: raise HTTPException(status_code=404, detail="Staff not found")
+        
+        # Soft delete by archiving
+        user.status = "Archived"
+        db.commit()
+        create_audit_log(db, int(admin_id) if admin_id else 0, admin_name, "Archived Staff", f"Archived staff member: {user.name}")
+    else:
+        user = db.query(models.User).filter(models.User.id == user_id).first()
+        if not user: raise HTTPException(status_code=404, detail="Client not found")
+        
+        user.status = "Archived"
+        db.commit()
+        create_audit_log(db, int(admin_id) if admin_id else 0, admin_name, "Archived Client", f"Archived client: {user.first_name} {user.last_name}")
+        
+    return {"success": True, "message": "User archived successfully"}
+
+
+@app.get("/api/admin/notifications")
+def get_admin_notifications_endpoint(credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Get recent admin notifications"""
+    # Assuming user_id=1 is for admin (based on confirm_booking logic)
+    notifs = db.query(models.Notification).filter(models.Notification.user_id == 1).order_by(models.Notification.created_at.desc()).limit(10).all()
+    return notifs
+
+
+@app.post("/api/admin/notifications/mark-read")
+def mark_admin_notifications_read(credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Mark all admin notifications as read"""
+    db.query(models.Notification).filter(models.Notification.user_id == 1).update({"is_read": True}, synchronize_session=False)
+    db.commit()
+    return {"success": True}
+
+
+class QuickPermissionUpdate(BaseModel):
+    user_id: int
+    role: str | None = None
+    status: str | None = None
+    is_admin: bool = False # Whether it's an AdminUser or a regular User
+
+
+@app.post("/api/admin/users/quick-update")
+def quick_update_user_endpoint(request: QuickPermissionUpdate, credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Quickly update user role or status"""
+    admin_id = credentials.get("sub")
+    admin_name = credentials.get("name") or "Admin"
+    
+    if request.is_admin:
+        from auth_endpoints import AdminUser
+        user = db.query(AdminUser).filter(AdminUser.id == request.user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="Admin user not found")
+        
+        old_role = user.role
+        old_status = user.status
+        
+        if request.role: user.role = request.role
+        if request.status: user.status = request.status
+        
+        db.commit()
+        create_audit_log(db, int(admin_id) if admin_id else 0, admin_name, "Updated Permissions", f"Updated staff {user.name}: Role {old_role}->{user.role}, Status {old_status}->{user.status}")
+    else:
+        user = db.query(models.User).filter(models.User.id == request.user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        old_status = user.status
+        if request.status: 
+            user.status = request.status
+            # If status is being set to Verified, also update is_email_verified
+            if request.status == "Verified":
+                user.is_email_verified = True
+        
+        db.commit()
+        create_audit_log(db, int(admin_id) if admin_id else 0, admin_name, "Updated User Status", f"Updated client {user.first_name} {user.last_name}: Status {old_status}->{user.status}")
+        
+    return {"success": True, "message": "User updated successfully"}
 
 @app.get("/api/admin/bookings")
 def get_admin_bookings_endpoint(credentials = Depends(verify_token), db: Session = Depends(get_db)):
@@ -655,8 +931,30 @@ def confirm_booking(booking_reference: str, credentials = Depends(verify_token),
             raise HTTPException(status_code=404, detail="Booking not found")
         
         booking.status = "Confirmed"
+        
+        # Create notification for the user
+        new_notif = models.Notification(
+            user_id=booking.customer_id,
+            message=f"Your booking {booking_reference} has been confirmed!",
+            notification_type="booking_confirmed"
+        )
+        db.add(new_notif)
+        
+        # Create notification for admin
+        admin_notif = models.Notification(
+            user_id=1, # Default admin ID
+            message=f"Booking {booking_reference} has been confirmed.",
+            notification_type="booking_confirmed"
+        )
+        db.add(admin_notif)
+        
         db.commit()
         
+        # Log action
+        admin_id = credentials.get("sub")
+        admin_name = credentials.get("name") or "Admin"
+        create_audit_log(db, int(admin_id) if admin_id else 0, admin_name, "Confirmed Booking", f"Confirmed booking: {booking_reference}")
+
         return {
             "success": True,
             "message": "Booking confirmed successfully",
@@ -680,8 +978,30 @@ def cancel_booking(booking_reference: str, credentials = Depends(verify_token), 
             raise HTTPException(status_code=404, detail="Booking not found")
         
         booking.status = "Cancelled"
+        
+        # Create notification for the user
+        new_notif = models.Notification(
+            user_id=booking.customer_id,
+            message=f"Your booking {booking_reference} has been cancelled.",
+            notification_type="booking_cancelled"
+        )
+        db.add(new_notif)
+        
+        # Create notification for admin
+        admin_notif = models.Notification(
+            user_id=1, # Default admin ID
+            message=f"Booking {booking_reference} has been cancelled.",
+            notification_type="booking_cancelled"
+        )
+        db.add(admin_notif)
+        
         db.commit()
         
+        # Log action
+        admin_id = credentials.get("sub")
+        admin_name = credentials.get("name") or "Admin"
+        create_audit_log(db, int(admin_id) if admin_id else 0, admin_name, "Cancelled Booking", f"Cancelled booking: {booking_reference}")
+
         return {
             "success": True,
             "message": "Booking cancelled successfully",
@@ -705,6 +1025,15 @@ def complete_booking(booking_reference: str, credentials = Depends(verify_token)
             raise HTTPException(status_code=404, detail="Booking not found")
         
         booking.status = "Completed Event"
+        
+        # Create notification for the user
+        new_notif = models.Notification(
+            user_id=booking.customer_id,
+            message=f"Thank you for choosing Gala Crafters! Your event {booking_reference} is now marked as Completed.",
+            notification_type="booking"
+        )
+        db.add(new_notif)
+        
         db.commit()
         
         return {
@@ -718,10 +1047,33 @@ def complete_booking(booking_reference: str, credentials = Depends(verify_token)
         print(f"Error completing booking: {e}")
         raise HTTPException(status_code=500, detail=f"Error completing booking: {str(e)}")
 
+@app.get("/api/packages")
+def get_packages_endpoint(db: Session = Depends(get_db)):
+    """Get all available packages for customers"""
+    return database_setup.get_available_packages()
+
 @app.get("/api/admin/packages")
 def get_admin_packages_endpoint(credentials = Depends(verify_token), db: Session = Depends(get_db)):
     """Get all available packages for admin"""
     return database_setup.get_available_packages()
+
+@app.post("/api/admin/packages/upload-image")
+async def upload_package_image(file: UploadFile = File(...), credentials = Depends(verify_token)):
+    """Upload a package image and return the URL"""
+    try:
+        # Create unique filename
+        timestamp = gala_dt.datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"pkg_{timestamp}_{file.filename}"
+        file_path = os.path.join(UPLOAD_DIR, filename)
+        
+        # Save file
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+            
+        # Return relative URL
+        return {"url": f"/uploads/{filename}"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error uploading image: {str(e)}")
 
 @app.post("/api/admin/packages")
 def create_package(package: PackageCreateRequest, credentials = Depends(verify_token), db: Session = Depends(get_db)):
@@ -730,9 +1082,14 @@ def create_package(package: PackageCreateRequest, credentials = Depends(verify_t
         package_name=package.package_name,
         event_type=package.event_type,
         description=package.description,
+        detailed_description=package.detailed_description,
         base_price=package.base_price,
+        min_guests=package.min_guests,
         max_guests=package.max_guests,
+        extra_pax_rate=package.extra_pax_rate,
         features=package.features,
+        included_items=package.included_items,
+        image_url=package.image_url,
         status=package.status
     )
     db.add(new_package)
@@ -772,6 +1129,39 @@ def get_admin_pending_approvals_endpoint(credentials = Depends(verify_token), db
     """Get all pending approvals"""
     return database_setup.get_pending_approvals()
 
+@app.post("/api/admin/pending-approvals/{approval_id}/approve")
+def approve_pending_request(approval_id: int, credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Approve a pending request"""
+    approval = db.query(models.PendingApproval).filter(models.PendingApproval.id == approval_id).first()
+    if not approval:
+        raise HTTPException(status_code=404, detail="Approval request not found")
+    
+    # Update associated booking if applicable
+    if approval.related_booking_id:
+        booking = db.query(models.Booking).filter(models.Booking.id == approval.related_booking_id).first()
+        if booking:
+            if approval.approval_type == "New Booking":
+                booking.status = "Confirmed"
+            elif approval.approval_type == "Cancellation":
+                booking.status = "Cancelled"
+    
+    approval.status = "Approved"
+    db.commit()
+    return {"success": True, "message": f"{approval.approval_type} approved"}
+
+@app.post("/api/admin/pending-approvals/{approval_id}/reject")
+def reject_pending_request(approval_id: int, credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Reject a pending request"""
+    approval = db.query(models.PendingApproval).filter(models.PendingApproval.id == approval_id).first()
+    if not approval:
+        raise HTTPException(status_code=404, detail="Approval request not found")
+    
+    # If rejecting a cancellation, maybe we keep it 'Confirmed'?
+    # For now, just mark the request as rejected
+    approval.status = "Rejected"
+    db.commit()
+    return {"success": True, "message": f"{approval.approval_type} rejected"}
+
 @app.get("/api/admin/metrics")
 def get_admin_metrics_endpoint(credentials = Depends(verify_token), db: Session = Depends(get_db)):
     """Get admin dashboard metrics"""
@@ -784,8 +1174,18 @@ def get_admin_metrics_endpoint(credentials = Depends(verify_token), db: Session 
 
 @app.get("/api/admin/messages")
 def get_admin_messages_endpoint(credentials = Depends(verify_token), db: Session = Depends(get_db)):
-    """Get recent unread messages for admin"""
+    """Get recent messages for admin"""
     return database_setup.get_recent_messages()
+
+
+@app.get("/api/admin/unread-counts")
+def get_unread_counts_endpoint(credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Get unread counts for sidebar badges"""
+    counts = database_setup.get_unread_counts()
+    if counts and len(counts) > 0:
+        return counts[0]
+    return {"inquiry_count": 0, "message_count": 0}
+
 
 @app.get("/api/admin/messages/{message_id}/thread")
 def get_message_thread(message_id: int, credentials = Depends(verify_token), db: Session = Depends(get_db)):
@@ -854,37 +1254,61 @@ def get_admin_conversations(db: Session = Depends(get_db)):
     """Get all unique user chat conversations for the Messages tab"""
     from sqlalchemy import func, text
     
-    # We want unique conversations that start with 'user_'
-    conversations = db.query(
-        models.AdminMessage.conversation_id,
-        models.AdminMessage.sender_name,
-        models.AdminMessage.sender_email,
-        func.max(models.AdminMessage.message_date).label("last_message_date")
-    ).filter(models.AdminMessage.conversation_id.like("user_%"))\
-     .group_by(models.AdminMessage.conversation_id, models.AdminMessage.sender_name, models.AdminMessage.sender_email)\
-     .order_by(text("last_message_date DESC")).all()
+    # Get all unique conversation IDs that start with 'user_'
+    conv_ids = db.query(models.AdminMessage.conversation_id)\
+                 .filter(models.AdminMessage.conversation_id.like("user_%"))\
+                 .distinct().all()
     
     res = []
-    seen = set()
-    for conv_id, name, email, last_date in conversations:
-        if conv_id not in seen:
-            last_msg = db.query(models.AdminMessage).filter(models.AdminMessage.conversation_id == conv_id).order_by(models.AdminMessage.message_date.desc()).first()
-            
+    for (conv_id,) in conv_ids:
+        # Find the latest message for this conversation to get last_active
+        last_msg = db.query(models.AdminMessage)\
+                     .filter(models.AdminMessage.conversation_id == conv_id)\
+                     .order_by(models.AdminMessage.message_date.desc())\
+                     .first()
+        
+        # Find the first message from the USER to get their name/email
+        user_msg = db.query(models.AdminMessage)\
+                     .filter(models.AdminMessage.conversation_id == conv_id, models.AdminMessage.sender_type == "user")\
+                     .order_by(models.AdminMessage.message_date.asc())\
+                     .first()
+        
+        # Check if there are any unread messages from the USER in this conversation
+        unread_count = db.query(models.AdminMessage)\
+                         .filter(
+                             models.AdminMessage.conversation_id == conv_id, 
+                             models.AdminMessage.sender_type == "user",
+                             models.AdminMessage.is_read == False
+                         ).count()
+        
+        if user_msg:
             res.append({
                 "id": conv_id,
-                "name": name,
-                "email": email,
+                "name": user_msg.sender_name,
+                "email": user_msg.sender_email,
                 "last_message": last_msg.message_body if last_msg else "",
-                "last_active": last_date.isoformat() if last_date else None,
-                "status": "Online"
+                "last_active": last_msg.message_date.isoformat() if last_msg else None,
+                "status": "Online",
+                "unread_count": unread_count
             })
-            seen.add(conv_id)
-            
+    
+    # Sort by last_active descending
+    res.sort(key=lambda x: x['last_active'] or '', reverse=True)
     return res
 
 @app.get("/api/admin/conversations/{conversation_id}")
 def get_conversation_thread(conversation_id: str, db: Session = Depends(get_db)):
     """Get full thread for a user conversation along with user context and bookings"""
+    # Mark messages as read when opening thread
+    db.query(models.AdminMessage)\
+      .filter(
+          models.AdminMessage.conversation_id == conversation_id,
+          models.AdminMessage.sender_type == "user",
+          models.AdminMessage.is_read == False
+      )\
+      .update({"is_read": True}, synchronize_session=False)
+    db.commit()
+
     messages = db.query(models.AdminMessage).filter(
         models.AdminMessage.conversation_id == conversation_id
     ).order_by(models.AdminMessage.message_date.asc()).all()
@@ -1143,7 +1567,7 @@ def delete_promo_code(code_id: int, credentials = Depends(verify_token), db: Ses
 def get_package_reviews(package_id: int, db: Session = Depends(get_db)):
     """Get all reviews for a specific package (public endpoint)"""
     try:
-        # Join Review through Booking to filter by package_id
+        print(f"DEBUG: Fetching reviews for package_id: {package_id}")
         reviews = db.query(models.Review).join(
             models.Booking, models.Review.booking_id == models.Booking.id
         ).filter(
@@ -1151,22 +1575,31 @@ def get_package_reviews(package_id: int, db: Session = Depends(get_db)):
             models.Review.status == "Visible"
         ).all()
         
+        print(f"DEBUG: Found {len(reviews)} reviews for package_id: {package_id}")
+        
         if not reviews:
             return []
         
-        return [
-            {
-                "id": r.id,
-                "rating": r.rating,
-                "comment": r.comment,
-                "created_at": r.created_at,
-                "customer_name": r.customer.first_name if r.customer else "Customer",
-                "package_name": r.booking.package.package_name if (r.booking and r.booking.package) else "Event Package"
-            }
-            for r in reviews
-        ]
+        result = []
+        for r in reviews:
+            try:
+                review_item = {
+                    "id": r.id,
+                    "rating": r.rating,
+                    "comment": r.comment,
+                    "created_at": r.created_at,
+                    "customer_name": r.customer.first_name if r.customer else "Customer",
+                    "package_name": r.booking.package.package_name if (r.booking and r.booking.package) else "Event Package"
+                }
+                result.append(review_item)
+            except Exception as item_err:
+                print(f"DEBUG: Error processing individual review ID {r.id}: {item_err}")
+        
+        return result
     except Exception as e:
-        print(f"Error fetching package reviews: {e}")
+        print(f"Error fetching package reviews for ID {package_id}: {e}")
+        import traceback
+        traceback.print_exc()
         return []
 
 @app.get("/api/reviews/featured")
@@ -1232,22 +1665,128 @@ def submit_review(request: ReviewRequest, credentials = Depends(verify_token), d
 @app.post("/api/chat/submit")
 def submit_chat_inquiry(request: ChatInquiryRequest, db: Session = Depends(get_db)):
     """Submit a message from the chat assistant/contact form"""
-    # Save all messages to the Message table (Inquiry tab)
-    new_message = models.Message(
-        name=request.name or "Guest User",
-        email=request.email or "guest@galacrafters.com",
-        message_subject=request.subject or "Message",
-        message_body=request.message_body,
-        status="Unread",
-        created_at=gala_dt.datetime.utcnow()
-    )
-    db.add(new_message)
+    # Determine if it's a registered user
+    is_registered = request.user_id is not None
+
+    new_message_id = None
+    
+    # 1. If NOT a registered user, save to Message table (This is for the 'Guest Inquiries' tab)
+    if not is_registered:
+        new_message = models.Message(
+            name=request.name or "Guest User",
+            email=request.email or "guest@galacrafters.com",
+            message_subject=request.subject or "Message",
+            message_body=request.message_body,
+            status="Unread",
+            created_at=gala_dt.datetime.utcnow()
+        )
+        db.add(new_message)
+        db.flush() # Get ID before commit if needed
+        new_message_id = new_message.id
+    
+    # 2. If it's a registered user, ONLY save to AdminMessage table (This is for the 'Client Messages' tab)
+    if is_registered:
+        conv_id = f"user_{request.user_id}"
+        admin_msg = models.AdminMessage(
+            conversation_id=conv_id,
+            sender_name=request.name or "User",
+            sender_email=request.email or "user@email.com",
+            sender_type="user",
+            message_body=request.message_body,
+            message_date=gala_dt.datetime.utcnow()
+        )
+        db.add(admin_msg)
+
+        # 3. Add automatic response from Gala Assistant (also saved to AdminMessage)
+        auto_reply = models.AdminMessage(
+            conversation_id=conv_id,
+            sender_name="Gala Assistant",
+            sender_email="assistant@galacrafters.com",
+            sender_type="admin",
+            message_body="Thanks for reaching out! One of our planners will get back to you shortly. In the meantime, feel free to check our premium services.",
+            message_date=gala_dt.datetime.utcnow() + gala_dt.timedelta(seconds=1)
+        )
+        db.add(auto_reply)
+        
     db.commit()
-    db.refresh(new_message)
     
     # Determine message type based on whether user_id was provided
-    message_type = "chat" if request.user_id else "inquiry"
-    return {"success": True, "message": "Message submitted successfully", "message_id": new_message.id, "type": message_type}
+    message_type = "chat" if is_registered else "inquiry"
+    return {"success": True, "message": "Message submitted successfully", "message_id": new_message_id, "type": message_type}
+
+@app.get("/api/chat/history/{user_id}")
+def get_user_chat_history(user_id: int, db: Session = Depends(get_db)):
+    """Get the full chat history for a specific registered user"""
+    conv_id = f"user_{user_id}"
+    messages = db.query(models.AdminMessage)\
+                 .filter(models.AdminMessage.conversation_id == conv_id)\
+                 .order_by(models.AdminMessage.message_date.asc())\
+                 .all()
+    
+    return [{
+        "id": m.id,
+        "text": m.message_body,
+        "sender": "sent" if m.sender_type == "user" else "received",
+        "date": m.message_date.isoformat() if m.message_date else None,
+        "image_url": m.image_url
+    } for m in messages]
+
+# --- NOTIFICATION ENDPOINTS ---
+
+@app.get("/api/notifications")
+def get_notifications(credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Get all notifications for the current user"""
+    user_id = int(credentials.get("sub"))
+    notifications = db.query(models.Notification).filter(
+        models.Notification.user_id == user_id
+    ).order_by(models.Notification.created_at.desc()).all()
+    
+    return [{
+        "id": n.id,
+        "text": n.message,
+        "unread": not n.is_read,
+        "time": n.created_at.isoformat() if n.created_at else None,
+        "type": n.notification_type
+    } for n in notifications]
+
+@app.put("/api/notifications/{notification_id}/read")
+def mark_notification_read(notification_id: int, credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Mark a specific notification as read"""
+    user_id = int(credentials.get("sub"))
+    notification = db.query(models.Notification).filter(
+        models.Notification.id == notification_id,
+        models.Notification.user_id == user_id
+    ).first()
+    
+    if not notification:
+        raise HTTPException(status_code=404, detail="Notification not found")
+        
+    notification.is_read = True
+    db.commit()
+    return {"success": True}
+
+@app.put("/api/notifications/read-all")
+def mark_all_notifications_read(credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Mark all notifications as read for current user"""
+    user_id = int(credentials.get("sub"))
+    db.query(models.Notification).filter(
+        models.Notification.user_id == user_id,
+        models.Notification.is_read == False
+    ).update({"is_read": True})
+    
+    db.commit()
+    return {"success": True}
+
+@app.delete("/api/notifications")
+def clear_all_notifications(credentials = Depends(verify_token), db: Session = Depends(get_db)):
+    """Delete all notifications for current user"""
+    user_id = int(credentials.get("sub"))
+    db.query(models.Notification).filter(
+        models.Notification.user_id == user_id
+    ).delete()
+    
+    db.commit()
+    return {"success": True}
 
 # --- DISCOUNT / PROMO CODE ENDPOINTS ---
 

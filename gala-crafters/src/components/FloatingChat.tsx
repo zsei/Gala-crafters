@@ -5,28 +5,85 @@ import { API_BASE_URL } from '../api/config';
 import { authService } from '../api/auth';
 
 const FloatingChat = () => {
-  const CHAT_STORAGE_KEY = 'gala_assistant_history';
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(authService.isLoggedIn());
   const [message, setMessage] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [messages, setMessages] = useState<any[]>(() => {
-    const saved = localStorage.getItem(CHAT_STORAGE_KEY);
-    return saved ? JSON.parse(saved) : [
-      { id: 1, text: "Hello! Welcome to Gala Crafters. How can I help you plan your dream event today?", sender: "received" }
-    ];
-  });
+  const [messages, setMessages] = useState<any[]>([]);
+  const [isTyping, setIsTyping] = useState(false);
 
-  // Sync with localStorage
+  // Get dynamic storage key based on user ID
+  const getStorageKey = () => {
+    const user = authService.getStoredUser();
+    return user ? `gala_chat_history_${user.id}` : 'gala_assistant_history_guest';
+  };
+
+  const fetchHistory = async () => {
+    const user = authService.getStoredUser();
+    if (user && user.id) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/chat/history/${user.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.length > 0) {
+            setMessages(data);
+            return true; // We have server data
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching chat history:', err);
+      }
+    }
+    
+    // Fallback to localStorage if guest or fetch failed/empty
+    const key = getStorageKey();
+    const saved = localStorage.getItem(key);
+    if (saved) {
+      setMessages(JSON.parse(saved));
+    } else if (messages.length === 0) {
+      setMessages([
+        { id: 1, text: "Hello! Welcome to Gala Crafters. How can I help you plan your dream event today?", sender: "received" }
+      ]);
+    }
+    return false;
+  };
+
+  // Load messages when user changes or component mounts
   React.useEffect(() => {
-    localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
+    fetchHistory();
+
+    // Poll for new messages (admin replies) every 10 seconds if logged in
+    let interval: any;
+    const user = authService.getStoredUser();
+    if (user && user.id) {
+      interval = setInterval(fetchHistory, 10000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isLoggedIn]); // Reload if login state changes
+
+  // Sync with localStorage whenever messages change
+  React.useEffect(() => {
+    if (messages.length > 0) {
+      localStorage.setItem(getStorageKey(), JSON.stringify(messages));
+    }
   }, [messages]);
 
   React.useEffect(() => {
     const handleOpenChat = () => setIsOpen(true);
+    const handleAuthChange = () => setIsLoggedIn(authService.isLoggedIn());
+    
     window.addEventListener('open_gala_chat', handleOpenChat);
-    return () => window.removeEventListener('open_gala_chat', handleOpenChat);
+    window.addEventListener('storage', handleAuthChange);
+    
+    return () => {
+      window.removeEventListener('open_gala_chat', handleOpenChat);
+      window.removeEventListener('storage', handleAuthChange);
+    };
   }, []);
 
   const handlePaperclipClick = () => {
@@ -54,8 +111,7 @@ const FloatingChat = () => {
       sender: "sent" 
     };
     
-    const updatedMessages = [...messages, newUserMsg];
-    setMessages(updatedMessages);
+    setMessages(prev => [...prev, newUserMsg]);
     
     // Clear state
     setMessage('');
@@ -63,7 +119,7 @@ const FloatingChat = () => {
 
     // PERSIST TO DATABASE
     try {
-      await fetch(`${API_BASE_URL}/api/chat/submit`, {
+      const response = await fetch(`${API_BASE_URL}/api/chat/submit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -73,23 +129,33 @@ const FloatingChat = () => {
           name: userName,
           email: userEmail,
           subject: "Inquiry via Gala Assistant",
-          user_id: user?.id
+          user_id: user?.id,
+          image_url: imageUrl
         })
       });
+
+      if (response.ok && user && user.id) {
+        // For registered users, the backend creates an automatic reply.
+        // Show typing indicator for a second then fetch.
+        setIsTyping(true);
+        setTimeout(async () => {
+          await fetchHistory();
+          setIsTyping(false);
+        }, 1500);
+      } else if (response.ok && !user) {
+        // For guests, add a local mock response since it's not in the DB
+        setTimeout(() => {
+          const response = { 
+            id: Date.now() + 1, 
+            text: "Thanks for reaching out! One of our planners will get back to you shortly. In the meantime, feel free to check our premium services.", 
+            sender: "received" 
+          };
+          setMessages(prev => [...prev, response]);
+        }, 1000);
+      }
     } catch (err) {
       console.error('Failed to sync message with server:', err);
-      // We don't block the UI if the server call fails, but we log it
     }
-
-    // Add mock response after a delay
-    setTimeout(() => {
-      const response = { 
-        id: Date.now() + 1, 
-        text: "Thanks for reaching out! One of our planners will get back to you shortly. In the meantime, feel free to check our premium services.", 
-        sender: "received" 
-      };
-      setMessages(prev => [...prev, response]);
-    }, 1000);
   };
 
   const handleSend = (e: React.FormEvent) => {
@@ -122,20 +188,32 @@ const FloatingChat = () => {
           </div>
 
           <div className="chat-messages">
-            {messages.map((msg) => (
-              <div key={msg.id} className={`message ${msg.sender}`}>
-                {msg.imageUrl && (
-                  <img 
-                    src={msg.imageUrl} 
-                    alt="Uploaded attachment" 
-                    className="message-image" 
-                    onClick={() => setZoomedImage(msg.imageUrl)}
-                    style={{ cursor: 'zoom-in' }}
-                  />
-                )}
-                {msg.text && <span>{msg.text}</span>}
+            {messages.map((msg) => {
+              const currentImageUrl = msg.imageUrl || msg.image_url;
+              return (
+                <div key={msg.id} className={`message ${msg.sender}`}>
+                  {currentImageUrl && (
+                    <img 
+                      src={currentImageUrl} 
+                      alt="Uploaded attachment" 
+                      className="message-image" 
+                      onClick={() => setZoomedImage(currentImageUrl)}
+                      style={{ cursor: 'zoom-in' }}
+                    />
+                  )}
+                  {msg.text && <span>{msg.text}</span>}
+                </div>
+              );
+            })}
+            {isTyping && (
+              <div className="message received typing">
+                <div className="typing-indicator">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
               </div>
-            ))}
+            )}
           </div>
 
           <form className="chat-input-area" onSubmit={handleSend}>

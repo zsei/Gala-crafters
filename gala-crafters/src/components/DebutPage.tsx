@@ -7,14 +7,24 @@ import PackageDetailsModal from './PackageDetailsModal';
 import ReservationModal from './ReservationModal';
 
 // Assets
-import heroBg from '../assets/girl.jpg';
-import img1 from '../assets/img1.jpg';
-import img2 from '../assets/img5.jpg';
-import img3 from '../assets/img3.jpg';
+import debut1 from '../assets/debut1.jpg';
+import debut12 from '../assets/debut12.jpg';
+import girl from '../assets/girl.jpg';
+import img4 from '../assets/img4.jpg';
+import flower from '../assets/flower.jpg';
+import art12 from '../assets/art12.jpg';
+import art10 from '../assets/art10.jpg';
+import art11 from '../assets/art11.jpg';
+import art5 from '../assets/art5.jpg';
+import art1 from '../assets/art1.jpg';
+import art3 from '../assets/art3.jpg';
+import ed1 from '../assets/ed1.jpg';
+import ud1 from '../assets/ud1.jpg';
+import ud11 from '../assets/ud11.jpg';
 import { FaGift, FaRegHeart } from "react-icons/fa";
 
-const sliderImages = [heroBg, img1, img2, img3];
-const debutGalleryImages = [img1, img2, img3, heroBg, img1, img2, img3, heroBg];
+const sliderImages = [debut1, debut12, girl, img4];
+const debutGalleryImages = [img4, flower, art12, art10, art11, art5, art1, art3];
 
 function DebutPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -34,30 +44,13 @@ function DebutPage() {
     return () => clearInterval(timer);
   }, []);
 
-  useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash.toLowerCase().replace('#', '');
-      if (['intimate', 'classy', 'vogue'].includes(hash)) {
-        // Map simple hash to debut keys
-        const fullType = `debut${hash.charAt(0).toUpperCase() + hash.slice(1)}` as any;
-        setSelectedPackage(fullType);
-        setIsModalOpen(true);
-      } else if (!hash) {
-        setIsModalOpen(false);
-      }
-    };
-
-    handleHashChange();
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
-
-  const openPackageModal = (type: 'intimate' | 'classy' | 'vogue') => {
-    window.location.hash = type;
+  const openPackageModal = (type: 'debutIntimate' | 'debutClassy' | 'debutVogue') => {
+    setSelectedPackage(type);
+    setIsModalOpen(true);
   };
 
   const closePackageModal = () => {
-    window.location.hash = '';
+    setIsModalOpen(false);
   };
 
   const handleOpenReservation = (data: any) => {
@@ -76,22 +69,22 @@ function DebutPage() {
       title: "Intimate",
       desc: "A beautifully personal debut focusing on tradition and elegance, designed for smaller gatherings that celebrate your special milestone.",
       link: "#",
-      bg: img1,
-      onClick: () => openPackageModal('intimate')
+      bg: ed1,
+      onClick: () => openPackageModal('debutIntimate')
     },
     {
       title: "Classy",
       desc: "An elegant transition with specialized stations, premium seating, and dedicated service for your VIP guests and cherished traditions.",
       link: "#",
-      bg: img2,
-      onClick: () => openPackageModal('classy')
+      bg: ud1,
+      onClick: () => openPackageModal('debutClassy')
     },
     {
       title: "Vogue",
       desc: "Our most grand cinematic celebration. A lavish experience with welcome cocktails, dual carving stations, and full-scale signature production.",
       link: "#",
-      bg: img3,
-      onClick: () => openPackageModal('vogue')
+      bg: ud11,
+      onClick: () => openPackageModal('debutVogue')
     }
   ];
 
@@ -182,7 +175,7 @@ function DebutPage() {
           </div>
 
           <div className="debut-experience-image">
-            <img src={img1} alt="Debut Event" />
+            <img src={debut1} alt="Debut Event" />
           </div>
 
         </div>
@@ -220,11 +213,11 @@ function DebutPage() {
         <div className="why-choose-container">
 
           <div className="why-choose-image">
-            <img src={img3} alt="Debut Event" />
+            <img src={girl} alt="Debut Event" />
           </div>
 
           <div className="why-choose-content">
-            <h2>Why Choose Juan Carlo as Your Debut Caterer in the Philippines</h2>
+            <h2>Why Choose Gala Crafters as Your Debut Caterer in the Philippines</h2>
             <div className="gold-line" style={{ margin: '0 0 20px 0' }}></div>
 
             <p>

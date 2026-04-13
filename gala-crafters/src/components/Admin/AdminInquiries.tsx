@@ -9,11 +9,13 @@ const AdminInquiries = () => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedMessage, setSelectedMessage] = useState<any>(null);
-  const [conversation, setConversation] = useState<any[]>([]);
-  const [replyText, setReplyText] = useState('');
-  const [sending, setSending] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Helper to get initials (e.g., "Angeline Chua" -> "AC")
+  const getBadgeType = (status: string) => {
+    return status === 'Unread' ? 'pending' : 'success';
+  };
+
   const getInitials = (name: string) => {
     if (!name) return '??';
     const parts = name.trim().split(/\s+/);
@@ -27,15 +29,11 @@ const AdminInquiries = () => {
     fetchMessages();
   }, []);
 
-  useEffect(() => {
-    if (selectedMessage) {
-      fetchThread(selectedMessage.id);
-    }
-  }, [selectedMessage]);
-
   const fetchMessages = async () => {
+    setLoading(true);
     try {
       const token = localStorage.getItem('token');
+      // Fetch all messages (Inquiries from contact form)
       const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.ADMIN.MESSAGES}`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -55,52 +53,35 @@ const AdminInquiries = () => {
     }
   };
 
-  const fetchThread = async (messageId: number) => {
+  const handleMarkRead = async (messageId: number) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/api/admin/messages/${messageId}/thread`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
+      const response = await fetch(`${API_BASE_URL}/api/admin/messages/${messageId}/read`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        // Update local state instead of full refetch
+        setMessages((prev: any) => prev.map((m: any) => 
+          m.id === messageId ? { ...m, status: 'Read' } : m
+        ));
+        if (selectedMessage?.id === messageId) {
+          setSelectedMessage((prev: any) => ({ ...prev, status: 'Read' }));
         }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setConversation(data);
+        
+        // Notify sidebar to refresh unread counts
+        window.dispatchEvent(new CustomEvent('refresh_unread_counts'));
       }
     } catch (err) {
-      console.error('Error fetching thread:', err);
+      console.error('Error marking as read:', err);
     }
   };
 
-  const handleSendReply = async () => {
-    if (!replyText.trim() || !selectedMessage) return;
-
-    setSending(true);
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_BASE_URL}/api/admin/messages/${selectedMessage.id}/reply`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          message_body: replyText,
-          sender_name: 'Admin'
-        })
-      });
-
-      if (response.ok) {
-        setReplyText('');
-        // Refresh thread
-        fetchThread(selectedMessage.id);
-      }
-    } catch (err) {
-      console.error('Error sending reply:', err);
-    } finally {
-      setSending(false);
-    }
-  };
+  const filteredMessages = messages.filter((msg: any) => 
+    msg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    msg.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (msg.message_body || '').toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
 
 
@@ -117,30 +98,44 @@ const AdminInquiries = () => {
         className={`admin-main messages-main ${isCollapsed ? 'collapsed-main' : ''}`}
         style={{ padding: 0, height: '100vh', overflow: 'hidden', marginLeft: isCollapsed ? '80px' : '260px', transition: 'margin-left 0.3s ease' }}
       >
-        <div className="messages-layout">
+        <header className="admin-header" style={{ padding: '16px 32px', backgroundColor: 'var(--admin-card-bg)', borderBottom: '1px solid var(--admin-border)', marginBottom: 0 }}>
+          <div className="admin-header-text">
+            <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '24px', color: 'var(--admin-text-main)', margin: 0 }}>Guest Inquiries</h1>
+            <p style={{ color: 'var(--admin-text-sub)', fontSize: '13px', margin: '4px 0 0 0' }}>Manage and track all guest outreaches from the contact form</p>
+          </div>
+        </header>
+        <div className="messages-layout" style={{ marginTop: 0 }}>
           
           {/* Left Panel: Chat List (Using Messages from Database) */}
           <section className="chat-list-sidebar">
             <div className="chat-search-header">
               <div className="search-input-wrapper chat-search">
                 <Search size={16} className="search-icon" />
-                <input type="text" placeholder="Search inquiries..." />
+                <input 
+                  type="text" 
+                  placeholder="Search inquiries..." 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
               </div>
             </div>
             
             <div className="chat-list">
               {loading ? (
                 <div style={{ padding: '20px', textAlign: 'center' }}>Loading...</div>
-              ) : messages.length === 0 ? (
-                <div style={{ padding: '20px', textAlign: 'center' }}>No inquiries.</div>
+              ) : filteredMessages.length === 0 ? (
+                <div style={{ padding: '20px', textAlign: 'center' }}>No inquiries found.</div>
               ) : (
-                messages.map((msg: any) => (
+                filteredMessages.map((msg: any) => (
                   <div 
                     key={msg.id} 
                     className={`chat-list-item ${selectedMessage?.id === msg.id ? 'active' : ''}`}
-                    onClick={() => setSelectedMessage(msg)}
+                    onClick={() => {
+                      setSelectedMessage(msg);
+                      if (msg.status === 'Unread') handleMarkRead(msg.id);
+                    }}
                   >
-                    <div className="chat-avatar" style={{ backgroundColor: '#0d9488', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
+                    <div className="chat-avatar" style={{ backgroundColor: 'var(--admin-hover)', color: 'var(--admin-accent)', border: '1px solid var(--admin-border)' }}>
                       {getInitials(msg.name)}
                     </div>
                     <div className="chat-preview">
@@ -174,51 +169,46 @@ const AdminInquiries = () => {
           <section className="chat-area">
             {selectedMessage ? (
               <>
-                <div className="chat-area-header">
-                  <div className="chat-active-user">
-                    <div className="chat-avatar" style={{ backgroundColor: '#0d9488', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
-                      {getInitials(selectedMessage.name)}
-                    </div>
-                    <div className="chat-active-info">
-                      <h2>{selectedMessage.name}</h2>
-                    </div>
+                <div className="chat-header" style={{ backgroundColor: 'var(--admin-accent)', color: 'white', padding: '12px 24px', display: 'flex', alignItems: 'center', gap: '16px', justifyContent: 'flex-start' }}>
+                  <div className="chat-avatar" style={{ backgroundColor: 'rgba(255,255,255,0.2)', color: 'white', border: '1px solid rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', width: '40px', height: '40px', borderRadius: '50%' }}>
+                    {getInitials(selectedMessage.name)}
                   </div>
-                  <div className="chat-header-actions">
+                  <div className="chat-user-info" style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '600', color: 'white' }}>{selectedMessage.name}</h3>
+                    <span style={{ fontSize: '12px', opacity: 0.9, color: 'white' }}>{selectedMessage.email}</span>
                   </div>
                 </div>
 
                 <div style={{ padding: '24px', flex: 1, overflowY: 'auto' }}>
-                  {conversation.map((msg, idx) => (
-                    <div key={msg.id} style={{ 
-                      backgroundColor: 'var(--admin-card-bg)', 
-                      borderRadius: '8px', 
-                      padding: '24px', 
-                      marginBottom: '20px',
-                      border: '1px solid var(--admin-border)',
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
-                    }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', paddingBottom: '16px', borderBottom: '1px solid var(--admin-border)' }}>
-                        <div>
-                          <strong style={{ display: 'block', fontSize: '15px', color: 'var(--admin-text-main)' }}>{msg.sender_name}</strong>
-                          <span style={{ fontSize: '13px', color: 'var(--admin-text-sub)' }}>{msg.sender_email}</span>
-                        </div>
-                        <span style={{ fontSize: '13px', color: 'var(--admin-text-sub)' }}>
-                          {new Date(msg.message_date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
-                        </span>
+                  <div style={{ 
+                    backgroundColor: 'var(--admin-card-bg)', 
+                    borderRadius: '8px', 
+                    padding: '24px', 
+                    marginBottom: '20px',
+                    border: '1px solid var(--admin-border)',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', paddingBottom: '16px', borderBottom: '1px solid var(--admin-border)' }}>
+                      <div>
+                        <strong style={{ display: 'block', fontSize: '15px', color: 'var(--admin-text-main)' }}>{selectedMessage.name}</strong>
+                        <span style={{ fontSize: '13px', color: 'var(--admin-text-sub)' }}>{selectedMessage.email}</span>
                       </div>
-                      {msg.subject && (
-                        <h4 style={{ marginBottom: '12px', color: 'var(--admin-text-main)' }}>{msg.subject}</h4>
-                      )}
-                      <div style={{ 
-                        fontSize: '14px', 
-                        lineHeight: '1.6', 
-                        color: 'var(--admin-text-main)',
-                        whiteSpace: 'pre-wrap'
-                      }}>
-                        {msg.message_body}
-                      </div>
+                      <span style={{ fontSize: '13px', color: 'var(--admin-text-sub)' }}>
+                        {new Date(selectedMessage.created_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
+                      </span>
                     </div>
-                  ))}
+                    {selectedMessage.message_subject && (
+                      <h4 style={{ marginBottom: '12px', color: 'var(--admin-text-main)' }}>{selectedMessage.message_subject}</h4>
+                    )}
+                    <div style={{ 
+                      fontSize: '14px', 
+                      lineHeight: '1.6', 
+                      color: 'var(--admin-text-main)',
+                      whiteSpace: 'pre-wrap'
+                    }}>
+                      {selectedMessage.message_body}
+                    </div>
+                  </div>
                 </div>
 
                 {/* Hiding reply area for read-only inquiries as per requirements */}
@@ -266,6 +256,14 @@ const AdminInquiries = () => {
                 </div>
 
                 <div className="info-item">
+                  <Clock size={16} className="text-sub" />
+                  <div className="info-content">
+                    <span className="info-label">EVENT TYPE</span>
+                    <strong>{selectedMessage.event_type || 'General Inquiry'}</strong>
+                  </div>
+                </div>
+
+                <div className="info-item">
                   <History size={16} className="text-sub" />
                   <div className="info-content">
                     <span className="info-label">RECEIVED ON</span>
@@ -290,6 +288,13 @@ const AdminInquiries = () => {
 
               <button 
                 className="view-history-btn"
+                style={{ 
+                  backgroundColor: selectedMessage.status === 'Unread' ? 'var(--admin-accent)' : 'var(--admin-hover)',
+                  color: selectedMessage.status === 'Unread' ? 'white' : 'var(--admin-text-main)',
+                  border: selectedMessage.status === 'Unread' ? 'none' : '1px solid var(--admin-border)',
+                  cursor: selectedMessage.status === 'Unread' ? 'pointer' : 'default'
+                }}
+                disabled={selectedMessage.status !== 'Unread'}
                 onClick={async () => {
                   try {
                     const token = localStorage.getItem('token');

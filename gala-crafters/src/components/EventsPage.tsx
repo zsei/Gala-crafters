@@ -3,48 +3,46 @@ import { motion } from 'framer-motion';
 import BookingModal from './BookingModal';
 import StyleSection from './StyleSection';
 import LocationsSection from './LocationsSection';
-import img1 from '../assets/img1.jpg';
-import img2 from '../assets/img5.jpg';
-import img3 from '../assets/img3.jpg';
+import flower from '../assets/flower.jpg';
+import green from '../assets/green.jpg';
+import rw from '../assets/rw.jpg';
+import rose from '../assets/rose.jpg';
+import pw from '../assets/pw.jpg';
 
-import collectionImg1 from '../assets/glamour-2.jpg';
-import collectionImg2 from '../assets/glamour-3.jpg';
-import collectionImg3 from '../assets/glamour-4.jpg';
-import collectionImg4 from '../assets/img5.jpg';
-import collectionImg5 from '../assets/DSC9724.jpg';
-import collectionImg6 from '../assets/DSC9804.jpg';
-import collectionImg7 from '../assets/banner-1.jpg';
-import collectionImg8 from '../assets/banner-2.jpg';
-import collectionImg9 from '../assets/Vintage-Gold.jpg';
-import collectionImg10 from '../assets/blue.jpg';
-import collectionImg11 from '../assets/pink.jpg';
-import collectionImg12 from '../assets/red.jpg';
-
-import collectionImg13 from '../assets/DSC9849.jpg';
-import collectionImg14 from '../assets/DSC9850.jpg';
-import collectionImg15 from '../assets/DSC9852.jpg';
-import collectionImg16 from '../assets/Vintage-Gold-2.jpg';
+// Art Collection Images
+import art1 from '../assets/art1.jpg';
+import art2 from '../assets/art2.jpg';
+import art3 from '../assets/art3.jpg';
+import art4 from '../assets/art4.jpg';
+import art5 from '../assets/art5.jpg';
+import art6 from '../assets/art6.jpg';
+import art7 from '../assets/art7.jpg';
+import art8 from '../assets/art8.jpg';
+import art9 from '../assets/art9.jpg';
+import art10 from '../assets/art10.jpg';
+import art11 from '../assets/art11.jpg';
+import art12 from '../assets/art12.jpg';
 
 const collections = [
-  { id: 1, title: 'Weddings', subtitle: 'CLASSIC CELEBRATION', img: collectionImg1 },
-  { id: 2, title: 'Corporate Galas', subtitle: 'PROFESSIONAL EVENTS', img: collectionImg2 },
-  { id: 3, title: 'Birthdays', subtitle: 'PERSONAL PARTIES', img: collectionImg3 },
-  { id: 4, title: 'Private Soirees', subtitle: 'INTIMATE ELEGANCE', img: collectionImg4 },
-  { id: 5, title: 'Image 5', subtitle: 'STYLE', img: collectionImg5 },
-  { id: 6, title: 'Image 6', subtitle: 'STYLE', img: collectionImg6 },
-  { id: 7, title: 'Image 7', subtitle: 'STYLE', img: collectionImg7 },
-  { id: 8, title: 'Image 8', subtitle: 'STYLE', img: collectionImg8 },
-  { id: 9, title: 'Image 9', subtitle: 'STYLE', img: collectionImg9 },
-  { id: 10, title: 'Image 10', subtitle: 'STYLE', img: collectionImg10 },
-  { id: 11, title: 'Image 11', subtitle: 'STYLE', img: collectionImg11 },
-  { id: 12, title: 'Image 12', subtitle: 'STYLE', img: collectionImg12 },
-  { id: 13, title: 'Image 13', subtitle: 'STYLE', img: collectionImg13 },
-  { id: 14, title: 'Image 14', subtitle: 'STYLE', img: collectionImg14 },
-  { id: 15, title: 'Image 15', subtitle: 'STYLE', img: collectionImg15 },
-  { id: 16, title: 'Image 16', subtitle: 'STYLE', img: collectionImg16 },
+  { id: 1, title: 'Art 1', subtitle: 'STYLE', img: art1 },
+  { id: 2, title: 'Art 2', subtitle: 'STYLE', img: art2 },
+  { id: 3, title: 'Art 3', subtitle: 'STYLE', img: art3 },
+  { id: 4, title: 'Art 4', subtitle: 'STYLE', img: art4 },
+  { id: 5, title: 'Art 5', subtitle: 'STYLE', img: art5 },
+  { id: 6, title: 'Art 6', subtitle: 'STYLE', img: art6 },
+  { id: 7, title: 'Art 7', subtitle: 'STYLE', img: art7 },
+  { id: 8, title: 'Art 8', subtitle: 'STYLE', img: art8 },
+  { id: 9, title: 'Art 9', subtitle: 'STYLE', img: art9 },
+  { id: 10, title: 'Art 10', subtitle: 'STYLE', img: art10 },
+  { id: 11, title: 'Art 11', subtitle: 'STYLE', img: art11 },
+  { id: 12, title: 'Art 12', subtitle: 'STYLE', img: art12 },
+  { id: 13, title: 'Flower', subtitle: 'STYLE', img: flower },
+  { id: 14, title: 'Green', subtitle: 'STYLE', img: green },
+  { id: 15, title: 'Rose', subtitle: 'STYLE', img: rose },
+  { id: 16, title: 'PW', subtitle: 'STYLE', img: pw },
 ];
 
-const sliderImages = [img1, img2, img3];
+const sliderImages = [flower, green, rw];
 
 function EventsPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -144,8 +142,7 @@ function EventsPage() {
           {/* TOP ROW: Image on Left, Text on Right */}
           <div className="custom-catering-top">
             <div className="custom-catering-image">
-              {/* Gamitin ang tamang image variable mo dito (e.g., img3) */}
-              <img src={img3} alt="Catering Setup" />
+              <img src={rw} alt="Catering Setup" />
             </div>
             <div className="custom-catering-text">
               <h2>Additional Catering Services at Gala Crafters</h2>

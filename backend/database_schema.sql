@@ -185,10 +185,10 @@ VALUES
 -- Insert Sample Admin Users
 INSERT INTO admin_users (name, email, phone, role, status)
 VALUES
-    ('Alexander Sterling', 'a.sterling@gala.com', '+1 (555) 902-1244', 'Executive Admin', 'Active'),
-    ('Eleanor Rhodes', 'e.rhodes@gala.com', '+1 (555) 438-9901', 'Compliance Officer', 'Active'),
-    ('Julian Thorne', 'j.thorne@gala.com', '+1 (555) 212-0092', 'Security Lead', 'Online'),
-    ('Beatrice Vance', 'b.vance@gala.com', '+1 (555) 771-3342', 'Support Manager', 'Away');
+    ('Alexander Sterling', 'a.sterling@gala.com', '+63 918 234 5678', 'Executive Admin', 'Active'),
+    ('Eleanor Rhodes', 'e.rhodes@gala.com', '+63 919 345 6789', 'Compliance Officer', 'Active'),
+    ('Julian Thorne', 'j.thorne@gala.com', '+63 920 456 7890', 'Security Lead', 'Online'),
+    ('Beatrice Vance', 'b.vance@gala.com', '+63 921 567 8901', 'Support Manager', 'Away');
 
 -- Insert Sample Event Packages
 INSERT INTO event_packages (package_name, event_type, description, base_price, max_guests, features)

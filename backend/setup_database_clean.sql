@@ -209,10 +209,10 @@ VALUES
 -- Insert Admin Users
 INSERT INTO admin_users (name, email, password, phone, role, status)
 VALUES
-    ('Alexander Sterling', 'a.sterling@gala.com', 'hashed_admin_123', '+1 (555) 902-1244', 'Executive Admin', 'Active'),
-    ('Eleanor Rhodes', 'e.rhodes@gala.com', 'hashed_admin_456', '+1 (555) 438-9901', 'Compliance Officer', 'Active'),
-    ('Julian Thorne', 'j.thorne@gala.com', 'hashed_admin_789', '+1 (555) 212-0092', 'Security Lead', 'Active'),
-    ('Beatrice Vance', 'b.vance@gala.com', 'hashed_admin_012', '+1 (555) 771-3342', 'Support Manager', 'Active');
+    ('Alexander Sterling', 'a.sterling@gala.com', 'hashed_admin_123', '+63 918 234 5678', 'Executive Admin', 'Active'),
+    ('Eleanor Rhodes', 'e.rhodes@gala.com', 'hashed_admin_456', '+63 919 345 6789', 'Compliance Officer', 'Active'),
+    ('Julian Thorne', 'j.thorne@gala.com', 'hashed_admin_789', '+63 920 456 7890', 'Security Lead', 'Online'),
+    ('Beatrice Vance', 'b.vance@gala.com', 'hashed_admin_012', '+63 921 567 8901', 'Support Manager', 'Away');
 
 -- Insert Event Packages
 INSERT INTO event_packages (package_name, event_type, description, base_price, max_guests, features, status)

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
+import art9 from '../assets/art9.jpg';
 import './Auth.css';
 
 const SignUpPage = () => {
@@ -16,8 +17,13 @@ const SignUpPage = () => {
     };
 
     return (
-        <div className="auth-page">
-            <div className="auth-form-side">
+        <div className="auth-page" style={{
+            backgroundImage: `linear-gradient(to right, rgba(10, 15, 29, 0.98) 0%, rgba(10, 15, 29, 0.95) 40%, rgba(10, 15, 29, 0.6) 100%), url(${art9})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat'
+        }}>
+            <div className="auth-form-side" style={{ background: 'transparent' }}>
                 <div className="auth-container">
                     
                     {/* Elegant Logo */}
@@ -98,9 +104,6 @@ const SignUpPage = () => {
                     </div>
                 </div>
             </div>
-
-            {/* Right Side Image */}
-            <div className="auth-image-side"></div>
         </div>
     );
 };

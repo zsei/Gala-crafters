@@ -740,149 +740,132 @@ body {
 }
 
 /* CURATED EXCELLENCE - GRAY BACKGROUND & DM SANS */
-.excellence-section {
-  background-color: #ffffff;
-  padding: 100px 0;
-  color: #333;
+/* PHILOSOPHY / WHY CHOOSE US SECTION */
+.philosophy-bg {
+  background-color: #FCFBF9 !important; /* Soft premium cream */
+  padding: 120px 0;
 }
 
-.excellence-section .container {
-  padding: 0;
+.philosophy-header {
+  text-align: center;
+  margin-bottom: 80px;
 }
 
-.excellence-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  text-align: left;
-  margin-bottom: 90px;
-  /* Airy gap before the cards */
-}
-
-/* FONT: Bold DM Sans with tight spacing */
-.excellence-titles h2 {
-  font-family: 'Playfair Display', serif;
-  font-size: 42px;
-  color: #c49a2c;
+.philosophy-subtitle {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  letter-spacing: 4px;
+  color: #888;
+  font-weight: 600;
+  text-transform: uppercase;
+  display: block;
   margin-bottom: 15px;
 }
 
-.excellence-titles .subtitle {
+.philosophy-main-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 42px; /* Reduced from 56px */
+  color: #c49a2c;
+  font-weight: 800;
+  line-height: 1.2;
+  position: relative;
+  display: inline-block;
+  margin-bottom: 10px;
+}
+
+.philosophy-main-title::after {
+  content: '';
+  display: block;
+  width: 80px;
+  height: 2px;
+  background-color: #c49a2c;
+  margin: 25px auto 0 auto;
+}
+
+.philosophy-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 60px;
+  text-align: center;
+}
+
+.philosophy-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.3s ease;
+}
+
+.philosophy-card:hover {
+  transform: translateY(-10px);
+}
+
+.philosophy-icon-circle {
+  width: 90px;
+  height: 90px;
+  background-color: #FDF7E7; /* Light gold tint */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 30px;
+  transition: all 0.3s ease;
+}
+
+.philosophy-card:hover .philosophy-icon-circle {
+  background-color: #fcebc4;
+  transform: scale(1.1);
+}
+
+.philosophy-card h4 {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px;
+  color: #c49a2c; /* Updated to Gold */
+  margin-bottom: 25px;
+  font-weight: 700;
+  position: relative;
+}
+
+.philosophy-card h4::after {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 1px;
+  background-color: #c49a2c;
+  margin: 15px auto 0 auto;
+}
+
+.philosophy-card p {
   font-family: 'DM Sans', sans-serif;
-  font-size: 11px;
-  letter-spacing: 2px;
-  color: #888;
-  margin-top: 15px;
-  text-transform: uppercase;
+  font-size: 15px;
+  line-height: 1.8;
+  color: #555;
+  margin: 0;
+  padding: 0;
+  min-height: auto;
+  text-align: center;
 }
 
 .all-services-link {
   font-family: 'DM Sans', sans-serif;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   color: #c49a2c;
-  letter-spacing: 1.5px;
+  letter-spacing: 2px;
   border: 1px solid #c49a2c;
-  padding: 12px 28px;
+  padding: 16px 36px;
   cursor: pointer;
   display: inline-block;
   text-transform: uppercase;
   transition: all 0.3s ease;
+  background: transparent;
 }
 
 .all-services-link:hover {
   background-color: #c49a2c;
   color: #ffffff;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(196, 154, 44, 0.3);
-}
-
-.excellence-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 40px;
-  text-align: left;
-  margin-bottom: 60px;
-}
-
-.excellence-grid::after {
-  content: '';
-  grid-column: 1 / -1;
-  display: flex;
-  justify-content: center;
-}
-
-.excellence-card {
-  position: relative;
-  cursor: pointer;
-  padding: 40px;
-  background-color: #f9f9f9;
-  border: 1px solid #e8e8e8;
-  border-radius: 2px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
-}
-
-.excellence-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
-  border-color: #c49a2c;
-}
-
-.excellence-card .icon-wrapper {
-  margin-bottom: 30px;
-  display: flex;
-  justify-content: center;
-}
-
-/* Card Titles in Bold DM Sans */
-.excellence-card h4 {
-  display: inline-block;
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 800;
-  font-size: 15px;
-  letter-spacing: 1.5px;
-  margin-bottom: 20px;
-  color: #0f172a;
-  text-transform: uppercase;
-  position: relative;
-  text-align: center;
-  width: 100%;
-}
-
-/* THE MOVING LINE - CENTERED BELOW TEXT */
-.excellence-card h4::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: -15px;
-  /* The gap: dropped down lower from the text */
-  width: 35px;
-  /* Short line to start */
-  height: 2px;
-  background-color: #c49a2c;
-  transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.excellence-card:hover h4::after {
-  width: 100%;
-  /* Slides out to full width on hover */
-}
-
-/* PARAGRAPH: DM Sans with high line-height for luxury feel */
-.excellence-card p {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 14.5px;
-  line-height: 2;
-  /* Generous vertical space like the 2nd photo */
-  color: #666;
-  font-weight: 400;
-  margin-top: 20px;
-  min-height: 100px;
-  display: flex;
-  align-items: center;
-  text-align: center;
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px rgba(196, 154, 44, 0.2);
 }
 
 /* CALL TO ACTION (CTA) */
@@ -1517,10 +1500,19 @@ body {
   /* Removes the underline */
 }
 
-/* Hover effect for the links */
+/* Active links and hover effect */
+.nav-link.active,
+.nav-dropdown a.active,
+.dropdown-col a.active,
 .nav-link:hover {
   color: #c49a2c !important;
-  /* Turns gold on hover */
+  /* Turns gold when active or hovered */
+}
+
+.nav-login-btn.active {
+  background-color: #ffffff !important;
+  color: #c49a2c !important;
+  border: 1px solid #c49a2c;
 }
 
 /* =========================================
@@ -2880,20 +2872,18 @@ body {
 
 .debut-experience-section {
   background: #0a0f1d;
-  padding: 0 0 0 0;
-  /* Removed bottom padding to eliminate extra space */
+  padding: 120px 0;
 }
 
 .debut-experience-container {
   display: flex;
   align-items: stretch;
-  /* Make children equal height */
   margin-bottom: 0;
 }
 
 .debut-experience-text {
   flex: 1;
-  padding: 100px 8%;
+  padding: 0 8%;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -2902,13 +2892,16 @@ body {
 .debut-experience-text h2 {
   font-family: 'Playfair Display', serif;
   font-size: 42px;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
   color: #fff;
+  line-height: 1.2;
+  letter-spacing: 2px;
 }
 
 .debut-experience-text p {
   line-height: 1.8;
-  color: #ebebeb;
+  color: #ffffff;
+  font-size: 14px;
 }
 
 .debut-experience-image {

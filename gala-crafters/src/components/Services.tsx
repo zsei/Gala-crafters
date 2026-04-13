@@ -4,11 +4,25 @@ import { useNavigate } from 'react-router-dom';
 import img1 from '../assets/glamour-2.jpg';
 import img2 from '../assets/glamour-3.jpg';
 import img3 from '../assets/glamour-4.jpg';
-import img4 from '../assets/img5.jpg';
+import img4 from '../assets/banner-9.jpg';
+import corporateImg from '../assets/img2.jpg';
+import birthdayImg from '../assets/bd1.png';
 import img5 from '../assets/DSC9804.jpg';
 import img6 from '../assets/DSC9849.jpg';
 import img7 from '../assets/DSC9850.jpg';
 import img8 from '../assets/DSC9852.jpg';
+
+// Gallery Images for Art Section
+import debut12 from '../assets/debut12.jpg';
+import girl from '../assets/girl.jpg';
+import img2a from '../assets/img2a.jpg';
+import img2b from '../assets/img2b.jpg';
+import wed1 from '../assets/wed1.jpg';
+import wed2 from '../assets/wed2.jpg';
+import kid from '../assets/kid.jpg';
+import gold from '../assets/gold.jpg';
+
+const galleryImages = [debut12, girl, img2a, img2b, wed1, wed2, kid, gold];
 
 // Gold SVG Icons
 const IconPalette = () => (
@@ -18,21 +32,24 @@ const IconPalette = () => (
 );
 
 const IconSparkle = () => (
-  <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M20 0L24.7 15.3L40 20L24.7 24.7L20 40L15.3 24.7L0 20L15.3 15.3L20 0Z" fill="#c49a2c" />
+  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 3L13.5 8.5L19 10L13.5 11.5L12 17L10.5 11.5L5 10L10.5 8.5L12 3Z" fill="#c49a2c" />
+    <path d="M19 14L19.8 17.2L23 18L19.8 18.8L19 22L18.2 18.8L15 18L18.2 17.2L19 14Z" fill="#c49a2c" opacity="0.6" />
+    <path d="M5 14L5.6 16.4L8 17L5.6 17.6L5 20L4.4 17.6L2 17L4.4 16.4L5 14Z" fill="#c49a2c" opacity="0.8" />
   </svg>
 );
 
-const IconShield = () => (
-  <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M20 2.6L36 8V20C36 30.6 28.2 38.6 20 40C11.8 38.6 4 30.6 4 20V8L20 2.6ZM12 20C12 23.9 15.6 28 20 30C24.4 28 28 23.9 28 20C28 16.1 24.4 12 20 10C15.6 12 12 16.1 12 20Z" fill="#c49a2c" />
+const IconCheckmarkCircle = () => (
+  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#c49a2c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+    <polyline points="22 4 12 14.01 9 11.01"></polyline>
   </svg>
 );
 
 const collections = [
   { id: 1, title: 'Weddings', subtitle: 'CLASSIC CELEBRATION', img: img1 },
-  { id: 2, title: 'Corporate Galas', subtitle: 'PROFESSIONAL EVENTS', img: img2 },
-  { id: 3, title: 'Birthdays', subtitle: 'PERSONAL PARTIES', img: img3 },
+  { id: 2, title: 'Corporate Galas', subtitle: 'PROFESSIONAL EVENTS', img: corporateImg },
+  { id: 3, title: 'Birthdays', subtitle: 'PERSONAL PARTIES', img: birthdayImg },
   { id: 4, title: 'Private Soirees', subtitle: 'INTIMATE ELEGANCE', img: img4 },
 ];
 
@@ -69,37 +86,36 @@ function Services() {
       {/* NEW SECTION: MENU SLIDER */}
       <MenuSlider />
 
-      {/* SECTION 2: CURATED EXCELLENCE (White Background) */}
-      <section className="excellence-section">
+      {/* SECTION 2: WHY CHOOSE GALA CRAFTERS (Light Cream Background) */}
+      <section className="excellence-section philosophy-bg">
         <div className="container">
-          <div className="excellence-header">
-            <div className="excellence-titles">
-              <h2>Crafter's Excellence</h2>
-              <div className="gold-line" style={{ margin: '0 0 20px 0' }}></div>
-              <p className="subtitle">Exceptional taste meets stunning design in every detail.</p>
-            </div>
+          <div className="philosophy-header">
+            <span className="philosophy-subtitle">OUR PHILOSOPHY</span>
+            <h2 className="philosophy-main-title">Why Choose Gala Crafters</h2>
           </div>
 
-          <div className="excellence-grid">
-            <div className="excellence-card">
-              <div className="icon-wrapper"><IconPalette /></div>
-              <h4>CREATIVE STYLING</h4>
-              <p>We design every event from scratch to match your personal style and theme. No two celebrations are ever the same.</p>
+          <div className="philosophy-grid">
+            <div className="philosophy-card">
+              <div className="philosophy-icon-circle">
+                <IconPalette />
+              </div>
+              <h4>Bespoke Curation</h4>
+              <p>Every event is a unique canvas. we tailor every element to reflect your personal narrative and aesthetic vision.</p>
             </div>
-            <div className="excellence-card">
-              <div className="icon-wrapper"><IconSparkle /></div>
-              <h4>QUALITY SERVICE</h4>
-              <p>We only work with the best partners and materials to ensure your event looks and feels premium from start to finish.</p>
+            <div className="philosophy-card">
+              <div className="philosophy-icon-circle">
+                <IconSparkle />
+              </div>
+              <h4>Exquisite Detail</h4>
+              <p>From the texture of the linens to the scent of the florals, we obsess over the details that define luxury.</p>
             </div>
-            <div className="excellence-card">
-              <div className="icon-wrapper"><IconShield /></div>
-              <h4>STRESS-FREE PLANNING</h4>
-              <p>From the first meeting to the actual event day, we handle everything. You just need to show up and celebrate.</p>
+            <div className="philosophy-card">
+              <div className="philosophy-icon-circle">
+                <IconCheckmarkCircle />
+              </div>
+              <h4>Seamless Execution</h4>
+              <p>Rest easy knowing our logistics experts handle every moving part with quiet, professional precision.</p>
             </div>
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '40px' }}>
-            <div className="all-services-link" onClick={() => window.location.href = '/services/packages'}>VIEW ALL PACKAGES</div>
           </div>
         </div>
       </section>
@@ -141,7 +157,7 @@ function Services() {
           </div>
 
           <div className="art-grid">
-            {[img1, img2, img3, img4, img5, img6, img7, img8].map((imgUrl, index) => (
+            {galleryImages.map((imgUrl, index) => (
               <div key={index} className="art-item">
                 <img src={imgUrl} alt={`Gala Crafters Art ${index + 1}`} />
               </div>

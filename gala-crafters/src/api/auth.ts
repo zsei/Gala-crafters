@@ -249,6 +249,85 @@ export const authService = {
   },
 
   /**
+   * Get user notifications
+   */
+  getNotifications: async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return [];
+
+    try {
+      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.NOTIFICATIONS.GET}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) return [];
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      return [];
+    }
+  },
+
+  /**
+   * Mark notification as read
+   */
+  markNotificationRead: async (id: number) => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+      await fetch(`${API_BASE_URL}${API_ENDPOINTS.NOTIFICATIONS.MARK_READ(id)}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+    } catch (error) {
+      console.error('Error marking notification read:', error);
+    }
+  },
+
+  /**
+   * Mark all notifications as read
+   */
+  markAllNotificationsRead: async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+      await fetch(`${API_BASE_URL}${API_ENDPOINTS.NOTIFICATIONS.READ_ALL}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+    } catch (error) {
+      console.error('Error marking all notifications read:', error);
+    }
+  },
+
+  /**
+   * Clear all notifications
+   */
+  clearNotifications: async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+      await fetch(`${API_BASE_URL}${API_ENDPOINTS.NOTIFICATIONS.CLEAR}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+    } catch (error) {
+      console.error('Error clearing notifications:', error);
+    }
+  },
+
+  /**
    * Update user profile
    */
   updateProfile: async (userData: any) => {

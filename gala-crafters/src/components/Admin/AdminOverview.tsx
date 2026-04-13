@@ -33,28 +33,28 @@ const AdminOverview = () => {
       title: "Active Bookings",
       value: metricsData.active_bookings || 0,
       icon: <BookmarkCheck size={20} color="#c49a2c" />,
-      change: "+12.5%",
+      change: "Current",
       positive: true
     },
     {
       title: "Pending Approvals",
       value: metricsData.pending_approvals || 0,
       icon: <ClipboardCheck size={20} color="#c49a2c" />,
-      change: "Needs Action",
-      warning: true
+      change: metricsData.pending_approvals > 0 ? "Action Required" : "All Clear",
+      warning: metricsData.pending_approvals > 0
     },
     {
       title: "Total Customers",
       value: metricsData.total_customers || 0,
       icon: <Users size={20} color="#c49a2c" />,
-      change: "+4.2%",
+      change: "Total",
       positive: true
     },
     {
       title: "Total Revenue",
       value: `₱${(metricsData.total_revenue || 0).toLocaleString()}`,
       icon: <DollarSign size={20} color="#c49a2c" />,
-      change: "+18.3%",
+      change: "Gross",
       positive: true
     }
   ] : [];

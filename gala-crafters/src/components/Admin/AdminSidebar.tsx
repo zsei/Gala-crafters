@@ -19,7 +19,7 @@ import { API_BASE_URL, API_ENDPOINTS } from '../../api/config';
 import AdminAvailabilityCalendar from './AdminAvailabilityCalendar';
 
 const AdminSidebar = ({ isCollapsed: propIsCollapsed, toggleSidebar: propToggleSidebar }) => {
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadCounts, setUnreadCounts] = useState({ inquiry_count: 0, message_count: 0 });
   const [localIsCollapsed, setLocalIsCollapsed] = useState(false);
   const [isBookingsOpen, setIsBookingsOpen] = useState(false);
   const [isPackagesOpen, setIsPackagesOpen] = useState(false);
@@ -85,29 +85,37 @@ const AdminSidebar = ({ isCollapsed: propIsCollapsed, toggleSidebar: propToggleS
     }
   };
 
-  // Fetch unread count for badge
+  // Fetch unread counts for badges
   useEffect(() => {
-    const fetchUnreadCount = async () => {
+    const fetchUnreadCounts = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.ADMIN.MESSAGES}`, {
+        const response = await fetch(`${API_BASE_URL}/api/admin/unread-counts`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
         });
         if (response.ok) {
           const data = await response.json();
-          setUnreadCount(data.length);
+          setUnreadCounts(data);
         }
       } catch (err) {
-        console.error('Error fetching unread messages for sidebar:', err);
+        console.error('Error fetching unread counts for sidebar:', err);
       }
     };
 
-    fetchUnreadCount();
-    // Refresh every 30 seconds
-    const interval = setInterval(fetchUnreadCount, 30000);
-    return () => clearInterval(interval);
+    fetchUnreadCounts();
+    // Refresh every 10 seconds
+    const interval = setInterval(fetchUnreadCounts, 10000);
+
+    // Listen for custom event to refresh counts immediately
+    const handleRefresh = () => fetchUnreadCounts();
+    window.addEventListener('refresh_unread_counts', handleRefresh);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('refresh_unread_counts', handleRefresh);
+    };
   }, []);
 
   return (
@@ -216,23 +224,28 @@ const AdminSidebar = ({ isCollapsed: propIsCollapsed, toggleSidebar: propToggleS
         {(isSuperAdmin || isBookingsStaff) && (
           <>
             <NavLink 
-              to="/admin/messages" 
-              className={({ isActive }) => `admin-nav-item ${isActive ? 'active' : ''}`}
-              title={isCollapsed ? "Messages" : ""}
-            >
-              <MessageSquare className="admin-nav-icon" />
-              {!isCollapsed && <span>Messages</span>}
-            </NavLink>
+          to="/admin/messages" 
+          className={({ isActive }) => `admin-nav-item ${isActive ? 'active' : ''}`}
+          title={isCollapsed ? "Messages" : ""}
+        >
+          <MessageSquare className="admin-nav-icon" />
+          {!isCollapsed && <span>Messages</span>}
+          {!isCollapsed && unreadCounts.message_count > 0 && (
+            <span className="admin-badge">{unreadCounts.message_count}</span>
+          )}
+        </NavLink>
 
-            <NavLink 
-              to="/admin/inquiries" 
-              className={({ isActive }) => `admin-nav-item ${isActive ? 'active' : ''}`}
-              title={isCollapsed ? "Inquiries" : ""}
-            >
-              <HelpCircle className="admin-nav-icon" />
-              {!isCollapsed && <span>Inquiries</span>}
-              {!isCollapsed && unreadCount > 0 && <span className="admin-badge">{unreadCount}</span>}
-            </NavLink>
+        <NavLink 
+          to="/admin/inquiries" 
+          className={({ isActive }) => `admin-nav-item ${isActive ? 'active' : ''}`}
+          title={isCollapsed ? "Inquiries" : ""}
+        >
+          <HelpCircle className="admin-nav-icon" />
+          {!isCollapsed && <span>Inquiries</span>}
+          {!isCollapsed && unreadCounts.inquiry_count > 0 && (
+            <span className="admin-badge">{unreadCounts.inquiry_count}</span>
+          )}
+        </NavLink>
           </>
         )}
 

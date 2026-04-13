@@ -1,12 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, CheckCircle, Utensils, Sparkles, Layout, Users, ChevronLeft, ChevronRight, Star } from 'lucide-react';
+import { X, Calendar, CheckCircle, Utensils, Sparkles, Layout, Users, ChevronLeft, ChevronRight, Star, Heart, Camera, Music, ShieldCheck } from 'lucide-react';
 import './PackageDetailsModal.css';
 import { API_BASE_URL } from '../api/config';
 
 // Existing assets
-import img1 from '../assets/img1.jpg';
-import img2 from '../assets/img1a.jpg';
-import img3 from '../assets/banner-7.jpg';
+import iw1 from '../assets/iw1.jpg';
+import iw2 from '../assets/iw2.jpg';
+import iw3 from '../assets/iw3.jpg';
+import iw4 from '../assets/iw4.jpg';
+import uw1 from '../assets/uw1.jpg';
+import uw2 from '../assets/uw2.jpg';
+import uw3 from '../assets/uw3.jpg';
+import uw4 from '../assets/uw4.jpg';
+import ew1 from '../assets/ew1.jpg';
+import ew2 from '../assets/ew2.jpg';
+import ew3 from '../assets/ew3.jpg';
+import ew4 from '../assets/ew4.jpg';
+import ed1 from '../assets/ed1.jpg';
+import ed2 from '../assets/ed2.jpg';
+import ed3 from '../assets/ed3.jpg';
+import ed4 from '../assets/ed4.jpg';
+import ud1 from '../assets/ud1.jpg';
+import ud2 from '../assets/ud2.jpg';
+import ud3 from '../assets/ud3.jpg';
+import ud4 from '../assets/ud4.jpg';
+import ud11 from '../assets/ud11.jpg';
+import ud22 from '../assets/ud22.jpg';
+import ud33 from '../assets/ud33.jpg';
+import ud44 from '../assets/ud44.jpg';
 import heroBg from '../assets/img2b.jpg';
 
 interface PackageDetailsModalProps {
@@ -14,9 +35,10 @@ interface PackageDetailsModalProps {
   onClose: () => void;
   packageType: 'intimate' | 'utopian' | 'elite' | 'debutIntimate' | 'debutClassy' | 'debutVogue' | 'corporateSetA' | 'corporateSetB' | 'corporateSetC' | 'kiddiePlayful' | 'kiddieAdventure' | 'kiddieCarnival' | 'specialIntimate' | 'specialGrand' | 'specialLegacy';
   onReserve: (data: any) => void;
+  packageData?: any; // Added to support dynamic data from backend
 }
 
-const packageData = {
+const defaultPackageData = {
   intimate: {
     title: "Intimate Wedding Package",
     basePrice: 5999,
@@ -206,7 +228,7 @@ function toBookingYMD(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
-const PackageDetailsModal: React.FC<PackageDetailsModalProps> = ({ isOpen, onClose, packageType, onReserve }) => {
+const PackageDetailsModal: React.FC<PackageDetailsModalProps> = ({ isOpen, onClose, packageType, onReserve, packageData: externalPackageData }) => {
   const [promoCode, setPromoCode] = useState('');
   const [isPromoApplied, setIsPromoApplied] = useState(false);
   const [promoDiscountAmount, setPromoDiscountAmount] = useState(0);
@@ -228,7 +250,31 @@ const PackageDetailsModal: React.FC<PackageDetailsModalProps> = ({ isOpen, onClo
 
   // Gallery states
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const galleryImages = [img1, img2, img3, heroBg];
+  
+  // Use external package data if provided, otherwise use default
+  const defaultDataForType = defaultPackageData[packageType] || defaultPackageData.intimate;
+  
+  // Merge external data with defaults: prioritize external, fall back to defaults for missing/empty fields
+  const data = externalPackageData ? {
+    ...defaultDataForType,
+    ...externalPackageData,
+    // Special handling for nested structures that might be empty from backend
+    included: (externalPackageData.included && externalPackageData.included.length > 0) 
+      ? externalPackageData.included 
+      : (externalPackageData.included_items ? null : defaultDataForType.included),
+    features: (externalPackageData.features && externalPackageData.features.length > 0)
+      ? externalPackageData.features
+      : []
+  } : { ...defaultDataForType, features: [] };
+
+  const galleryImages = 
+    packageType === 'intimate' ? [iw1, iw2, iw3, iw4] :
+    packageType === 'utopian' ? [uw1, uw2, uw3, uw4] :
+    packageType === 'elite' ? [ew1, ew2, ew3, ew4] :
+    packageType === 'debutIntimate' ? [ed1, ed2, ed3, ed4] :
+    packageType === 'debutClassy' ? [ud1, ud2, ud3, ud4] :
+    packageType === 'debutVogue' ? [ud11, ud22, ud33, ud44] :
+    data.image_url ? [data.image_url, ...[iw1, iw2, iw3, iw4]] : [iw1, iw2, iw3, iw4];
 
   const handlePrevImage = () => {
     setCurrentImageIndex((prev) => (prev === 0 ? galleryImages.length - 1 : prev - 1));
@@ -281,7 +327,8 @@ const PackageDetailsModal: React.FC<PackageDetailsModalProps> = ({ isOpen, onClo
     const fetchPackageReviews = async () => {
       try {
         setLoadingReviews(true);
-        const packageId = packageIdMap[packageType] || 1;
+        // If we have dynamic data from backend, use its ID, otherwise fallback to map
+        const packageId = data?.id || packageIdMap[packageType] || 1;
         const response = await fetch(`${API_BASE_URL}/api/reviews/package/${packageId}`);
         
         if (response.ok) {
@@ -294,6 +341,8 @@ const PackageDetailsModal: React.FC<PackageDetailsModalProps> = ({ isOpen, onClo
           if (reviewsArray.length > 0) {
             const avgRating = reviewsArray.reduce((sum: number, review: any) => sum + (review.rating || 0), 0) / reviewsArray.length;
             setAverageRating(Math.round(avgRating * 10) / 10);
+          } else {
+            setAverageRating(0);
           }
         }
       } catch (err) {
@@ -308,7 +357,7 @@ const PackageDetailsModal: React.FC<PackageDetailsModalProps> = ({ isOpen, onClo
     if (isOpen) {
       fetchPackageReviews();
     }
-  }, [isOpen, packageType]);
+  }, [isOpen, packageType, data?.id]);
 
   useEffect(() => {
     setPromoCode('');
@@ -409,10 +458,9 @@ const PackageDetailsModal: React.FC<PackageDetailsModalProps> = ({ isOpen, onClo
                     (isSpecialIntimate ? specialIntimateMinGuests : 
                     (isSpecialGrand || isSpecialLegacy ? specialLargeMinGuests : 1))))))));
                     
-  const maxGuests = (isIntimateWedding || isUtopianWedding || isEliteWedding || isCorporate || isDebutIntimate || isDebutClassy || isDebutVogue || isKiddiePlayful || isKiddieAdventure || isKiddieCarnival || isSpecialIntimate || isSpecialGrand || isSpecialLegacy) ? Number.POSITIVE_INFINITY : 999;
+  const maxGuests = data.max_guests || ((isIntimateWedding || isUtopianWedding || isEliteWedding || isCorporate || isDebutIntimate || isDebutClassy || isDebutVogue || isKiddiePlayful || isKiddieAdventure || isKiddieCarnival || isSpecialIntimate || isSpecialGrand || isSpecialLegacy) ? Number.POSITIVE_INFINITY : 999);
 
-  const data = packageData[packageType] || packageData.intimate;
-  const basePrice = data.basePrice;
+  const basePrice = data.base_price || data.basePrice;
   
   const extraGuestBillablePax = (isIntimateWedding || isUtopianWedding || isEliteWedding || isCorporate || isDebutIntimate || isDebutClassy || isDebutVogue || isKiddiePlayful || isKiddieAdventure || isKiddieCarnival || isSpecialIntimate || isSpecialGrand || isSpecialLegacy) ? Math.max(0, guestCount - minGuests) : 0;
   const additionalGuestsFee = (isIntimateWedding || isUtopianWedding || isEliteWedding || isCorporate || isDebutIntimate || isDebutClassy || isDebutVogue || isKiddiePlayful || isKiddieAdventure || isKiddieCarnival || isSpecialIntimate || isSpecialGrand || isSpecialLegacy) ? extraGuestBillablePax * extraPaxRate : 0;
@@ -588,27 +636,44 @@ const PackageDetailsModal: React.FC<PackageDetailsModalProps> = ({ isOpen, onClo
               <h2 className="modal-section-title">What's Included</h2>
               <div className="modal-gold-dash"></div>
               <div className="modal-included-grid">
-                {data.included.map((item, idx) => (
-                  <div key={idx} className="modal-included-card">
-                    <item.icon size={32} color="#c49a2c" strokeWidth={1.75} />
-                    <div className="modal-included-info">
-                      <h4>{item.title}</h4>
-                      <p>{item.desc}</p>
+                {data.included && data.included.length > 0 ? (
+                  data.included.map((item: any, idx: number) => (
+                    <div key={idx} className="modal-included-card">
+                      {item.icon ? <item.icon size={32} color="#c49a2c" strokeWidth={1.75} /> : <Sparkles size={32} color="#c49a2c" strokeWidth={1.75} />}
+                      <div className="modal-included-info">
+                        <h4>{item.title}</h4>
+                        <p>{item.desc}</p>
+                      </div>
                     </div>
+                  ))
+                ) : data.included_items ? (
+                  // If we only have included_items string from backend, we can try to parse it or just show it
+                  <div className="modal-included-text">
+                    <p>{data.included_items}</p>
                   </div>
-                ))}
+                ) : null}
               </div>
             </div>
 
             <div className="modal-section">
               <h2 className="modal-section-title">Service Details</h2>
               <div className="modal-gold-dash"></div>
-              <p className="modal-service-text">{data.details}</p>
               <div className="modal-checklist">
-                <div className="modal-check-item"><CheckCircle size={16} color="#c49a2c" /> <span>Seamless Setup & Breakdown</span></div>
-                <div className="modal-check-item"><CheckCircle size={16} color="#c49a2c" /> <span>Professional Uniformed Team</span></div>
-                <div className="modal-check-item"><CheckCircle size={16} color="#c49a2c" /> <span>Full Buffet Management</span></div>
-                <div className="modal-check-item"><CheckCircle size={16} color="#c49a2c" /> <span>Complete Thematic Styling</span></div>
+                {(data.features && Array.isArray(data.features) && data.features.length > 0) ? (
+                  data.features.map((feature: string, idx: number) => (
+                    <div key={idx} className="modal-check-item">
+                      <CheckCircle size={16} color="#c49a2c" /> 
+                      <span>{feature}</span>
+                    </div>
+                  ))
+                ) : (
+                  <>
+                    <div className="modal-check-item"><CheckCircle size={16} color="#c49a2c" /> <span>Seamless Setup & Breakdown</span></div>
+                    <div className="modal-check-item"><CheckCircle size={16} color="#c49a2c" /> <span>Professional Uniformed Team</span></div>
+                    <div className="modal-check-item"><CheckCircle size={16} color="#c49a2c" /> <span>Full Buffet Management</span></div>
+                    <div className="modal-check-item"><CheckCircle size={16} color="#c49a2c" /> <span>Complete Thematic Styling</span></div>
+                  </>
+                )}
               </div>
             </div>
           </div>

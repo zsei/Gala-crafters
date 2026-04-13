@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Package, Plus, Search, Edit2, Trash2, Filter, ChevronRight, LayoutGrid, List, X, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
+import { Package, Plus, Search, Edit2, Trash2, Filter, ChevronRight, LayoutGrid, List, X, AlertCircle, CheckCircle, XCircle, Upload, Image as ImageIcon } from 'lucide-react';
 import AdminSidebar from './AdminSidebar';
 import './Admin.css';
 import { API_BASE_URL, API_ENDPOINTS } from '../../api/config';
@@ -10,9 +10,13 @@ interface EventPackage {
   package_name: string;
   event_type: string;
   description: string;
+  detailed_description?: string;
   base_price: number;
+  min_guests?: number;
   max_guests: number;
+  extra_pax_rate?: number;
   features: string[];
+  included_items?: string;
   image_url?: string;
   status: string;
 }
@@ -42,17 +46,36 @@ const AdminPackages = () => {
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingPackage, setEditingPackage] = useState<EventPackage | null>(null);
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<{
+        package_name: string;
+        event_type: string;
+        description: string;
+        detailed_description: string;
+        base_price: number;
+        min_guests: number;
+        max_guests: number;
+        extra_pax_rate: number;
+        features_list: string[];
+        included_items: { title: string; desc: string }[];
+        image_url: string;
+        status: string;
+    }>({
         package_name: '',
         event_type: 'Wedding',
         description: '',
+        detailed_description: '',
         base_price: 0,
+        min_guests: 1,
         max_guests: 0,
-        features: '', // We'll split this by comma on submit
+        extra_pax_rate: 350,
+        features_list: ['Seamless Setup & Breakdown', 'Professional Uniformed Team', 'Full Buffet Management', 'Complete Thematic Styling'],
+        included_items: [{ title: '', desc: '' }],
         image_url: '',
         status: 'Active'
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [uploadingImage, setUploadingImage] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Confirmation Modal state
     const [confirmModal, setConfirmModal] = React.useState<{
@@ -109,7 +132,7 @@ const AdminPackages = () => {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
-            [name]: name === 'base_price' || name === 'max_guests' ? Number(value) : value
+            [name]: ['base_price', 'max_guests', 'min_guests', 'extra_pax_rate'].includes(name) ? Number(value) : value
         }));
     };
 
@@ -120,9 +143,13 @@ const AdminPackages = () => {
             package_name: '',
             event_type: 'Wedding',
             description: '',
+            detailed_description: '',
             base_price: 0,
+            min_guests: 1,
             max_guests: 50,
-            features: '',
+            extra_pax_rate: 350,
+            features_list: ['Seamless Setup & Breakdown', 'Professional Uniformed Team', 'Full Buffet Management', 'Complete Thematic Styling'],
+            included_items: [{ title: '', desc: '' }],
             image_url: '',
             status: 'Active'
         });
@@ -131,18 +158,114 @@ const AdminPackages = () => {
 
     // Open Modal for Edit
     const handleOpenEdit = (pkg: EventPackage) => {
+        let parsedInclusions = [{ title: '', desc: '' }];
+        if (pkg.included_items) {
+            try {
+                const parsed = JSON.parse(pkg.included_items);
+                if (Array.isArray(parsed)) {
+                    parsedInclusions = parsed;
+                }
+            } catch (e) {
+                // If it's not JSON, treat it as a single inclusion or empty
+                parsedInclusions = [{ title: 'Inclusion', desc: pkg.included_items }];
+            }
+        }
+
         setEditingPackage(pkg);
         setFormData({
             package_name: pkg.package_name,
             event_type: pkg.event_type,
             description: pkg.description || '',
+            detailed_description: pkg.detailed_description || '',
             base_price: pkg.base_price,
+            min_guests: pkg.min_guests || 1,
             max_guests: pkg.max_guests || 0,
-            features: pkg.features ? pkg.features.join(', ') : '',
+            extra_pax_rate: pkg.extra_pax_rate || 350,
+            features_list: pkg.features || [],
+            included_items: parsedInclusions,
             image_url: pkg.image_url || '',
             status: pkg.status || 'Active'
         });
         setIsModalOpen(true);
+    };
+
+    const addInclusion = () => {
+        setFormData(prev => ({
+            ...prev,
+            included_items: [...prev.included_items, { title: '', desc: '' }]
+        }));
+    };
+
+    const removeInclusion = (index: number) => {
+        setFormData(prev => ({
+            ...prev,
+            included_items: prev.included_items.filter((_, i) => i !== index)
+        }));
+    };
+
+    const handleInclusionChange = (index: number, field: 'title' | 'desc', value: string) => {
+        setFormData(prev => {
+            const newInclusions = [...prev.included_items];
+            newInclusions[index] = { ...newInclusions[index], [field]: value };
+            return { ...prev, included_items: newInclusions };
+        });
+    };
+
+    const addFeature = () => {
+        setFormData(prev => ({
+            ...prev,
+            features_list: [...prev.features_list, '']
+        }));
+    };
+
+    const removeFeature = (index: number) => {
+        setFormData(prev => ({
+            ...prev,
+            features_list: prev.features_list.filter((_, i) => i !== index)
+        }));
+    };
+
+    const handleFeatureChange = (index: number, value: string) => {
+        setFormData(prev => {
+            const newFeatures = [...prev.features_list];
+            newFeatures[index] = value;
+            return { ...prev, features_list: newFeatures };
+        });
+    };
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setUploadingImage(true);
+        const token = localStorage.getItem('token');
+        const formDataUpload = new FormData();
+        formDataUpload.append('file', file);
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/admin/packages/upload-image`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formDataUpload
+            });
+
+            if (!response.ok) throw new Error('Failed to upload image');
+
+            const data = await response.json();
+            // Prefix with API_BASE_URL if it's a relative path
+            const imageUrl = data.url.startsWith('http') ? data.url : `${API_BASE_URL}${data.url}`;
+            
+            setFormData(prev => ({
+                ...prev,
+                image_url: imageUrl
+            }));
+        } catch (err: any) {
+            alert("Error uploading image: " + err.message);
+        } finally {
+            setUploadingImage(false);
+        }
     };
 
     // Submit Form
@@ -157,7 +280,8 @@ const AdminPackages = () => {
             // Format data
             const payload = {
                 ...formData,
-                features: formData.features.split(',').map(f => f.trim()).filter(f => f.length > 0)
+                features: formData.features_list.filter(f => f.trim() !== ''),
+                included_items: JSON.stringify(formData.included_items.filter(item => item.title.trim() !== ''))
             };
 
             const url = editingPackage 
@@ -215,20 +339,44 @@ const AdminPackages = () => {
         });
     };
 
+    const handleOpenExternalDetails = (pkg: EventPackage) => {
+        // Map status from backend if needed
+        setEditingPackage(pkg);
+        // Ensure data is mapped correctly for the modal
+        const mappedData = {
+            ...pkg,
+            title: pkg.package_name,
+            basePrice: pkg.base_price,
+            included: pkg.included_items ? (function() {
+                try {
+                    const parsed = JSON.parse(pkg.included_items);
+                    return Array.isArray(parsed) ? parsed : [];
+                } catch(e) { return []; }
+            })() : []
+        };
+        // Use the packageType as a unique identifier for the modal
+        // We'll pass the whole object as packageData
+        setIsModalOpen(false); // Close CRUD modal if open
+        // We need to trigger the user-facing modal
+        // For now, let's just alert or use a separate state if needed
+        // But the request is about fixing the mismatch.
+    };
+
     // Filter Logic
-    const filteredPackages = packages.filter(pkg => {
+    const filteredPackages = Array.isArray(packages) ? packages.filter(pkg => {
+        if (!pkg) return false;
         // Search
-        const matchesSearch = pkg.package_name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        const matchesSearch = (pkg.package_name || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
                               (pkg.description && pkg.description.toLowerCase().includes(searchQuery.toLowerCase()));
         
         // Category
-        const matchesCategory = categoryFilter === 'All' || pkg.event_type.toLowerCase() === categoryFilter.toLowerCase();
+        const matchesCategory = categoryFilter === 'All' || (pkg.event_type || '').toLowerCase() === categoryFilter.toLowerCase();
         
         // Status
         const matchesStatus = statusFilter === 'All' || pkg.status === statusFilter;
 
         return matchesSearch && matchesCategory && matchesStatus;
-    });
+    }) : [];
 
     return (
         <div className={`admin-layout ${isModalOpen ? 'modal-open' : ''}`}>
@@ -320,7 +468,7 @@ const AdminPackages = () => {
                                         <img src={pkg.image_url} alt={pkg.package_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                     ) : (
                                         <div className="package-icon-wrapper">
-                                            <Package size={24} color="#c49a2c" />
+                                            <Package size={24} color="#fff" />
                                         </div>
                                     )}
                                     <div className="package-status" style={pkg.image_url ? { position: 'absolute', top: '16px', right: '16px' } : {}}>
@@ -334,11 +482,11 @@ const AdminPackages = () => {
                                     <div className="package-meta">
                                         <div className="meta-item">
                                             <span className="meta-label">Starting Price</span>
-                                            <span className="meta-value">${pkg.base_price.toLocaleString()}</span>
+                                            <span className="meta-value">₱{pkg.base_price.toLocaleString()}</span>
                                         </div>
                                         <div className="meta-item">
-                                            <span className="meta-label">Capacity</span>
-                                            <span className="meta-value">{pkg.max_guests} Pax</span>
+                                            <span className="meta-label">Min Guests</span>
+                                            <span className="meta-value">{pkg.min_guests} Pax</span>
                                         </div>
                                     </div>
                                 </div>
@@ -375,7 +523,7 @@ const AdminPackages = () => {
                         </div>
 
                         <form onSubmit={handleSubmit} className="admin-modal-body">
-                            <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                            <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', alignItems: 'start' }}>
                                 <div className="admin-form-group">
                                     <label>Package Name</label>
                                     <div className="input-with-icon">
@@ -398,6 +546,7 @@ const AdminPackages = () => {
                                         onChange={handleInputChange}
                                         required
                                         className="admin-select"
+                                        style={{ height: '46px' }}
                                     >
                                         <option value="Wedding">Wedding</option>
                                         <option value="Birthday">Birthday</option>
@@ -416,8 +565,8 @@ const AdminPackages = () => {
                                         name="description"
                                         value={formData.description}
                                         onChange={handleInputChange}
-                                        rows={3}
-                                        placeholder="Brief overview of what this package includes..."
+                                        rows={4}
+                                        placeholder="Detailed explanation of the package, services, and inclusions..."
                                         style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--admin-border)', borderRadius: '8px', background: 'var(--admin-bg)', color: 'var(--admin-text-main)', fontFamily: 'inherit', fontSize: '14px', resize: 'vertical' }}
                                     />
                                 </div>
@@ -425,9 +574,9 @@ const AdminPackages = () => {
 
                             <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                 <div className="admin-form-group">
-                                    <label>Base Price ($)</label>
+                                    <label>Base Price (₱)</label>
                                     <div className="input-with-icon">
-                                        <span style={{ position: 'absolute', left: '12px', color: 'var(--admin-text-sub)', fontWeight: 600, fontSize: '14px' }}>$</span>
+                                        <span style={{ position: 'absolute', left: '12px', color: 'var(--admin-text-sub)', fontWeight: 600, fontSize: '14px' }}>₱</span>
                                         <input
                                             type="number"
                                             name="base_price"
@@ -440,52 +589,204 @@ const AdminPackages = () => {
                                     </div>
                                 </div>
                                 <div className="admin-form-group">
-                                    <label>Max Capacity (Pax)</label>
+                                    <label>Extra Pax Rate (₱)</label>
+                                    <div className="input-with-icon">
+                                        <span style={{ position: 'absolute', left: '12px', color: 'var(--admin-text-sub)', fontWeight: 600, fontSize: '14px' }}>₱</span>
+                                        <input
+                                            type="number"
+                                            name="extra_pax_rate"
+                                            value={formData.extra_pax_rate}
+                                            onChange={handleInputChange}
+                                            required
+                                            min="0"
+                                            placeholder="350"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                <div className="admin-form-group">
+                                    <label>Min Guests</label>
                                     <div className="input-with-icon">
                                         <span style={{ position: 'absolute', left: '12px', color: 'var(--admin-text-sub)', fontWeight: 600, fontSize: '14px' }}>#</span>
                                         <input
                                             type="number"
-                                            name="max_guests"
-                                            value={formData.max_guests}
+                                            name="min_guests"
+                                            value={formData.min_guests}
                                             onChange={handleInputChange}
                                             required
                                             min="1"
-                                            placeholder="50"
+                                            placeholder="1"
                                         />
                                     </div>
                                 </div>
                             </div>
 
                             <div className="admin-form-group">
-                                <label>Package Cover Image (URL)</label>
-                                <div className="input-with-icon">
-                                    <Plus size={16} />
+                                <label>Package Cover Image</label>
+                                <div 
+                                    className="image-upload-zone" 
+                                    onClick={() => fileInputRef.current?.click()}
+                                    style={{
+                                        border: '2px dashed var(--admin-border)',
+                                        borderRadius: '12px',
+                                        padding: '24px',
+                                        textAlign: 'center',
+                                        cursor: 'pointer',
+                                        backgroundColor: 'var(--admin-bg)',
+                                        transition: 'all 0.2s ease',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        gap: '12px'
+                                    }}
+                                    onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--admin-accent)'}
+                                    onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--admin-border)'}
+                                >
                                     <input 
-                                        type="text" 
-                                        name="image_url"
-                                        value={formData.image_url}
-                                        onChange={handleInputChange}
-                                        placeholder="https://example.com/image.jpg"
+                                        type="file" 
+                                        ref={fileInputRef} 
+                                        onChange={handleImageUpload} 
+                                        accept="image/*" 
+                                        style={{ display: 'none' }} 
                                     />
+                                    {uploadingImage ? (
+                                        <div className="uploading-spinner">
+                                            <div style={{ width: '24px', height: '24px', border: '3px solid var(--admin-border)', borderTopColor: 'var(--admin-accent)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+                                            <span style={{ fontSize: '14px', color: 'var(--admin-text-sub)', marginTop: '8px' }}>Uploading...</span>
+                                        </div>
+                                    ) : formData.image_url ? (
+                                        <div style={{ position: 'relative', width: '100%' }}>
+                                            <img src={formData.image_url} alt="Preview" style={{ width: '100%', height: '180px', objectFit: 'cover', borderRadius: '8px' }} />
+                                            <div style={{ position: 'absolute', top: '8px', right: '8px', backgroundColor: 'rgba(0,0,0,0.5)', color: 'white', padding: '4px 12px', borderRadius: '20px', fontSize: '12px' }}>
+                                                Click to Change
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: 'var(--admin-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--admin-accent)' }}>
+                                                <Upload size={24} />
+                                            </div>
+                                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                <span style={{ fontWeight: 600, color: 'var(--admin-text-main)' }}>Click to upload image</span>
+                                                <span style={{ fontSize: '12px', color: 'var(--admin-text-sub)' }}>PNG, JPG or WEBP (Max 5MB)</span>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
-                                {formData.image_url && (
-                                    <div className="image-preview" style={{ marginTop: '12px', borderRadius: '8px', overflow: 'hidden', height: '150px', border: '1px solid var(--admin-border)' }}>
-                                        <img src={formData.image_url} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                    </div>
-                                )}
                             </div>
 
                             <div className="admin-form-group">
-                                <label>Features (Comma separated)</label>
-                                <div className="input-with-icon" style={{ alignItems: 'flex-start' }}>
-                                    <textarea
-                                        name="features"
-                                        value={formData.features}
-                                        onChange={handleInputChange}
-                                        rows={3}
-                                        placeholder="e.g. 5-Course Meal, Live Band, Premium Decor"
-                                        style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--admin-border)', borderRadius: '8px', background: 'var(--admin-bg)', color: 'var(--admin-text-main)', fontFamily: 'inherit', fontSize: '14px', resize: 'vertical' }}
-                                    />
+                                <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    What's Included (Main items for the grid)
+                                    <button 
+                                        type="button" 
+                                        onClick={addInclusion}
+                                        style={{ 
+                                            padding: '4px 12px', 
+                                            fontSize: '12px', 
+                                            backgroundColor: 'var(--admin-accent)', 
+                                            color: 'white', 
+                                            border: 'none', 
+                                            borderRadius: '4px',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        + Add Box
+                                    </button>
+                                </label>
+                                <div className="inclusions-container" style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '8px' }}>
+                                    {formData.included_items.map((item, index) => (
+                                        <div key={index} className="inclusion-box" style={{ 
+                                            padding: '16px', 
+                                            border: '1px solid var(--admin-border)', 
+                                            borderRadius: '8px', 
+                                            backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                                            position: 'relative'
+                                        }}>
+                                            <button 
+                                                type="button"
+                                                onClick={() => removeInclusion(index)}
+                                                style={{
+                                                    position: 'absolute',
+                                                    top: '8px',
+                                                    right: '8px',
+                                                    background: 'none',
+                                                    border: 'none',
+                                                    color: '#ef4444',
+                                                    cursor: 'pointer',
+                                                    padding: '4px'
+                                                }}
+                                            >
+                                                <X size={14} />
+                                            </button>
+                                            <div className="admin-form-group" style={{ marginBottom: '12px' }}>
+                                                <label style={{ fontSize: '11px', textTransform: 'uppercase' }}>Inclusion Title</label>
+                                                <input 
+                                                    type="text"
+                                                    value={item.title}
+                                                    onChange={(e) => handleInclusionChange(index, 'title', e.target.value)}
+                                                    placeholder="e.g. Gourmet Grand Buffet"
+                                                    style={{ width: '100%', padding: '8px' }}
+                                                />
+                                            </div>
+                                            <div className="admin-form-group" style={{ marginBottom: 0 }}>
+                                                <label style={{ fontSize: '11px', textTransform: 'uppercase' }}>Description / Items</label>
+                                                <textarea 
+                                                    value={item.desc}
+                                                    onChange={(e) => handleInclusionChange(index, 'desc', e.target.value)}
+                                                    placeholder="e.g. Appetizer, Soup Bar, Salad Station..."
+                                                    rows={2}
+                                                    style={{ width: '100%', padding: '8px', fontSize: '13px' }}
+                                                />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="admin-form-group">
+                                <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    Service Details (Checklist items)
+                                    <button 
+                                        type="button" 
+                                        onClick={addFeature}
+                                        style={{ 
+                                            padding: '4px 12px', 
+                                            fontSize: '12px', 
+                                            backgroundColor: 'var(--admin-accent)', 
+                                            color: 'white', 
+                                            border: 'none', 
+                                            borderRadius: '4px',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        + Add Item
+                                    </button>
+                                </label>
+                                <div className="features-container" style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
+                                    {formData.features_list.map((feature, index) => (
+                                        <div key={index} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                            <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', border: '1px solid var(--admin-border)', borderRadius: '8px', backgroundColor: 'rgba(255, 255, 255, 0.02)' }}>
+                                                <CheckCircle size={14} color="var(--admin-accent)" />
+                                                <input 
+                                                    type="text"
+                                                    value={feature}
+                                                    onChange={(e) => handleFeatureChange(index, e.target.value)}
+                                                    placeholder="e.g. Seamless Setup & Breakdown"
+                                                    style={{ flex: 1, border: 'none', background: 'none', padding: 0, fontSize: '14px', color: 'inherit' }}
+                                                />
+                                            </div>
+                                            <button 
+                                                type="button"
+                                                onClick={() => removeFeature(index)}
+                                                style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px' }}
+                                            >
+                                                <X size={16} />
+                                            </button>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
 
@@ -669,15 +970,18 @@ const AdminPackages = () => {
                     justify-content: space-between;
                     align-items: flex-start;
                     border-bottom: 1px solid var(--admin-border);
+                    background-color: var(--admin-accent);
+                    color: white;
                 }
                 .package-icon-wrapper {
                     width: 48px;
                     height: 48px;
-                    background-color: var(--admin-hover);
+                    background-color: rgba(255, 255, 255, 0.2);
                     border-radius: 12px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
+                    backdrop-filter: blur(4px);
                 }
                 .package-card-body {
                     padding: 24px;

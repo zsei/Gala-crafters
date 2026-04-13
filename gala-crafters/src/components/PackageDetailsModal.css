@@ -7,43 +7,44 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(0, 0, 0, 0.85);
   display: flex;
   justify-content: center;
-  align-items: center;
-  z-index: 9999;
-  backdrop-filter: blur(5px);
-  padding: 20px;
+  align-items: flex-start; /* Start from top to allow scrolling */
+  z-index: 999999; /* Ensure it's above everything including the navbar */
+  backdrop-filter: blur(8px);
+  padding: 40px 20px; /* Increase vertical padding */
+  overflow-y: auto; /* Enable vertical scrolling on the overlay */
 }
 
 .package-modal-content {
-  background-color: #0a0f1d; /* Matches footer */
+  background-color: #0a0f1d;
   width: 100%;
   max-width: 1200px;
-  max-height: 90vh;
-  border-radius: 16px;
+  margin: 60px auto; /* Ensure some space from the absolute top/bottom */
+  border-radius: 20px;
   position: relative;
-  overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  scrollbar-width: thin;
-  scrollbar-color: #c49a2c transparent;
+  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.8);
   font-family: 'Inter', sans-serif;
   color: white;
+  border: 1px solid rgba(196, 154, 44, 0.1);
+  /* Remove height restrictions to allow natural content flow */
+  max-height: none;
+  overflow-y: visible;
 }
 
 /* Custom Gold Scrollbar */
 .package-modal-content::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 .package-modal-content::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 4px;
+  background: transparent;
 }
 
 .package-modal-content::-webkit-scrollbar-thumb {
   background: #c49a2c;
-  border-radius: 4px;
+  border-radius: 10px;
 }
 
 .package-modal-content::-webkit-scrollbar-thumb:hover {
@@ -52,30 +53,28 @@
 
 .modal-close-btn {
   position: absolute;
-  top: 20px;
-  right: 20px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  top: 25px;
+  right: 25px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 50%;
-  width: 50px;
-  height: 50px;
+  width: 44px;
+  height: 44px;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
   z-index: 100;
   color: white;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-  touch-action: manipulation;
-  backdrop-filter: blur(5px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
 }
 
 .modal-close-btn:hover {
-  background: #c49a2c;
+  background: #ef4444; /* Changed to red for clear destructive action */
   color: white;
-  border-color: #c49a2c;
-  transform: scale(1.05);
+  border-color: #ef4444;
+  transform: rotate(90deg);
 }
 
 @media (max-width: 768px) {
@@ -95,6 +94,8 @@
   gap: 40px;
   padding: 60px 40px 40px 40px;
   align-items: flex-start;
+  overflow-x: hidden;
+  position: relative;
 }
 
 /* Left Column */
@@ -232,8 +233,12 @@
 
 .modal-check-item { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 500; color: white; }
 
-/* Right Column: Sticky Pricing Sidebar */
-.modal-right-col { width: 340px; flex-shrink: 0; position: sticky; top: 0; }
+/* Right Column: Pricing Sidebar */
+.modal-right-col { 
+  width: 340px; 
+  flex-shrink: 0; 
+  position: relative; /* Changed from sticky to relative since overlay scrolls now */
+}
 
 .modal-booking-widget {
   background: rgba(255, 255, 255, 0.03);

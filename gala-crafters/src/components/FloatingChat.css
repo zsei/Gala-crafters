@@ -139,10 +139,39 @@
   font-weight: 500;
 }
 
+/* Typing Indicator */
+.typing-indicator {
+  display: flex;
+  gap: 4px;
+  padding: 4px 0;
+}
+
+.typing-indicator span {
+  width: 6px;
+  height: 6px;
+  background: #c49a2c;
+  border-radius: 50%;
+  opacity: 0.4;
+  animation: typing 1.4s infinite ease-in-out;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing {
+  0%, 100% { transform: translateY(0); opacity: 0.4; }
+  50% { transform: translateY(-4px); opacity: 1; }
+}
+
 .chat-input-area {
   padding: 15px 20px;
-  background: #0f172a; /* Explicit dark background to match the window */
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: #ffffff; /* Set to white to match the user's view and system theme */
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
   display: flex;
   align-items: center;
   gap: 12px;
@@ -174,8 +203,8 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: 10px;
   padding: 5px;
 }
@@ -214,10 +243,14 @@
   background: transparent;
   border: none;
   padding: 8px 10px;
-  color: #ffffff !important; /* Force white text */
+  color: #000000 !important; /* Set to black so it's readable on white background */
   outline: none;
   font-size: 14px;
   width: 100%;
+}
+
+.input-wrapper input::placeholder {
+  color: #666666;
 }
 
 .chat-send-btn {
@@ -249,7 +282,7 @@
   bottom: 0;
   background: rgba(0, 0, 0, 0.9);
   backdrop-filter: blur(10px);
-  z-index: 10000;
+  z-index: 1000000;
   display: flex;
   align-items: center;
   justify-content: center;

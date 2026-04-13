@@ -79,18 +79,20 @@ def get_dashboard_metrics():
 
 
 def get_pending_approvals():
-    """Get all pending approvals"""
+    """Get all pending approvals from real bookings data"""
     query = """
     SELECT 
-        id,
-        approval_type,
-        customer_name,
-        description,
-        status,
-        created_at
-    FROM pending_approvals
-    WHERE status = 'Pending'
-    ORDER BY created_at DESC
+        b.id,
+        'New Booking' as approval_type,
+        u.first_name || ' ' || u.last_name as customer_name,
+        'New reservation for ' || ep.package_name || ' on ' || TO_CHAR(b.event_date, 'DD/MM/YYYY') as description,
+        b.status,
+        b.created_at
+    FROM bookings b
+    JOIN users u ON b.customer_id = u.id
+    JOIN event_packages ep ON b.package_id = ep.id
+    WHERE b.status = 'Pending'
+    ORDER BY b.created_at DESC
     """
     return execute_raw_query(query)
 
@@ -109,6 +111,16 @@ def get_recent_messages(limit: int = 10):
     FROM messages
     ORDER BY created_at DESC
     LIMIT {limit}
+    """
+    return execute_raw_query(query)
+
+
+def get_unread_counts():
+    """Get unread message counts for sidebar badges"""
+    query = """
+    SELECT 
+        (SELECT COUNT(*) FROM messages WHERE status = 'Unread') AS inquiry_count,
+        (SELECT COUNT(*) FROM admin_messages WHERE sender_type = 'user' AND is_read = false) AS message_count
     """
     return execute_raw_query(query)
 
@@ -152,9 +164,13 @@ def get_available_packages():
         package_name,
         event_type,
         description,
+        detailed_description,
         base_price,
+        min_guests,
         max_guests,
+        extra_pax_rate,
         features,
+        included_items,
         image_url,
         status
     FROM event_packages
@@ -193,14 +209,14 @@ def get_all_reviews():
 
 
 def get_sales_report():
-    """Get monthly and yearly sales reports"""
+    """Get monthly and yearly sales reports from all bookings except cancelled"""
     monthly_query = """
     SELECT 
         TO_CHAR(event_date, 'YYYY-MM') as month,
         COUNT(*) as total_bookings,
         SUM(total_price) as total_sales
     FROM bookings
-    WHERE status != 'Cancelled'
+    WHERE status NOT IN ('Cancelled', 'Deleted')
     GROUP BY month
     ORDER BY month DESC
     """
@@ -211,7 +227,7 @@ def get_sales_report():
         COUNT(*) as total_bookings,
         SUM(total_price) as total_sales
     FROM bookings
-    WHERE status != 'Cancelled'
+    WHERE status NOT IN ('Cancelled', 'Deleted')
     GROUP BY year
     ORDER BY year DESC
     """
@@ -270,6 +286,12 @@ def get_booking_status_distribution():
     FROM bookings
     GROUP BY status
     """
+    return execute_raw_query(query)
+
+
+def get_admin_users():
+    """Get all admin/staff users"""
+    query = "SELECT id, name, email, role, status, phone, created_at FROM admin_users ORDER BY created_at DESC"
     return execute_raw_query(query)
 
 

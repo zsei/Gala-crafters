@@ -1,16 +1,17 @@
 import React, { useRef, useState, useEffect } from 'react';
 import './MenuSlider.css';
-import img1 from '../assets/vintage.jpg';
-import img2 from '../assets/blue.jpg';
-import img3 from '../assets/pink.jpg';
-import img4 from '../assets/img11.jpg';
+import img1 from '../assets/1q.jpg';
+import sigPlatedImg from '../assets/sigplated.png';
+import internationalImg from '../assets/international.png';
+import karekareImg from '../assets/karekare.png';
+import kidsMenuImg from '../assets/kidsmenu.png';
 
 const originalMenus = [
     { id: 1, title: 'Chefs Special', img: img1 },
-    { id: 2, title: 'Signature Plated', img: img2 },
-    { id: 3, title: 'International Menu', img: img3 },
-    { id: 4, title: 'Traditional Filipino', img: img4 },
-    { id: 5, title: 'Kids Menu', img: img1 },
+    { id: 2, title: 'Signature Plated', img: sigPlatedImg },
+    { id: 3, title: 'International Menu', img: internationalImg },
+    { id: 4, title: 'Traditional Filipino', img: karekareImg },
+    { id: 5, title: 'Kids Menu', img: kidsMenuImg },
 ];
 
 // Duplicate the menus to create the infinite scroll illusion

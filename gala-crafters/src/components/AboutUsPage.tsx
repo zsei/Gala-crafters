@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import img1 from '../assets/img1.jpg';
-import img2 from '../assets/img5.jpg';
-import img3 from '../assets/img3.jpg';
+import art8 from '../assets/art8.jpg';
+import art9 from '../assets/art9.jpg';
+import art10 from '../assets/art10.jpg';
 
-const sliderImages = [img1, img3, img2];
+const sliderImages = [art8, art9, art10];
 
 function AboutUsPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -63,7 +63,7 @@ function AboutUsPage() {
       {/* 3. ENHANCED VISION SECTION */}
       <section
         className="enhanced-vm-section enhanced-vision"
-        style={{ '--bg-img': `url(${img1})` } as React.CSSProperties}
+        style={{ '--bg-img': `url(${art8})` } as React.CSSProperties}
       >
         <div className="enhanced-vm-container">
           <div className="enhanced-vm-card">
@@ -84,7 +84,7 @@ function AboutUsPage() {
       {/* 4. ENHANCED MISSION SECTION */}
       <section
         className="enhanced-vm-section enhanced-mission"
-        style={{ '--bg-img': `url(${img3})` } as React.CSSProperties}
+        style={{ '--bg-img': `url(${art10})` } as React.CSSProperties}
       >
         <div className="enhanced-vm-container">
           <div className="enhanced-vm-card">

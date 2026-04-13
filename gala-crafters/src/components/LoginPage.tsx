@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { authService } from '../api/auth';
+import art9 from '../assets/art9.jpg';
 import './Auth.css';
 
 const LoginPage = () => {
@@ -71,8 +72,13 @@ const LoginPage = () => {
     };
 
     return (
-        <div className="auth-page">
-            <div className="auth-form-side">
+        <div className="auth-page" style={{
+            backgroundImage: `linear-gradient(to right, rgba(10, 15, 29, 0.98) 0%, rgba(10, 15, 29, 0.95) 40%, rgba(10, 15, 29, 0.6) 100%), url(${art9})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat'
+        }}>
+            <div className="auth-form-side" style={{ background: 'transparent' }}>
                 <div className="auth-container">
 
                     <Link to="/" className="back-to-home">
@@ -209,8 +215,6 @@ const LoginPage = () => {
                     </div>
                 </div>
             </div>
-
-            <div className="auth-image-side"></div>
         </div>
     );
 };

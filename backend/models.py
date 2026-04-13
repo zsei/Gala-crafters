@@ -38,6 +38,7 @@ class User(Base):
     # Relationships
     bookings = relationship("Booking", back_populates="customer")
     reviews = relationship("Review", back_populates="customer")
+    notifications = relationship("Notification", back_populates="user")
 
 
 class AdminUser(Base):
@@ -49,6 +50,7 @@ class AdminUser(Base):
     email = Column(String(255), unique=True, nullable=False, index=True)
     password = Column(String(255), nullable=False)
     phone = Column(String(20))
+    image_url = Column(String(500))
     role = Column(String(100), nullable=False)
     status = Column(String(50), default="Active")
     created_at = Column(DateTime, default=gala_dt.datetime.utcnow)
@@ -63,9 +65,13 @@ class EventPackage(Base):
     package_name = Column(String(150), nullable=False)
     event_type = Column(String(100), nullable=False)
     description = Column(Text)
+    detailed_description = Column(Text)
     base_price = Column(Float, nullable=False)
+    min_guests = Column(Integer, default=1)
     max_guests = Column(Integer)
+    extra_pax_rate = Column(Float, default=350.0)
     features = Column(ARRAY(String), default=[])
+    included_items = Column(Text) # Storing as JSON string for simplicity across DBs, or use JSON type
     image_url = Column(String(500))
     status = Column(String(50), default="Active")
     created_at = Column(DateTime, default=gala_dt.datetime.utcnow)
@@ -151,6 +157,7 @@ class Message(Base):
     email = Column(String(255), nullable=False)
     phone = Column(String(20))
     message_subject = Column(String(255))
+    event_type = Column(String(100))
     message_body = Column(Text, nullable=False)
     image_url = Column(String(500))
     status = Column(String(50), default="Unread")
@@ -244,4 +251,31 @@ class Review(Base):
     # Relationships
     customer = relationship("User", back_populates="reviews")
     booking = relationship("Booking", back_populates="reviews")
+
+
+class Notification(Base):
+    """User notification model"""
+    __tablename__ = "notifications"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    message = Column(Text, nullable=False)
+    is_read = Column(Boolean, default=False)
+    notification_type = Column(String(50)) # "booking", "promo", "system"
+    created_at = Column(DateTime, default=gala_dt.datetime.utcnow)
+
+    # Relationships
+    user = relationship("User", back_populates="notifications")
+
+
+class AuditLog(Base):
+    """Admin action audit log model"""
+    __tablename__ = "audit_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    admin_id = Column(Integer)
+    admin_name = Column(String(150))
+    action = Column(String(255), nullable=False)
+    details = Column(Text)
+    created_at = Column(DateTime, default=gala_dt.datetime.utcnow)
 

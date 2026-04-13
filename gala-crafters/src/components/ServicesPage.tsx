@@ -1,15 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import BookingModal from './BookingModal';
-import img1 from '../assets/img1.jpg';
-import img2 from '../assets/img5.jpg';
-import img3 from '../assets/img3.jpg';
+import sigPlatedImg from '../assets/sigplated.png';
+import internationalImg from '../assets/international.png';
+import karekareImg from '../assets/karekare.png';
+import kidsMenuImg from '../assets/kidsmenu.png';
+import img2a from '../assets/img2a.jpg';
+import img1q from '../assets/1q.jpg';
+import vintageGold from '../assets/Vintage-Gold.jpg';
+import banner2 from '../assets/banner-2.jpg';
+import whitegold from '../assets/whitegold.jpg';
 import slider1 from '../assets/banner-7.jpg';
 import slider2 from '../assets/img1a.jpg';
 import slider3 from '../assets/DSC9804.jpg';
 import slider4 from '../assets/glamour-2.jpg';
 
-const sliderImages = [img3, slider1, slider2, slider3, slider4];
+const sliderImages = [vintageGold, banner2, whitegold];
 
 function ServicesPage() {
   // Scrolls to the top when the page loads
@@ -80,7 +86,7 @@ function ServicesPage() {
 
           <Link to="/services/weddings" className="srv-card-link">
             <div className="srv-card">
-              <div className="srv-card-bg" style={{ backgroundImage: `url(${img3})` }}></div>
+              <div className="srv-card-bg" style={{ backgroundImage: `url(${slider4})` }}></div>
               <div className="srv-card-content">
                 <h4 style={{ color: '#c49a2c', fontFamily: "'Playfair Display', serif" }}>Weddings</h4>
                 <div style={{ width: '40px', height: '2px', background: '#c49a2c', marginBottom: '12px' }}></div>
@@ -92,7 +98,7 @@ function ServicesPage() {
 
           <Link to="/corporate" className="srv-card-link">
             <div className="srv-card">
-              <div className="srv-card-bg" style={{ backgroundImage: `url(${img3})` }}></div>
+              <div className="srv-card-bg" style={{ backgroundImage: `url(${slider1})` }}></div>
               <div className="srv-card-content">
                 <h4 style={{ color: '#c49a2c', fontFamily: "'Playfair Display', serif" }}>Corporate Events</h4>
                 <div style={{ width: '40px', height: '2px', background: '#c49a2c', marginBottom: '12px' }}></div>
@@ -104,7 +110,7 @@ function ServicesPage() {
 
           <Link to="/debut" className="srv-card-link">
             <div className="srv-card">
-              <div className="srv-card-bg" style={{ backgroundImage: `url(${img3})` }}></div>
+              <div className="srv-card-bg" style={{ backgroundImage: `url(${slider2})` }}></div>
               <div className="srv-card-content">
                 <h4 style={{ color: '#c49a2c', fontFamily: "'Playfair Display', serif" }}>Debuts</h4>
                 <div style={{ width: '40px', height: '2px', background: '#c49a2c', marginBottom: '12px' }}></div>
@@ -121,7 +127,7 @@ function ServicesPage() {
 
           <Link to="/services/childrens-party" className="srv-card-link">
             <div className="srv-card">
-              <div className="srv-card-bg" style={{ backgroundImage: `url(${img3})` }}></div>
+              <div className="srv-card-bg" style={{ backgroundImage: `url(${slider3})` }}></div>
               <div className="srv-card-content">
                 <h4 style={{ color: '#c49a2c', fontFamily: "'Playfair Display', serif" }}>Children's Party</h4>
                 <div style={{ width: '40px', height: '2px', background: '#c49a2c', marginBottom: '12px' }}></div>
@@ -133,7 +139,7 @@ function ServicesPage() {
 
           <Link to="/services/special-occasions" className="srv-card-link">
             <div className="srv-card">
-              <div className="srv-card-bg" style={{ backgroundImage: `url(${img3})` }}></div>
+              <div className="srv-card-bg" style={{ backgroundImage: `url(${slider1})` }}></div>
               <div className="srv-card-content">
                 <h4 style={{ color: '#c49a2c', fontFamily: "'Playfair Display', serif" }}>Special Occasions</h4>
                 <div style={{ width: '40px', height: '2px', background: '#c49a2c', marginBottom: '12px' }}></div>
@@ -147,16 +153,17 @@ function ServicesPage() {
       </section>
 
       {/* 3.5 DEBUT EXPERIENCE SECTION */}
-      <section className="debut-experience-section">
-        <div className="debut-experience-container">
-          <div className="debut-experience-text">
-            <h2>The Gala Crafter Experience</h2>
+      <section className="debut-experience-section" style={{ padding: '0' }}>
+        <div className="menu-slider-container" style={{ gridTemplateColumns: 'max(40px, calc((100% - 1500px) / 2 + 40px)) 400px 80px minmax(0, 1fr)', padding: '0' }}>
+          <div className="menu-slider-info" style={{ gridColumn: '2', padding: '120px 0' }}>
+            <h2 style={{ fontSize: '42px', marginBottom: '30px' }}>The Gala Crafter Experience</h2>
             <div className="gold-line" style={{ margin: '0 0 20px 0' }}></div>
-            <p>
-              We understand that your event is more than just a gathering; it’s a milestone worth celebrating perfectly. Our team takes a comprehensive approach to event planning, moving beyond traditional catering to offer a complete styling and management experience. We work closely with you to curate menus, design stunning venues, and oversee the logistics of the day, making sure your vision comes to life exactly as you imagined.            </p>
+            <p style={{ color: '#ffffff', fontSize: '14px', lineHeight: '1.8' }}>
+              We understand that your event is more than just a gathering; it’s a milestone worth celebrating perfectly. Our team takes a comprehensive approach to event planning, moving beyond traditional catering to offer a complete styling and management experience. We work closely with you to curate menus, design stunning venues, and oversee the logistics of the day, making sure your vision comes to life exactly as you imagined.
+            </p>
           </div>
-          <div className="debut-experience-image">
-            <img src={img1} alt="Debut Event Setup" />
+          <div className="debut-experience-image" style={{ gridColumn: '4', height: '100%' }}>
+            <img src={img2a} alt="Debut Event Setup" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
           </div>
         </div>
       </section>
@@ -242,7 +249,7 @@ function ServicesPage() {
               </div>
             </div>
             <div className="service-image">
-              <img src={img1} alt="Chef's Special" />
+              <img src={img1q} alt="Chef's Special" />
             </div>
           </div>
 
@@ -263,7 +270,7 @@ function ServicesPage() {
               </div>
             </div>
             <div className="service-image">
-              <img src={img2} alt="Signature Plated" />
+              <img src={sigPlatedImg} alt="Signature Plated" />
             </div>
           </div>
 
@@ -285,7 +292,7 @@ function ServicesPage() {
               </div>
             </div>
             <div className="service-image">
-              <img src={img3} alt="International Menu" />
+              <img src={internationalImg} alt="International Menu" />
             </div>
           </div>
 
@@ -306,18 +313,18 @@ function ServicesPage() {
               </div>
             </div>
             <div className="service-image">
-              <img src={img2} alt="Signature Plated" />
+              <img src={karekareImg} alt="Traditional Filipino" />
             </div>
           </div>
 
            <div className="service-row">
             <div className="service-text">
-              <h3>International Menu</h3>
+              <h3>Kids Menu</h3>
               <div style={{ width: '40px', height: '2px', background: '#c49a2c', marginBottom: '15px' }}></div>
               <div style={{ fontSize: '15px', lineHeight: '2', color: '#ffffff', opacity: '0.9' }}>
                 <ul style={{ listStyleType: 'disc', paddingLeft: '20px', margin: 0 }}>
                   <li>Chicken Nuggets or Chicken Lollipops</li>
-                  <li>Hotdog on a Stick with Marshmallows)</li>
+                  <li>Hotdog on a Stick with Marshmallows</li>
                   <li>Burger Steak with Mushroom Sauce</li>
                   <li>Macaroni and Cheese or Baked Macaroni</li>
                   <li>Mini Burgers with Cheese</li>
@@ -327,7 +334,7 @@ function ServicesPage() {
               </div>
             </div>
             <div className="service-image">
-              <img src={img3} alt="International Menu" />
+              <img src={kidsMenuImg} alt="Kids Menu" />
             </div>
           </div>
 
