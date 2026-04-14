@@ -36,6 +36,8 @@ Gala Crafters is an event management CRM system with:
 
 ### 1. Start Backend Server
 
+The backend now features **Automatic Database Schema Synchronization**. Whenever you start the server, it will automatically check your database and add any missing columns or tables defined in `models.py`.
+
 ```bash
 cd backend
 python main.py
