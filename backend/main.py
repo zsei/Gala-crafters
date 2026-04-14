@@ -37,9 +37,11 @@ from auth_endpoints import (
     update_booking_statuses_by_date,
 )
 import database_setup
+import ensure_db_schema
 
 # Create the database tables automatically
-models.Base.metadata.create_all(bind=engine)
+# models.Base.metadata.create_all(bind=engine)
+ensure_db_schema.ensure_schema()
 
 app = FastAPI(
     title="Gala Crafters API",
